@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetTab = btn.dataset.tab;
             
             navBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
 
             btn.classList.add('active');
             let targetElem = document.getElementById(`tab-${targetTab}`);
