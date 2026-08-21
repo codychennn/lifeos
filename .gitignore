@@ -1,0 +1,27 @@
+# Environment Variables
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Python & Virtual Environments
+.venv/
+venv/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite Database Data
+personal_assistant.db
+*.db-journal
+
+# Scratch & Log Files
+scratch/
+*.log
+*.exe
+
+# OS generated files
+.DS_Store
+Thumbs.db

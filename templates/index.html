@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Assistant - 自動化資訊與記帳整合系統</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dark-theme">
+    <!-- Background Animated Gradient Orbs -->
+    <div class="bg-gradient-orb orb-1"></div>
+    <div class="bg-gradient-orb orb-2"></div>
+    <div class="bg-gradient-orb orb-3"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass-panel">
+            <!-- 世界潮牌新品輪播動態牆 (Top-Left Dynamic Fashion Wall) -->
+            <div class="trendy-brands-wall glass-card" style="margin-bottom: 20px; padding: 14px 16px; background: linear-gradient(135deg, rgba(232,165,184,0.2) 0%, rgba(91,124,153,0.18) 100%); border: 1px solid rgba(91,124,153,0.3); border-radius: 14px; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="badge" style="background: rgba(91,124,153,0.2); color: var(--primary-color); border: 1px solid rgba(91,124,153,0.4); font-size: 11px; font-weight: 800;">🔥 世界潮牌動態牆</span>
+                        <span style="font-size: 10px; color: var(--accent-tea); font-weight: 700;">● LIVE</span>
+                    </div>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="prevBrandItem()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFFFFF; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="nextBrandItem()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFFFFF; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div id="brand-ticker-content" style="min-height: 52px; display: flex; flex-direction: column; justify-content: center; transition: all 0.4s ease;">
+                    <!-- Loaded via JS Carousel -->
+                </div>
+            </div>
+
+                                    <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="home" style="padding: 10px 14px; border-radius: 12px; margin-bottom: 4px;">
+                    <i class="fa-solid fa-house" style="color: #38BDF8;"></i>
+                    <span style="font-weight: 600; font-size: 13px;">首頁 (Home)</span>
+                </button>
+
+                <button class="nav-btn" data-tab="bento" style="padding: 10px 14px; border-radius: 12px; margin-bottom: 4px;">
+                    <i class="fa-solid fa-chart-pie" style="color: #60A5FA;"></i>
+                    <span style="font-weight: 600; font-size: 13px;">儀表板 (Dashboard)</span>
+                </button>
+
+                <!-- Travel Category & Sub-tabs -->
+                <div style="margin: 8px 0 4px 4px; font-size: 10px; font-weight: 800; color: #38BDF8; letter-spacing: 1px;">✈️ 旅遊 (TRAVEL)</div>
+                <button class="nav-btn" data-tab="guide2026" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-database" style="color: #38BDF8;"></i>
+                    <span>🗺️ 11,272+ 景點智庫</span>
+                </button>
+                <button class="nav-btn" data-tab="uswest" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-route" style="color: #38BDF8;"></i>
+                    <span>🇺🇸 美西自駕特輯</span>
+                </button>
+                <button class="nav-btn" data-tab="travelbook" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-book-bookmark" style="color: #38BDF8;"></i>
+                    <span>🧳 自訂行程編排</span>
+                </button>
+                <button class="nav-btn" data-tab="aiplanner" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color: #38BDF8;"></i>
+                    <span>🤖 AI 智慧旅遊規劃</span>
+                </button>
+                <button class="nav-btn" data-tab="budget" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-calculator" style="color: #38BDF8;"></i>
+                    <span>💵 預算動態計算器</span>
+                </button>
+                <button class="nav-btn" data-tab="cms" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 4px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-folder-tree" style="color: #38BDF8;"></i>
+                    <span>📍 CMS 內容與地圖</span>
+                </button>
+
+                                <button class="nav-btn" data-tab="lifestyle" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-mug-hot" style="color: #34D399;"></i>
+                    <span>☕ 生活日常 (新加坡星巴克/餐飲)</span>
+                </button>
+
+                <!-- Finance Category & Sub-tabs -->
+                <div style="margin: 10px 0 4px 4px; font-size: 10px; font-weight: 800; color: #FBBF24; letter-spacing: 1px;">💰 財務 (FINANCE)</div>
+                <button class="nav-btn" data-tab="asset" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-building-columns" style="color: #FBBF24;"></i>
+                    <span>🏦 防禦資產 LTV</span>
+                </button>
+                <button class="nav-btn" data-tab="expenses" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-wallet" style="color: #FBBF24;"></i>
+                    <span>💳 智慧記帳明細</span>
+                </button>
+                <button class="nav-btn" data-tab="stocks" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 3px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-chart-line" style="color: #FBBF24;"></i>
+                    <span>📈 WSJ 美股台股新聞</span>
+                </button>
+                <button class="nav-btn" data-tab="deals" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 4px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-tags" style="color: #FBBF24;"></i>
+                    <span>🏷️ 特價優惠監控</span>
+                </button>
+
+                <!-- Knowledge Category -->
+                <div style="margin: 10px 0 4px 4px; font-size: 10px; font-weight: 800; color: #C084FC; letter-spacing: 1px;">📜 智庫 (KNOWLEDGE)</div>
+                <button class="nav-btn" data-tab="jewish" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 4px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-star-of-david" style="color: #C084FC;"></i>
+                    <span>✡️ 猶太商道與新聞</span>
+                </button>
+
+                <!-- Golf Category -->
+                <div style="margin: 10px 0 4px 4px; font-size: 10px; font-weight: 800; color: #34D399; letter-spacing: 1px;">⛳ 高爾夫 (GOLF)</div>
+                <button class="nav-btn" data-tab="golf" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 4px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-golf-ball-tee" style="color: #34D399;"></i>
+                    <span>⛳ 高爾夫門戶 (Golf Hub)</span>
+                </button>
+
+                <!-- Settings -->
+                <div style="margin: 10px 0 4px 4px; font-size: 10px; font-weight: 800; color: #94A3B8; letter-spacing: 1px;">⚙️ 系統 (SETTINGS)</div>
+                <button class="nav-btn" data-tab="settings" style="padding: 8px 12px; border-radius: 10px; margin-bottom: 4px; margin-left: 8px; font-size: 12px;">
+                    <i class="fa-solid fa-sliders" style="color: #94A3B8;"></i>
+                    <span>⚙️ 系統設定與 Telegram</span>
+                </button>
+            </nav>
+
+            <div class="crawler-trigger-box" style="margin-top: auto; padding-top: 14px;">
+                <button id="btn-trigger-crawler" class="action-btn glow-btn" style="border-radius: 12px; background: rgba(91,124,153,0.12); color: var(--primary-color); border: 1px solid rgba(91,124,153,0.25);">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>立即執行全網掃描</span>
+                </button>
+                <div id="crawler-status-msg" class="status-msg"></div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Simple & Generous Header Bar (Clean Dark Architectural Theme) -->
+            <header class="top-header glass-panel" style="margin-bottom: 20px; padding: 16px 24px; background: rgba(17, 21, 30, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);">
+                <div>
+                    <h1 id="page-title" style="font-size: 20px; font-weight: 500; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; letter-spacing: 0.5px; margin: 0 0 4px 0;">
+                        Cody 的個人數位大腦
+                    </h1>
+                    <p id="page-desc" style="font-size: 11px; color: #94A3B8; font-weight: 500; margin: 0; text-transform: uppercase; letter-spacing: 1.5px;">
+                        極簡 AI 工作台 ‧ 模組化儀表板 (Digital Brain Dashboard 2.0)
+                    </p>
+                </div>
+
+                <!-- Live Automation Weather & Currency Ticker -->
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <div style="padding: 6px 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; font-size: 11px; color: #94A3B8;">
+                        <span id="header-weather-info">☀️ 洛杉磯 24°C 晴朗</span>
+                    </div>
+                    <div style="padding: 6px 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; font-size: 11px; color: #94A3B8;">
+                        <span>💱 匯率: 1 USD = 32.05 TWD</span>
+                    </div>
+                </div>
+
+                <!-- Header Actions: Command Palette (Ctrl+K) & Role-Based View Switcher (規約 1 & 6) -->
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="pill-action-btn" onclick="openCommandPalette()" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;">
+                        <i class="fa-solid fa-terminal" style="margin-right: 4px;"></i> Ctrl+K 指令板
+                    </button>
+                    
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 11px; color: #94A3B8;">視角:</span>
+                        <select id="role-view-selector" class="cyber-input" style="padding: 6px 10px; font-size: 11px; border-radius: 14px;" onchange="switchRoleView(this.value)">
+                            <option value="admin" selected>👑 Power Admin 視角 (完整設定)</option>
+                            <option value="senior">👴 Senior Family 視角 (大字大動線)</option>
+                            <option value="print">📄 PDF Print 視角 (極簡列印)</option>
+                        </select>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Section: Home Landing Page (Executive Standard) -->
+            <section id="tab-home" class="tab-content active">
+                <div class="home-hero-card">
+                    <h1 class="home-hero-title">LifeOS</h1>
+                    <p class="home-hero-subtitle">Your Personal AI Operating System</p>
+                    <div style="display: flex; justify-content: center; gap: 16px;">
+                        <button onclick="switchTab('dashboard')" class="glow-btn" style="width: auto; padding: 12px 28px; font-size: 14px;">
+                            <i class="fa-solid fa-rocket"></i> 開始使用 LifeOS
+                        </button>
+                        <button onclick="switchTab('travel')" class="pill-action-btn" style="padding: 12px 24px; font-size: 12px;">
+                            <i class="fa-solid fa-compass"></i> 瀏覽旅遊智庫
+                        </button>
+                    </div>
+
+                    <!-- 4 Core Modules Entrance Grid -->
+                    <div class="home-module-grid">
+                        <div class="home-module-card" onclick="switchTab('travel')">
+                            <div>
+                                <div style="font-size: 28px; color: #38BDF8; margin-bottom: 12px;"><i class="fa-solid fa-plane"></i></div>
+                                <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Travel</h3>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin: 0;">11,272+ 景點庫 ‧ 美西 15 天自駕 ‧ AI 行程規劃 ‧ 預算計算</p>
+                            </div>
+                            <span style="font-size: 12px; color: #38BDF8; font-weight: 600;">開啟模組 <i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+
+                        <div class="home-module-card" onclick="switchTab('finance')">
+                            <div>
+                                <div style="font-size: 28px; color: #FBBF24; margin-bottom: 12px;"><i class="fa-solid fa-wallet"></i></div>
+                                <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Finance</h3>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin: 0;">理財型房貸 LTV ‧ 智慧記帳 ‧ WSJ 美股台股新聞 ‧ 特價優惠</p>
+                            </div>
+                            <span style="font-size: 12px; color: #FBBF24; font-weight: 600;">開啟模組 <i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+
+                        <div class="home-module-card" onclick="switchTab('knowledge')">
+                            <div>
+                                <div style="font-size: 28px; color: #C084FC; margin-bottom: 12px;"><i class="fa-solid fa-book-open"></i></div>
+                                <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Knowledge</h3>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin: 0;">瞬時靈感隨手記 (N) ‧ 猶太商道 ‧ 塔木德洞察 ‧ AI 摘要</p>
+                            </div>
+                            <span style="font-size: 12px; color: #C084FC; font-weight: 600;">開啟模組 <i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+
+                        <div class="home-module-card" onclick="switchTab('golf')">
+                            <div>
+                                <div style="font-size: 28px; color: #34D399; margin-bottom: 12px;"><i class="fa-solid fa-golf-ball-tee"></i></div>
+                                <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Golf</h3>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin: 0;">Honma/Qi10 新品 ‧ 二手認證網站 ‧ 川奈/圓石灘球場預訂</p>
+                            </div>
+                            <span style="font-size: 12px; color: #34D399; font-weight: 600;">開啟模組 <i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Preview Summary Section -->
+                <div style="margin-top: 24px; padding: 24px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: #FFFFFF;"><i class="fa-solid fa-gauge-high" style="color: #38BDF8; margin-right: 8px;"></i> Dashboard Overview Preview</h3>
+                        <button onclick="switchTab('dashboard')" class="pill-action-btn" style="font-size: 11px;">檢視完整儀表板</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;">
+                        <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                            <span style="font-size: 11px; color: #94A3B8;">總資產 LTV</span>
+                            <div style="font-size: 18px; font-weight: 700; color: #34D399; margin-top: 4px;">53.57% 🟢</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                            <span style="font-size: 11px; color: #94A3B8;">防禦現金流</span>
+                            <div style="font-size: 18px; font-weight: 700; color: #38BDF8; margin-top: 4px;">15 個月</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                            <span style="font-size: 11px; color: #94A3B8;">美西自駕倒數</span>
+                            <div style="font-size: 18px; font-weight: 700; color: #FBBF24; margin-top: 4px;">42 天</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                            <span style="font-size: 11px; color: #94A3B8;">嚴選景點智庫</span>
+                            <div style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">11,272 筆</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                            <span style="font-size: 11px; color: #94A3B8;">Cloudflare Tunnel</span>
+                            <div style="font-size: 18px; font-weight: 700; color: #34D399; margin-top: 4px;">ONLINE</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Tab: 通用智慧旅遊景點與美食資料庫智庫 (Travel Hub) -->
+            <section id="tab-guide2026" class="tab-content active">
+
+                <!-- Universal Travel Sub-Navigation Bar -->
+                <div class="sub-nav-bar" style="margin-bottom: 20px; display: flex; gap: 8px; background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); padding: 8px 12px; border-radius: 14px; flex-wrap: wrap;">
+                    <button class="sub-nav-btn" data-travel-tab="guide2026" onclick="switchTab('guide2026')"><i class="fa-solid fa-database"></i> 🗺️ 11,272+ 景點智庫</button>
+                    <button class="sub-nav-btn" data-travel-tab="uswest" onclick="switchTab('uswest')"><i class="fa-solid fa-route"></i> 🇺🇸 美西自駕特輯</button>
+                    <button class="sub-nav-btn" data-travel-tab="travelbook" onclick="switchTab('travelbook')"><i class="fa-solid fa-book-bookmark"></i> 🧳 自訂行程編排</button>
+                    <button class="sub-nav-btn" data-travel-tab="aiplanner" onclick="switchTab('aiplanner')"><i class="fa-solid fa-wand-magic-sparkles"></i> 🤖 AI 智慧旅遊規劃</button>
+                    <button class="sub-nav-btn" data-travel-tab="budget" onclick="switchTab('budget')"><i class="fa-solid fa-calculator"></i> 💵 預算動態計算器</button>
+                    <button class="sub-nav-btn" data-travel-tab="cms" onclick="switchTab('cms')"><i class="fa-solid fa-folder-tree"></i> 📍 CMS 管理與地圖</button>
+                </div>
+
+                <div class="grid-layout">
+                    <!-- 全球萬級 Tripadvisor 4.5★ 景點與美食動態資料庫智庫 (可擴充至 100,000+ 萬級庫容量) -->
+                    <div class="card glass-card span-3" style="margin-top: 10px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); color: #FFFFFF; border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
+                        <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 14px; margin-bottom: 16px;">
+                            <div class="header-left">
+                                <i class="fa-solid fa-database icon-accent" style="color: #38BDF8; font-size: 20px;"></i>
+                                <div>
+                                    <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 19px; color: #FFFFFF; font-weight: 600; margin: 0;">
+                                        🟢 全球 11,272+ 嚴選景點美食資料庫智庫 (架構支援 100,000+ 萬級容量)
+                                    </h3>
+                                    <p style="font-size: 11px; color: #94A3B8; margin: 4px 0 0 0;">
+                                        景點資料已安全收納至資料庫，無須向下滑動；輸入關鍵字或點擊下方快捷鍵即可瞬間調閱！
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 12px; font-weight: 700; padding: 6px 14px;">
+                                📦 資料庫已收納 11,272+ 筆 4.5★ 景點與美食
+                            </span>
+                        </div>
+
+                        <div class="card-body" style="display: flex; flex-direction: column; gap: 18px; padding: 0;">
+                            
+                            <!-- Preset Recommended Search Shortcut Chips (熱門一鍵搜尋快捷列) -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 12px 16px;">
+                                <div style="font-size: 12px; font-weight: 600; color: #94A3B8; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-bolt text-gold"></i> 熱門國家與美食一鍵快捷搜尋鍵 (即點即查)：
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('東京')" style="background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.3); color: #FFFFFF;">
+                                        🇯🇵 東京 (秋葉原/晴空塔/迪士尼)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('泰國 美食')" style="background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.3); color: #FBBF24;">
+                                        🇹🇭 泰國 美食 (建興酒家/芒果糯米飯/水門雞飯)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('首爾')" style="background: rgba(192,132,252,0.15); border-color: rgba(192,132,252,0.3); color: #FFFFFF;">
+                                        🇰🇷 首爾 (明洞/韓式燒肉/景福宮)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('新加坡')" style="background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.3); color: #34D399;">
+                                        🇸🇬 新加坡 (濱海灣金沙/鬆發肉骨茶)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('美西 直升機')" style="background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.3); color: #FFFFFF;">
+                                        🇺🇸 美西 (洛杉磯/賭場/大峽谷)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('巴黎 米其林')" style="background: rgba(236,72,153,0.15); border-color: rgba(236,72,153,0.3); color: #FFFFFF;">
+                                        🇫🇷 巴黎 (羅浮宮/米其林三星)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Main Search Bar & Multi-Criteria Filters -->
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                                <div style="flex: 1; min-width: 260px;">
+                                    <input type="text" id="spot-search-input" placeholder="🔍 輸入關鍵字 (例如: 東京, 泰國 美食, 曼谷 芒果糯米飯, 巴黎 米其林)..." class="cyber-input" style="padding: 12px 18px; font-size: 14px;" onkeyup="triggerSpotSearch()">
+                                </div>
+                                <div style="width: 200px;">
+                                    <select id="spot-country-filter" class="custom-select" style="padding: 12px 14px;" onchange="triggerSpotSearch()">
+                                        <option value="all">🌍 所有國家 (All Countries)</option>
+                                        <option value="日本">🇯🇵 日本 (Japan)</option>
+                                        <option value="泰國">🇹🇭 泰國 (Thailand)</option>
+                                        <option value="韓國">🇰🇷 韓國 (Korea)</option>
+                                        <option value="新加坡">🇸🇬 新加坡 (Singapore)</option>
+                                        <option value="美國">🇺🇸 美國 (USA)</option>
+                                        <option value="法國">🇫🇷 法國 (France)</option>
+                                        <option value="英國">🇬🇧 英國 (UK)</option>
+                                        <option value="義大利">🇮🇹 義大利 (Italy)</option>
+                                        <option value="瑞士">🇨🇭 瑞士 (Switzerland)</option>
+                                        <option value="澳洲">🇦🇺 澳洲 (Australia)</option>
+                                        <option value="台灣">🇹🇼 台灣 (Taiwan)</option>
+                                        <option value="越南">🇻🇳 越南 (Vietnam)</option>
+                                        <option value="印尼">🇮🇩 印尼/峇里島 (Indonesia)</option>
+                                    </select>
+                                </div>
+                                <div style="width: 200px;">
+                                    <select id="spot-category-filter" class="custom-select" style="padding: 12px 14px;" onchange="triggerSpotSearch()">
+                                        <option value="all">🏷️ 所有類別 (All Categories)</option>
+                                        <option value="food">🍱 必吃美食與米其林餐廳</option>
+                                        <option value="attraction">🏛️ 必去地標與歷史景點</option>
+                                        <option value="shopping">🛍️ 購物商圈與 Outlet</option>
+                                        <option value="hotel">🏨 奢華渡假村與飯店</option>
+                                        <option value="entertainment">🎭 娛樂展演與主題樂園</option>
+                                        <option value="transport">🚗 交通租車與專車服務</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Spot Cards Output (Paginated max 12 cards) -->
+                            <div id="spots-library-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                                <!-- Loaded dynamically via JS -->
+                            </div>
+
+                            <!-- High Performance Pagination Bar -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; flex-wrap: wrap; gap: 10px;">
+                                <span id="spots-pagination-info" style="font-size: 12px; color: #94A3B8;">正在顯示 1 - 18 筆 (資料庫庫存共 11,272 筆)</span>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="spotGoPage(1)" class="pill-action-btn" style="padding: 6px 14px; font-size: 11px;"><i class="fa-solid fa-angles-left"></i> 第一頁</button>
+                                    <button onclick="prevSpotPage()" class="pill-action-btn" style="padding: 6px 14px; font-size: 11px;"><i class="fa-solid fa-chevron-left"></i> 上一頁</button>
+                                    <button onclick="nextSpotPage()" class="pill-action-btn" style="padding: 6px 14px; font-size: 11px;">下一頁 <i class="fa-solid fa-chevron-right"></i></button>
+                                    <button onclick="spotGoPage(626)" class="pill-action-btn" style="padding: 6px 14px; font-size: 11px;">最後一頁 <i class="fa-solid fa-angles-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: 《2026 美西公路旅行攻略》 標竿展示區 -->
+            <section id="tab-uswest" class="tab-content">
+                <div class="grid-layout">
+                    <!-- Featured Travel Book Hero Cover Card -->
+                    <div class="card glass-card span-3 featured-hero-card" style="background: rgba(17, 21, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.12); padding: 24px; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
+                        <div class="hero-cover-box" style="width: 150px; height: 200px; border-radius: 14px; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(15,23,42,0.9) 100%), url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80') center/cover; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between; padding: 12px; position: relative;">
+                            <span class="badge" style="background: rgba(56,189,248,0.2); color: #38BDF8; border: 1px solid rgba(56,189,248,0.4); align-self: flex-start; font-size: 10px; font-weight: 700;">🌸 旗艦標竿資產</span>
+                            <div>
+                                <span style="font-size: 10px; color: #94A3B8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">PARISIAN ARTIST GUIDE</span>
+                                <h4 style="font-size: 15px; font-weight: 700; color: #fff; font-family: 'Inter Tight', sans-serif; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">2026 美西公路</h4>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 280px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span class="badge" style="background: rgba(56,189,248,0.15); color: #38BDF8; font-weight: 700;">★ 核心資產攻略</span>
+                                <span style="font-size: 12px; color: #94A3B8;">發布日期：2026.01 | 版本：v2.5 Premium</span>
+                            </div>
+                            <h2 style="font-size: 24px; font-weight: 600; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin-bottom: 10px;">《2026 美西公路橫跨縱貫旅行攻略》</h2>
+                            <p style="font-size: 13px; color: #94A3B8; line-height: 1.6; margin-bottom: 16px;">
+                                橫跨西雅圖、拉斯維加斯、Page 下羚羊峽谷、馬蹄灣、大峽谷 360 度奢華直升機與洛杉磯 Crypto.com Arena 湖人隊觀賽全紀錄。內含 Hertz 租車、Tesla 超充、FasTrak 過路費與米其林三星餐飲獨家攻略。
+                            </p>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+                                <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #FFFFFF;"><i class="fa-solid fa-route"></i> Seattle ➔ Vegas ➔ Page ➔ Grand Canyon ➔ LA</span>
+                                <span class="badge" style="background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); color: #34D399;"><i class="fa-solid fa-clock"></i> 15 天黃金行程</span>
+                                <span class="badge" style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #F59E0B;"><i class="fa-solid fa-gauge-high"></i> 2,450 英哩自駕</span>
+                            </div>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="glow-btn" style="width: auto; padding: 10px 22px;" onclick="loadGuide2026('premium')"><i class="fa-solid fa-eye"></i> 觀看完整奢華攻略</button>
+                                <button class="pill-action-btn" style="padding: 10px 20px; font-size: 12px;" onclick="openCopyModal()"><i class="fa-solid fa-clone"></i> 一鍵複製此行程範本</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Integrated Route Map & Driving Metrics Component -->
+                    <div class="card glass-card span-3" style="margin-bottom: 8px;">
+                        <div class="card-header space-between">
+                            <div class="header-left">
+                                <i class="fa-solid fa-map-location-dot icon-accent" style="color: #38BDF8;"></i>
+                                <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 16px; color: #FFFFFF;">美西公路自駕互動地圖與路線數據 (Seattle ➔ LA)</h3>
+                            </div>
+                            <div style="display: flex; gap: 14px; font-size: 12px; flex-wrap: wrap;">
+                                <span style="color: #38BDF8; font-weight: 600;"><i class="fa-solid fa-road"></i> 總行駛里程：~2,450 英哩 (3,940 公里)</span>
+                                <span style="color: #34D399; font-weight: 600;"><i class="fa-solid fa-car"></i> 預估開車時間：~38 小時</span>
+                                <span style="color: #FBBF24; font-weight: 600;"><i class="fa-solid fa-sun"></i> 最佳自駕季節：5月 - 10月</span>
+                            </div>
+                        </div>
+                        <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;">
+                            <div style="width: 100%; height: 320px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12);">
+                                <iframe width="100%" height="100%" frameborder="0" style="border:0"
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3298642.348234854!2d-118.50854495!3d36.0028243!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c8c4141f4642c0%3A0x951a830999557b49!2sLas%20Vegas%2C%20NV!5e0!3m2!1szh-TW!2stw!4v1700000000000!5m2!1szh-TW!2stw" allowfullscreen></iframe>
+                            </div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #94A3B8; align-items: center;">
+                                <span>📍 <b>路線關鍵地標站點：</b></span>
+                                <span class="badge" style="background: rgba(56,189,248,0.15); color: #fff;">📍 Seattle 太空針塔</span>
+                                <span class="badge" style="background: rgba(56,189,248,0.15); color: #fff;">📍 Vegas Bellagio Resort</span>
+                                <span class="badge" style="background: rgba(56,189,248,0.15); color: #fff;">📍 Page 下羚羊峽谷 & 馬蹄灣</span>
+                                <span class="badge" style="background: rgba(56,189,248,0.15); color: #fff;">📍 Papillon 大峽谷直升機</span>
+                                <span class="badge" style="background: rgba(56,189,248,0.15); color: #fff;">📍 LAX 洛杉磯機場 (Hertz 租車)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Commercialization & Affiliate Booking Hub (Dark Blueprint Theme) -->
+                    <div class="card glass-card span-3" style="margin-bottom: 16px; background: rgba(17, 21, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px;">
+                        <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+                            <div class="header-left">
+                                <i class="fa-solid fa-cart-shopping icon-accent" style="color: #38BDF8;"></i>
+                                <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 16px; color: #FFFFFF;">商業化聯盟預訂與服務專區 (Commercial Booking Hub)</h3>
+                            </div>
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">VIP 獨家預訂折扣通道</span>
+                        </div>
+                        <div class="card-body" style="padding-top: 14px;">
+                            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;">
+                                <a href="https://www.booking.com" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.3s ease;">
+                                    <div style="font-size: 22px; color: #38BDF8; margin-bottom: 6px;"><i class="fa-solid fa-hotel"></i></div>
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #FFFFFF; margin-bottom: 4px; font-family: 'Inter Tight', sans-serif;">Booking.com</h4>
+                                    <span style="font-size: 11px; color: #94A3B8; font-weight: 500;">飯店 85 折優惠</span>
+                                </a>
+
+                                <a href="https://www.agoda.com" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.3s ease;">
+                                    <div style="font-size: 22px; color: #c084fc; margin-bottom: 6px;"><i class="fa-solid fa-bed"></i></div>
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #FFFFFF; margin-bottom: 4px; font-family: 'Inter Tight', sans-serif;">Agoda</h4>
+                                    <span style="font-size: 11px; color: #94A3B8; font-weight: 500;">全球奢華渡假村</span>
+                                </a>
+
+                                <a href="https://www.ticketmaster.com" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.3s ease;">
+                                    <div style="font-size: 22px; color: #fbbf24; margin-bottom: 6px;"><i class="fa-solid fa-basketball"></i></div>
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #FFFFFF; margin-bottom: 4px; font-family: 'Inter Tight', sans-serif;">Ticketmaster</h4>
+                                    <span style="font-size: 11px; color: #94A3B8; font-weight: 500;">NBA 湖人隊門票</span>
+                                </a>
+
+                                <a href="https://www.opentable.com" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.3s ease;">
+                                    <div style="font-size: 22px; color: #f472b6; margin-bottom: 6px;"><i class="fa-solid fa-utensils"></i></div>
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #FFFFFF; margin-bottom: 4px; font-family: 'Inter Tight', sans-serif;">OpenTable</h4>
+                                    <span style="font-size: 11px; color: #94A3B8; font-weight: 500;">米其林 3 星預約</span>
+                                </a>
+
+                                <a href="https://www.hertz.com" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.3s ease;">
+                                    <div style="font-size: 22px; color: #34d399; margin-bottom: 6px;"><i class="fa-solid fa-car-side"></i></div>
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #FFFFFF; margin-bottom: 4px; font-family: 'Inter Tight', sans-serif;">Hertz 租車</h4>
+                                    <span style="font-size: 11px; color: #94A3B8; font-weight: 500;">美國自駕獨家折扣</span>
+                                </a>
+
+                                <a href="https://www.viator.com" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.3s ease;">
+                                    <div style="font-size: 22px; color: #38BDF8; margin-bottom: 6px;"><i class="fa-solid fa-helicopter"></i></div>
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #FFFFFF; margin-bottom: 4px; font-family: 'Inter Tight', sans-serif;">Viator / Papillon</h4>
+                                    <span style="font-size: 11px; color: #94A3B8; font-weight: 500;">大峽谷直升機套票</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 全球萬級 Tripadvisor 4.5★ 景點與美食動態資料庫智庫 (可擴充至 100,000+ 萬級庫容量) -->
+                    <div class="card glass-card span-3" style="margin-top: 10px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); color: #FFFFFF; border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
+                        <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 14px; margin-bottom: 16px;">
+                            <div class="header-left">
+                                <i class="fa-solid fa-database icon-accent" style="color: #38BDF8; font-size: 20px;"></i>
+                                <div>
+                                    <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 19px; color: #FFFFFF; font-weight: 600; margin: 0;">
+                                        🟢 全球 11,272+ 嚴選景點美食資料庫智庫 (架構支援 100,000+ 萬級容量)
+                                    </h3>
+                                    <p style="font-size: 11px; color: #94A3B8; margin: 4px 0 0 0;">
+                                        景點資料已安全收納至資料庫，無須向下滑動；輸入關鍵字或點擊下方快捷鍵即可瞬間調閱！
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 12px; font-weight: 700; padding: 6px 14px;">
+                                📦 資料庫已收納 11,272+ 筆 4.5★ 景點與美食
+                            </span>
+                        </div>
+
+                        <div class="card-body" style="display: flex; flex-direction: column; gap: 18px; padding: 0;">
+                            
+                            <!-- Preset Recommended Search Shortcut Chips (熱門一鍵搜尋快捷列) -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 12px 16px;">
+                                <div style="font-size: 12px; font-weight: 600; color: #94A3B8; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-bolt text-gold"></i> 熱門國家與美食一鍵快捷搜尋鍵 (即點即查)：
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('東京')" style="background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.3); color: #FFFFFF;">
+                                        🇯🇵 東京 (秋葉原/晴空塔/迪士尼)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('泰國 美食')" style="background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.3); color: #FBBF24;">
+                                        🇹🇭 泰國 美食 (建興酒家/芒果糯米飯/水門雞飯)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('首爾')" style="background: rgba(192,132,252,0.15); border-color: rgba(192,132,252,0.3); color: #FFFFFF;">
+                                        🇰🇷 首爾 (明洞/韓式燒肉/景福宮)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('新加坡')" style="background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.3); color: #34D399;">
+                                        🇸🇬 新加坡 (濱海灣金沙/鬆發肉骨茶)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('美西 直升機')" style="background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.3); color: #FFFFFF;">
+                                        🇺🇸 美西 (洛杉磯/賭場/大峽谷)
+                                    </button>
+                                    <button class="pill-action-btn" onclick="onSpotQuickFilter('巴黎 米其林')" style="background: rgba(236,72,153,0.15); border-color: rgba(236,72,153,0.3); color: #FFFFFF;">
+                                        🇫🇷 巴黎 (羅浮宮/米其林三星)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Main Search Bar & Multi-Criteria Filters -->
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                                <div style="flex: 1; min-width: 260px;">
+                                    <input type="text" id="spot-search-input" placeholder="🔍 輸入關鍵字 (例如: 東京, 泰國 美食, 曼谷 芒果糯米飯, 巴黎 米其林)..." class="cyber-input" style="padding: 12px 18px; font-size: 14px;" onkeyup="triggerSpotSearch()">
+                                </div>
+                                <div style="width: 200px;">
+                                    <select id="spot-country-filter" class="custom-select" style="padding: 12px 14px;" onchange="triggerSpotSearch()">
+                                        <option value="all">🌍 所有國家 (All Countries)</option>
+                                        <option value="日本">🇯🇵 日本 (Japan)</option>
+                                        <option value="泰國">🇹🇭 泰國 (Thailand)</option>
+                                        <option value="韓國">🇰🇷 韓國 (Korea)</option>
+                                        <option value="新加坡">🇸🇬 新加坡 (Singapore)</option>
+                                        <option value="美國">🇺🇸 美國 (USA)</option>
+                                        <option value="法國">🇫🇷 法國 (France)</option>
+                                        <option value="英國">🇬🇧 英國 (UK)</option>
+                                        <option value="義大利">🇮🇹 義大利 (Italy)</option>
+                                        <option value="瑞士">🇨🇭 瑞士 (Switzerland)</option>
+                                        <option value="澳洲">🇦🇺 澳洲 (Australia)</option>
+                                        <option value="台灣">🇹🇼 台灣 (Taiwan)</option>
+                                        <option value="越南">🇻🇳 越南 (Vietnam)</option>
+                                        <option value="印尼">🇮🇩 印尼/峇里島 (Indonesia)</option>
+                                    </select>
+                                </div>
+                                <div style="width: 200px;">
+                                    <select id="spot-category-filter" class="custom-select" style="padding: 12px 14px;" onchange="triggerSpotSearch()">
+                                        <option value="all">🏷️ 所有類別 (All Categories)</option>
+                                        <option value="food">🍱 必吃美食與米其林餐廳</option>
+                                        <option value="attraction">🏛️ 必去地標與歷史景點</option>
+                                        <option value="shopping">🛍️ 購物商圈與 Outlet</option>
+                                        <option value="hotel">🏨 奢華渡假村與飯店</option>
+                                        <option value="entertainment">🎭 娛樂展演與主題樂園</option>
+                                        <option value="transport">🚗 交通租車與專車服務</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Spot Cards Output (Paginated max 12 cards) -->
+                            <div id="spots-library-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                                <!-- Loaded dynamically via JS -->
+                            </div>
+
+                            <!-- High Performance Pagination Bar -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px;">
+                                <span id="spots-pagination-info" style="font-size: 12px; color: #94A3B8;">正在顯示 1 - 12 筆 (資料庫庫存共 11,272 筆)</span>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="prevSpotPage()" class="pill-action-btn" style="padding: 6px 16px; font-size: 11px;"><i class="fa-solid fa-chevron-left"></i> 上一頁</button>
+                                    <button onclick="nextSpotPage()" class="pill-action-btn" style="padding: 6px 16px; font-size: 11px;">下一頁 <i class="fa-solid fa-chevron-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: AI 智慧旅遊規劃器 -->
+            <section id="tab-aiplanner" class="tab-content">
+                <div class="grid-layout">
+                    <div class="card glass-card span-3 trip-banner">
+                        <div>
+                            <h2><i class="fa-solid fa-wand-magic-sparkles icon-accent"></i> AI 智慧旅遊規劃器 (AI Travel Planner)</h2>
+                            <p>輸入國家、天數、預算與興趣偏好，AI 自動生成量身打造的基礎版與進階版旅遊行程表</p>
+                        </div>
+                    </div>
+
+                    <!-- AI Form 2.0 (Problem #3) -->
+                    <div class="card glass-card span-3">
+                        <form id="form-ai-planner" style="display: flex; flex-direction: column; gap: 20px;">
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                                <div>
+                                    <label style="font-size: 14px; font-weight: 700;">出發城市 (Departure)：</label>
+                                    <select id="ai-departure" class="cyber-input" style="margin-top: 6px;">
+                                        <option value="台北">🇹🇼 台北 (TPE)</option>
+                                        <option value="高雄">🇹🇼 高雄 (KHH)</option>
+                                        <option value="香港">🇭🇰 香港 (HKG)</option>
+                                        <option value="新加坡">🇸🇬 新加坡 (SIN)</option>
+                                        <option value="東京">🇯🇵 東京 (NRT)</option>
+                                        <option value="洛杉磯">🇺🇸 洛杉磯 (LAX)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size: 14px; font-weight: 700; color: #FFFFFF;">目的地國家 (30國知名旅遊指南)：</label>
+                                    <select id="ai-country" class="cyber-input" style="margin-top: 6px;">
+                                        <option value="SG">🇸🇬 新加坡 (Singapore - 濱海灣/聖淘沙/烏節路/購物美食)</option>
+                                        <option value="JP" selected>🇯🇵 日本 (Japan - 東京/秋葉原/京都/大阪/北海道)</option>
+                                        <option value="KR">🇰🇷 韓國 (Korea - 首爾/明洞美妝/釜山海景)</option>
+                                        <option value="TH">🇹🇭 泰國 (Thailand - 曼谷SPA/清邁/普吉島Villa)</option>
+                                        <option value="FR">🇫🇷 法國 (France - 巴黎羅浮宮/香榭麗舍/蔚藍海岸)</option>
+                                        <option value="UK">🇬🇧 英國 (UK - 倫敦大英博物館/泰晤士河/蘇格蘭)</option>
+                                        <option value="IT">🇮🇹 義大利 (Italy - 羅馬競技場/佛羅倫斯/威尼斯)</option>
+                                        <option value="CH">🇨🇭 瑞士 (Switzerland - 少女峰/馬特洪峰景觀列車)</option>
+                                        <option value="US">🇺🇸 美國 (USA - 洛杉磯/拉斯維加斯大峽谷/紐約)</option>
+                                        <option value="AU">🇦🇺 澳洲 (Australia - 雪梨歌劇院/藍山/墨爾本)</option>
+                                        <option value="ES">🇪🇸 西班牙 (Spain - 巴塞隆納高第聖家堂/馬德里)</option>
+                                        <option value="DE">🇩🇪 德國 (Germany - 慕尼黑/新天鵝堡童話大道)</option>
+                                        <option value="NL">🇳🇱 荷蘭 (Netherlands - 阿姆斯特丹/風車村/鬱金香)</option>
+                                        <option value="CA">🇨🇦 加拿大 (Canada - 班夫國家公園/路易斯湖自駕)</option>
+                                        <option value="NZ">🇳🇿 紐西蘭 (New Zealand - 皇后鎮/哈比村極限運動)</option>
+                                        <option value="VN">🇻🇳 越南 (Vietnam - 下龍灣奢華郵輪/河內/峴港)</option>
+                                        <option value="ID">🇮🇩 印尼 (Indonesia - 峇里島Villa/海景SPA)</option>
+                                        <option value="MY">🇲🇾 馬來西亞 (Malaysia - 吉隆坡雙峰塔/檳城美食)</option>
+                                        <option value="PH">🇵🇭 菲律賓 (Philippines - 長灘島白沙灘/宿霧潛水)</option>
+                                        <option value="AT">🇦🇹 奧地利 (Austria - 維也納/哈修塔特音樂藝術)</option>
+                                        <option value="CZ">🇨🇿 捷克 (Czech - 布拉格城堡/查理大橋童話)</option>
+                                        <option value="TW">🇹🇼 台灣 (Taiwan - 台北九份/日月潭/阿里山)</option>
+                                        <option value="HK">🇭🇰 香港 (Hong Kong - 購物美食/維港夜景)</option>
+                                        <option value="MO">🇲🇴 澳門 (Macau - 奢華酒店水舞間/威尼斯人)</option>
+                                        <option value="TR">🇹🇷 土耳其 (Turkey - 卡帕多奇亞熱氣球/伊斯坦堡)</option>
+                                        <option value="EG">🇪🇬 埃及 (Egypt - 開羅金字塔/尼羅河郵輪)</option>
+                                        <option value="AE">🇦🇪 阿聯酋 (UAE - 杜拜哈里發塔/奢華帆船飯店)</option>
+                                        <option value="IS">🇮🇸 冰島 (Iceland - 藍湖溫泉/極光黃金圈自駕)</option>
+                                        <option value="FI">🇫🇮 芬蘭 (Finland - 羅瓦涅米聖誕老人村/極光玻璃屋)</option>
+                                        <option value="GR">🇬🇷 希臘 (Greece - 聖托里尼藍頂教堂/雅典衛城)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size: 14px; font-weight: 700; color: #FFFFFF;">預計旅遊月份：</label>
+                                    <select id="ai-month" class="cyber-input" style="margin-top: 6px;">
+                                        <option value="10" selected>10 月 (秋季黃金自駕/賞楓)</option>
+                                        <option value="1">1 月 (雪景節慶觀光)</option>
+                                        <option value="2">2 月 (春節出遊賞雪)</option>
+                                        <option value="3">3 月 (春季暖陽)</option>
+                                        <option value="4">4 月 (春花櫻花盛開)</option>
+                                        <option value="5">5 月 (初夏涼爽)</option>
+                                        <option value="6">6 月 (夏季陽光)</option>
+                                        <option value="7">7 月 (暑期旺季)</option>
+                                        <option value="8">8 月 (盛夏熱情)</option>
+                                        <option value="9">9 月 (初秋舒適)</option>
+                                        <option value="11">11 月 (感恩節購物)</option>
+                                        <option value="12">12 月 (聖誕跨年假期)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size: 14px; font-weight: 700; color: #FFFFFF;">行程天數：</label>
+                                    <input type="number" id="ai-days" value="5" min="1" max="30" class="cyber-input" style="margin-top: 6px;">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                                <div>
+                                    <label style="font-size: 14px; font-weight: 700; color: #FFFFFF;">同行人數：</label>
+                                    <input type="number" id="ai-travelers" value="2" min="1" max="20" class="cyber-input" style="margin-top: 6px;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 14px; font-weight: 700; color: #FFFFFF;">旅遊型態：</label>
+                                    <select id="ai-style" class="cyber-input" style="margin-top: 6px;">
+                                        <option value="購物美食" selected>🛍️ 購物逛街 + 米其林美食特巡</option>
+                                        <option value="自由行">🚶 城市地鐵自由行</option>
+                                        <option value="自駕公路">🚗 租車自駕縱貫大縱走</option>
+                                        <option value="跟團奢華">🚌 頂級跟團全包式</option>
+                                        <option value="親子同遊">👨‍👩‍👧 親子主題樂園體驗</option>
+                                        <option value="蜜月奢華">💍 蜜月度假星級 Villa 奢華</option>
+                                        <option value="攝影取景">📷 經典歷史地標與網美攝影</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size: 14px; font-weight: 700; color: #FFFFFF;">體力等級 (Pace)：</label>
+                                    <select id="ai-pace" class="cyber-input" style="margin-top: 6px;">
+                                        <option value="普通適中" selected>⚖️ 普通適中 (每天 3 景點)</option>
+                                        <option value="輕鬆漫遊">🛋️ 輕鬆漫遊 (每天 2 景點/晚起)</option>
+                                        <option value="硬派特訓">⚡ 硬派特訓 (每天 4+ 景點/走破)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size: 14px; font-weight: 700; color: #FFFFFF;">預算等級：</label>
+                                    <select id="ai-budget-level" class="cyber-input" style="margin-top: 6px;">
+                                        <option value="luxury">💎 奢華頂級 (星級飯店/高檔美饌)</option>
+                                        <option value="standard" selected>⚖️ 中等舒適 (品質商旅/特色餐飲)</option>
+                                        <option value="budget">💰 小資平價 (平價快餐/青年旅館)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style="font-size: 14px; font-weight: 700; color: #FFFFFF;">興趣與主題體驗偏好選取 (可多選)：</label>
+                                <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px;">
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #FFFFFF; cursor: pointer;"><input type="checkbox" name="interest" value="shopping" checked> 🛍️ 名牌 Outlet / 烏節路 / 明洞 / 秋葉原購物</label>
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #FFFFFF; cursor: pointer;"><input type="checkbox" name="interest" value="food" checked> 🍱 在地知名美食 / 米其林餐飲 / 甜點</label>
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #FFFFFF; cursor: pointer;"><input type="checkbox" name="interest" value="attraction" checked> 🏛️ 必去地標 / 巴黎鐵塔 / 景福宮 / 大峽谷</label>
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #FFFFFF; cursor: pointer;"><input type="checkbox" name="interest" value="entertainment" checked> 🎭 環球影城 / 迪士尼 / NBA / 太陽劇團</label>
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #FFFFFF; cursor: pointer;"><input type="checkbox" name="interest" value="hotel"> 🏨 濱海灣金沙 / 星級 Villa SPA 渡假</label>
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #FFFFFF; cursor: pointer;"><input type="checkbox" name="interest" value="nature"> 🌊 自然國家公園 / 海景湖泊 / 極光</label>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="btn-generate-ai-plan" class="glow-btn" style="width: auto; align-self: flex-start; padding: 12px 28px;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> 立即生成 AI 2.0 個人化奢華旅遊計畫
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- AI Generated Plan Output Container -->
+                    <div id="ai-plan-result-container" class="card glass-card span-3" style="display: none;">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: 智慧旅遊預算分析 -->
+            <section id="tab-budget" class="tab-content">
+                <div class="grid-layout">
+                    <div class="card glass-card span-3 trip-banner">
+                        <div>
+                            <h2><i class="fa-solid fa-calculator icon-accent"></i> 智慧旅遊預算動態計算器</h2>
+                            <p>按類別估算交通、住宿、餐飲、門票與購物，即時分析總預算、每人平均費用與費用占比</p>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card span-2">
+                        <form id="form-budget-calc" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                            <div>
+                                <label style="font-size: 13px; color: var(--text-muted);">同行人數 (人)：</label>
+                                <input type="number" id="b-travelers" value="2" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 13px; color: var(--text-muted);">總天數 (天)：</label>
+                                <input type="number" id="b-days" value="10" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 13px; color: var(--text-muted);">每人機票費用 (NT$)：</label>
+                                <input type="number" id="b-flight" value="22500" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 13px; color: var(--text-muted);">每日租車費用 (NT$)：</label>
+                                <input type="number" id="b-car" value="2800" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 13px; color: var(--text-muted);">每日油資/停車/過路費 (NT$)：</label>
+                                <input type="number" id="b-gas" value="1200" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 13px; color: var(--text-muted);">每晚飯店住宿單價 (NT$)：</label>
+                                <input type="number" id="b-hotel" value="7500" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 13px; color: var(--text-muted);">每人每日餐飲預算 (NT$)：</label>
+                                <input type="number" id="b-food" value="2500" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 13px; color: var(--text-muted);">每人門票/賽事/直升機套票 (NT$)：</label>
+                                <input type="number" id="b-entertainment" value="18000" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="font-size: 13px; color: var(--text-muted);">預計購物總費用 (NT$)：</label>
+                                <input type="number" id="b-shopping" value="15000" class="cyber-input" style="margin-top: 4px;">
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <button type="submit" class="glow-btn" style="width: auto;">
+                                    <i class="fa-solid fa-calculator"></i> 重新計算預算分析
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Budget Result Pie Chart -->
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-chart-pie icon-accent"></i>
+                            <h3>預算費用占比分析</h3>
+                        </div>
+                        <div id="budget-summary-box" style="margin-bottom: 12px; font-size: 15px; font-weight: 700;">
+                            <!-- Loaded via JS -->
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="budgetChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: CMS 管理與一鍵複製旅遊書 -->
+            <section id="tab-cms" class="tab-content">
+                <div class="grid-layout">
+                    <div class="card glass-card span-3 trip-banner">
+                        <div>
+                            <h2><i class="fa-solid fa-cubes icon-accent"></i> CMS 旅遊內容管理與一鍵複製系統</h2>
+                            <p>管理全球國家、城市、景點、美食與飯店資料。支援一鍵複製美西旅遊書架構至日本/韓國/泰國等全球國家</p>
+                        </div>
+                        <button id="btn-open-copy-guide-modal" class="glow-btn" style="width: auto;">
+                            <i class="fa-solid fa-copy"></i> 一鍵複製旅遊書架構
+                        </button>
+                    </div>
+
+                    <!-- Status Check Alert Box -->
+                    <div class="card glass-card span-3">
+                        <div class="card-header space-between">
+                            <div class="header-left">
+                                <i class="fa-solid fa-triangle-exclamation icon-accent" style="color: var(--accent-warning);"></i>
+                                <h3>店家營運狀態巡檢與警告報告</h3>
+                            </div>
+                            <button id="btn-run-status-check" class="submit-btn" style="padding: 6px 14px; font-size: 13px;">
+                                <i class="fa-solid fa-rotate"></i> 執行狀態掃描
+                            </button>
+                        </div>
+                        <div id="cms-status-report-box" style="font-size: 14px; color: var(--text-muted);">
+                            目前所有精選景點與餐廳營運狀態正常 (Operational)。
+                        </div>
+                    </div>
+
+                    <!-- All Guides Table -->
+                    <div class="card glass-card span-3">
+                        <div class="card-header space-between">
+                            <div class="header-left">
+                                <i class="fa-solid fa-list-check icon-accent"></i>
+                                <h3>現有旅遊書清單與管理</h3>
+                            </div>
+                            <button id="btn-open-add-place" class="submit-btn" style="padding: 8px 16px;">
+                                <i class="fa-solid fa-plus"></i> 新增地點/餐廳/飯店
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>國家</th>
+                                            <th>旅遊書標題</th>
+                                            <th>模式</th>
+                                            <th>天數</th>
+                                            <th>版本</th>
+                                            <th>建立時間</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cms-guides-table-body">
+                                        <!-- Loaded via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section id="tab-expenses" class="tab-content">
+                <div class="grid-layout">
+                    <!-- Spotlight-Style Centered Input Card (Dark Architectural Theme Overhaul) -->
+                    <div class="card glass-card span-3" style="background: rgba(17, 21, 30, 0.85); padding: 28px 24px; text-align: center; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                        <span style="font-size: 11px; font-weight: 700; color: #38BDF8; letter-spacing: 1.5px; text-transform: uppercase;">SPOTLIGHT EXPENSE ENTRY</span>
+                        <h2 style="font-size: 20px; font-family: 'Inter Tight', sans-serif; color: #FFFFFF; margin: 6px 0 16px 0; font-weight: 600;">快速自然語言智慧記帳</h2>
+                        
+                        <form id="form-quick-expense" style="max-width: 640px; margin: 0 auto; width: 100%;">
+                            <div style="position: relative; display: flex; align-items: center; background: rgba(6, 12, 26, 0.85); border-radius: 30px; padding: 6px 10px 6px 20px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), 0 0 16px rgba(56, 189, 248, 0.2); border: 1.5px solid rgba(56, 189, 248, 0.5);">
+                                <i class="fa-solid fa-bolt" style="color: #38BDF8; font-size: 18px; margin-right: 12px;"></i>
+                                <input type="text" id="quick-text-input" placeholder="輸入自然語言隨手記帳 (例：打卡午餐 180、高鐵票 750 交通)..." style="flex: 1; border: none; outline: none; font-size: 15px; font-weight: 600; background: transparent; color: #FFFFFF !important;" autocomplete="off">
+                                <button type="submit" class="submit-btn" style="border-radius: 24px; padding: 10px 24px; font-weight: 700; margin-left: 8px; background: #38BDF8; color: #060C1A;">
+                                    <i class="fa-solid fa-paper-plane"></i> 紀錄
+                                </button>
+                            </div>
+                            <div class="input-tips" style="justify-content: center; margin-top: 14px; gap: 10px;">
+                                <span class="tip-badge" style="background: rgba(56,189,248,0.15); color: #38BDF8; border: 1px solid rgba(56,189,248,0.3);">💡 範例：「午餐 150」</span>
+                                <span class="tip-badge" style="background: rgba(251,191,36,0.15); color: #FBBF24; border: 1px solid rgba(251,191,36,0.3);">💡 範例：「高鐵票 750 交通」</span>
+                                <span class="tip-badge" style="background: rgba(52,211,153,0.15); color: #34D399; border: 1px solid rgba(52,211,153,0.3);">💡 範例：「星巴克 165」</span>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Collapsible Category Chart & Detailed History (Dark Architectural Blueprint Card) -->
+                    <details class="glass-card span-3" style="background: rgba(17, 21, 30, 0.85); border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.12); color: #FFFFFF;" open>
+                        <summary style="padding: 16px 20px; font-weight: 700; font-size: 15px; cursor: pointer; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; user-select: none;">
+                            <span><i class="fa-solid fa-chart-pie icon-accent" style="color: var(--primary-color); margin-right: 8px;"></i> 📊 月度支出分類比重與圖表</span>
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 400;">點擊可展開 / 折疊詳細圖表</span>
+                        </summary>
+                        <div style="padding: 0 20px 20px 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                            <div class="chart-container" style="min-height: 240px;">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                            <div>
+                                <div class="card-header space-between" style="padding: 0 0 12px 0;">
+                                    <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main);">歷史支出明細</h4>
+                                    <select id="filter-category" class="custom-select" style="padding: 4px 10px; font-size: 12px;">
+                                        <option value="">全部分類</option>
+                                        <option value="飲食">飲食</option>
+                                        <option value="交通">交通</option>
+                                        <option value="購物">購物</option>
+                                        <option value="娛樂">娛樂</option>
+                                        <option value="日常">日常</option>
+                                        <option value="其他">其他</option>
+                                    </select>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>日期</th>
+                                                <th>項目</th>
+                                                <th>分類</th>
+                                                <th>金額 (NT$)</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="expense-table-body">
+                                            <!-- Loaded via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Tab: Travel Book & Planner -->
+            <section id="tab-travelbook" class="tab-content">
+                <div class="grid-layout">
+                    <!-- Create New Trip Banner -->
+                    <div class="card glass-card span-3 trip-banner">
+                        <div>
+                            <h2><i class="fa-solid fa-map-location-dot icon-accent"></i> 專屬旅遊手冊與直觀行程編排系統</h2>
+                            <p>加入您的航班資訊、住宿地點，隨心對調上下午行程，並一鍵生成專屬電子旅遊手冊</p>
+                        </div>
+                        <button id="btn-open-create-trip" class="glow-btn" style="width: auto;">
+                            <i class="fa-solid fa-plus"></i> 新建旅遊行程
+                        </button>
+                    </div>
+
+                    <!-- Trip Selection & Controls Bar -->
+                    <div class="card glass-card span-3">
+                        <div class="trip-selector-bar">
+                            <label style="font-weight: 700; font-size: 15px;"><i class="fa-solid fa-suitcase icon-accent"></i> 選擇旅程：</label>
+                            <select id="select-active-trip" class="trip-select">
+                                <!-- Loaded via JS -->
+                            </select>
+                            <button id="btn-preview-travelbook" class="submit-btn" style="margin-left: auto;">
+                                <i class="fa-solid fa-file-pdf"></i> 生成/預覽專屬旅遊手冊
+                            </button>
+                            <button id="btn-delete-trip" class="btn-delete" style="font-size: 14px; padding: 10px 16px;">
+                                <i class="fa-solid fa-trash"></i> 刪除此旅程
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Logistics (Flight / Hotel / Transport) Manager Card -->
+                    <div class="card glass-card span-3">
+                        <div class="card-header space-between">
+                            <div class="header-left">
+                                <i class="fa-solid fa-plane-up icon-accent"></i>
+                                <h3>航班 / 交通 / 住宿地點資料庫</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Add Logistics Form -->
+                            <form id="form-add-logistics" style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+                                <select id="log-type" class="custom-select" style="min-width: 120px;">
+                                    <option value="flight">✈️ 航班/車號</option>
+                                    <option value="hotel">🏨 住宿地點</option>
+                                    <option value="transport">🚗 交通租車</option>
+                                </select>
+                                <input type="text" id="log-title" placeholder="名稱 (例: 長榮航空 BR198 / 希爾頓飯店)" class="cyber-input" style="flex: 1; min-width: 200px;">
+                                <input type="text" id="log-datetime" placeholder="時間 (例: 08:50 出發 / 15:00 入住)" class="cyber-input" style="width: 200px;">
+                                <input type="text" id="log-ref" placeholder="訂位代號 / 地址" class="cyber-input" style="width: 180px;">
+                                <button type="submit" class="submit-btn" style="padding: 10px 18px;">
+                                    <i class="fa-solid fa-plus"></i> 新增資料
+                                </button>
+                            </form>
+
+                            <div id="logistics-list" style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Day & Slot Visual Itinerary Grid -->
+                    <div class="card glass-card span-3">
+                        <div class="card-header space-between">
+                            <div class="header-left">
+                                <i class="fa-solid fa-calendar-days icon-accent"></i>
+                                <h3>直觀每日行程編排 (支援對調上下午)</h3>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="font-size: 14px; font-weight: 600;">選擇天數：</label>
+                                <select id="select-trip-day" class="custom-select">
+                                    <option value="1">第 1 天</option>
+                                    <option value="2">第 2 天</option>
+                                    <option value="3">第 3 天</option>
+                                    <option value="4">第 4 天</option>
+                                    <option value="5">第 5 天</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Add Activity Form -->
+                        <div class="card-body">
+                            <!-- Quick Spot Search Shortcut Bar (11,272+ Tripadvisor Spots Database) -->
+                            <div style="background: rgba(17, 21, 30, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fa-solid fa-magnifying-glass text-gold" style="font-size: 16px;"></i>
+                                        <span style="font-weight: 600; font-size: 14px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;">🔍 景點快捷搜尋庫 (11,272+ 全球 Tripadvisor 4.5★ 嚴選資源)：</span>
+                                    </div>
+                                    <span style="font-size: 11px; color: #94A3B8;">輸入國家/城市/景點 (例: 日本 東京 秋葉原 / 新加坡 濱海灣 / 巴黎鐵塔)</span>
+                                </div>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                                    <input type="text" id="quick-spot-keyword" placeholder="🔍 輸入搜尋關鍵字 (例如：秋葉原、金沙酒店、清水寺、大峽谷)..." class="cyber-input" style="flex: 1; min-width: 240px; padding: 8px 14px;" onkeyup="performQuickSpotSearch()">
+                                    <button class="pill-action-btn" style="padding: 8px 16px;" onclick="performQuickSpotSearch()"><i class="fa-solid fa-search"></i> 搜尋景點</button>
+                                </div>
+                                <div id="quick-spot-results-box" style="display: none; margin-top: 12px; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                                    <!-- Loaded via JS -->
+                                </div>
+                            </div>
+
+                            <form id="form-add-activity" style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; padding: 16px; background: rgba(17, 21, 30, 0.6); border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.12);">
+                                <select id="itin-slot" class="custom-select" style="min-width: 120px;">
+                                    <option value="morning">🌅 上午 (Morning)</option>
+                                    <option value="afternoon">☀️ 下午 (Afternoon)</option>
+                                    <option value="evening">🌙 晚上 (Evening)</option>
+                                </select>
+                                <input type="text" id="itin-activity" placeholder="活動 / 景點名稱 (例: 東京 秋葉原電器街)" class="cyber-input" style="flex: 1; min-width: 200px;">
+                                <input type="text" id="itin-location" placeholder="地點 / 地圖連結" class="cyber-input" style="width: 180px;">
+                                <input type="number" id="itin-cost" placeholder="預算 (NT$)" class="cyber-input" style="width: 120px;">
+                                <button type="submit" class="submit-btn" style="padding: 10px 20px;">
+                                    <i class="fa-solid fa-plus"></i> 新增至行程
+                                </button>
+                            </form>
+
+                            <!-- Morning / Afternoon / Evening Cards -->
+                            <div class="day-slots-grid">
+                                <!-- Morning Card -->
+                                <div class="slot-card">
+                                    <div class="slot-header">
+                                        <span class="slot-title morning"><i class="fa-solid fa-sun"></i> 上午行程 (Morning)</span>
+                                    </div>
+                                    <div id="slot-container-morning" style="display: flex; flex-direction: column; gap: 10px;">
+                                        <!-- Loaded via JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Afternoon Card -->
+                                <div class="slot-card">
+                                    <div class="slot-header">
+                                        <span class="slot-title afternoon"><i class="fa-solid fa-cloud-sun"></i> 下午行程 (Afternoon)</span>
+                                    </div>
+                                    <div id="slot-container-afternoon" style="display: flex; flex-direction: column; gap: 10px;">
+                                        <!-- Loaded via JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Evening Card -->
+                                <div class="slot-card">
+                                    <div class="slot-header">
+                                        <span class="slot-title evening"><i class="fa-solid fa-moon"></i> 晚上行程 (Evening)</span>
+                                    </div>
+                                    <div id="slot-container-evening" style="display: flex; flex-direction: column; gap: 10px;">
+                                        <!-- Loaded via JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 2: Deals & Flight Monitor -->
+            <section id="tab-deals" class="tab-content">
+                <div class="deals-header-banner glass-card">
+                    <div class="banner-info">
+                        <h2><i class="fa-solid fa-tags"></i> 特價與旅遊優惠即時監控</h2>
+                        <p>系統自動爬取 PTT 省錢板、日本旅遊板與機票/飯店促銷 RSS 訊息</p>
+                    </div>
+                </div>
+
+                <div id="deals-container" class="deals-grid">
+                    <!-- Loaded via JS -->
+                </div>
+            </section>
+
+            <!-- Tab 3: Stocks & News Sentiment (US vs TW) -->
+            <section id="tab-stocks" class="tab-content">
+                <div class="stocks-header-banner glass-card" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="banner-info">
+                        <h2><i class="fa-solid fa-arrow-trend-up"></i> 財經新聞與股市情緒分析 (美股 vs 台股)</h2>
+                        <p>即時串接美股與台股財經新聞 API ‧ 每 30 分鐘自動對比極度樂觀與極度悲觀訊號</p>
+                    </div>
+                    <button id="btn-refresh-stock-news" class="glow-btn" style="width: auto; align-self: center;">
+                        <i class="fa-solid fa-arrows-rotate"></i> ⚡ 即時抓取美股/台股新聞
+                    </button>
+                </div>
+
+                <!-- Direct Financial Media Websites Portal -->
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <a href="https://www.wsj.com/finance/stocks" target="_blank" rel="noopener noreferrer" class="pill-action-btn" style="text-decoration: none; padding: 8px 16px; font-size: 12px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
+                        📰 華爾街日報 The Wall Street Journal (WSJ Markets) <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <a href="https://finance.yahoo.com" target="_blank" rel="noopener noreferrer" class="pill-action-btn" style="text-decoration: none; padding: 8px 16px; font-size: 12px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: rgba(168, 85, 247, 0.4); font-weight: 700;">
+                        📈 Yahoo Finance 美股 <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <a href="https://www.cnbc.com/markets" target="_blank" rel="noopener noreferrer" class="pill-action-btn" style="text-decoration: none; padding: 8px 16px; font-size: 12px; background: rgba(52, 211, 153, 0.15); color: #34D399; border-color: rgba(52, 211, 153, 0.4); font-weight: 700;">
+                        🌐 CNBC Markets <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <a href="https://news.cnyes.com" target="_blank" rel="noopener noreferrer" class="pill-action-btn" style="text-decoration: none; padding: 8px 16px; font-size: 12px; background: rgba(251, 191, 36, 0.15); color: #FBBF24; border-color: rgba(251, 191, 36, 0.4); font-weight: 700;">
+                        🇹🇼 鉅亨網 Anue <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+
+                <div class="filter-chips-bar" style="margin-bottom: 20px;">
+                    <button class="filter-chip active" data-stock-market="all" onclick="filterStockMarket('all', this)">🌐 全部股票新聞</button>
+                    <button class="filter-chip" data-stock-market="US" onclick="filterStockMarket('US', this)">🇺🇸 美股專區 (WSJ / NVDA / TSLA / AAPL)</button>
+                    <button class="filter-chip" data-stock-market="TW" onclick="filterStockMarket('TW', this)">🇹🇼 台股專區 (台積電 / 鴻海 / 權值股)</button>
+                </div>
+
+                <div id="stocks-container" class="stocks-list">
+                    <!-- Loaded via JS -->
+                </div>
+            </section>
+
+            <!-- Tab 5: Jewish Business & Insights Zone (猶太人專區) -->
+            <section id="tab-jewish" class="tab-content">
+                <div class="stocks-header-banner glass-card" style="background: linear-gradient(135deg, rgba(147,51,234,0.2) 0%, rgba(59,130,246,0.2) 100%); border-color: rgba(168,85,247,0.4);">
+                    <div class="banner-info">
+                        <h2><i class="fa-solid fa-star-of-david text-purple"></i> 猶太人智庫與每日重點新聞專區</h2>
+                        <p>每日自動抓取耶路撒冷、特拉維夫與國際猶太商業媒體精華，翻譯為繁體中文重點摘要與商道智慧評註</p>
+                    </div>
+                    <button id="btn-refresh-jewish-news" class="glow-btn" style="width: auto; align-self: center;">
+                        <i class="fa-solid fa-arrows-rotate"></i> 抓取最新猶太重點新聞
+                    </button>
+                </div>
+
+                <div class="filter-chips-bar" style="margin-bottom: 20px;">
+                    <button class="filter-chip active" data-jewish-cat="all" onclick="filterJewishCat('all', this)">🌐 全部分類</button>
+                    <button class="filter-chip" data-jewish-cat="商業財經" onclick="filterJewishCat('商業財經', this)">💼 商業財經</button>
+                    <button class="filter-chip" data-jewish-cat="科技創新" onclick="filterJewishCat('科技創新', this)">💡 科技創新</button>
+                    <button class="filter-chip" data-jewish-cat="猶太思維" onclick="filterJewishCat('猶太思維', this)">📜 猶太思維與商道</button>
+                    <button class="filter-chip" data-jewish-cat="全球局勢" onclick="filterJewishCat('全球局勢', this)">🌍 全球局勢</button>
+                </div>
+
+                <div id="jewish-news-container" class="grid-layout" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));">
+                    <!-- Loaded via JS -->
+                </div>
+            </section>
+
+            <!-- Tab 4: System Settings -->
+            <section id="tab-settings" class="tab-content">
+                <div class="grid-layout">
+                    <!-- Interactive Telegram Setup Form -->
+                    <div class="card glass-card span-3">
+                        <div class="card-header">
+                            <i class="fa-solid fa-paper-plane icon-accent"></i>
+                            <h3>Telegram 推播與對話機器人一鍵設定</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="form-telegram-setup" style="display: flex; flex-direction: column; gap: 16px;">
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="font-size: 14px; font-weight: 600;">1. TELEGRAM_BOT_TOKEN (機器人 Token)</label>
+                                    <input type="text" id="tg-bot-token" placeholder="例如：7123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" style="padding: 12px; background: rgba(15,23,42,0.6); border: 1px solid var(--border-color); border-radius: 8px; color: #fff;">
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="font-size: 14px; font-weight: 600;">2. TELEGRAM_CHAT_ID (您的用戶 Chat ID)</label>
+                                    <input type="text" id="tg-chat-id" placeholder="例如：123456789" style="padding: 12px; background: rgba(15,23,42,0.6); border: 1px solid var(--border-color); border-radius: 8px; color: #fff;">
+                                </div>
+                                <button type="submit" id="btn-save-tg" class="glow-btn" style="width: auto; align-self: flex-start;">
+                                    <i class="fa-solid fa-check-circle"></i>
+                                    <span>儲存設定並發送測試推播訊息</span>
+                                </button>
+                                <div id="tg-setup-msg" class="status-msg" style="text-align: left; font-size: 14px;"></div>
+                            </form>
+
+                            <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border-color);">
+
+                            <div class="settings-body">
+                                <div class="setting-item">
+                                    <h4>💡 3 步驟取得 Telegram Bot Token 與 Chat ID 超簡單教學：</h4>
+                                    <ol style="margin-left: 20px; line-height: 1.8; color: var(--text-muted);">
+                                        <li><strong>取得 Bot Token</strong>：開啟 Telegram 搜尋 <code>@BotFather</code>，發送 <code>/newbot</code> 按提示命名機器人，BotFather 會給您一串 HTTP API Token（複製貼上至上方第一欄）。</li>
+                                        <li><strong>啟用機器人</strong>：在 Telegram 中找到您剛創立的機器人，按下 <strong>Start</strong> 或隨便發送一個字（如：Hello）。</li>
+                                        <li><strong>取得 Chat ID</strong>：在 Telegram 搜尋 <code>@userinfobot</code> 或 <code>@GetIDBot</code>，發送訊息它會立刻告訴您您的 <code>Id</code> 數字（複製貼上至上方第二欄）。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <!-- Tab: 100vh 零滾動便當盒儀表板 (Bento Box Dashboard) -->
+            <section id="tab-bento" class="tab-content">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-height: calc(100vh - 120px); overflow-y: auto; padding-bottom: 20px;">
+                    
+                    <!-- Bento 01: 差旅倒數 (Travel) -->
+                    <div class="card glass-card" style="padding: 20px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); cursor: pointer; transition: all 0.3s ease;" onclick="openOffCanvasDrawer('bento-travel')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <span class="badge" style="background: rgba(56,189,248,0.15); color: #38BDF8; font-weight: 700;">✈️ 差旅動態與倒數</span>
+                            <span style="font-size: 11px; color: #94A3B8;">展開 Timeline <i class="fa-solid fa-chevron-right"></i></span>
+                        </div>
+                        <h3 style="font-size: 18px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">2026 美西公路縱貫自駕</h3>
+                        <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px;">
+                            <span style="font-size: 32px; font-weight: 300; color: #38BDF8; font-family: 'Inter Tight', sans-serif;">42</span>
+                            <span style="font-size: 13px; color: #94A3B8;">天倒數出發</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; font-size: 11px; color: #94A3B8; flex-wrap: wrap;">
+                            <span style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 10px;">☀️ 洛杉磯 24°C</span>
+                            <span style="background: rgba(52,211,153,0.15); color: #34D399; padding: 4px 8px; border-radius: 10px;">✈️ 長榮 BR12 已開票</span>
+                        </div>
+                    </div>
+
+                    <!-- Bento 02: 資產健康度 (Finance & Asset Monitor) -->
+                    <div class="card glass-card" style="padding: 20px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(251, 191, 36, 0.3); cursor: pointer; transition: all 0.3s ease;" onclick="openOffCanvasDrawer('bento-asset')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <span class="badge" style="background: rgba(251,191,36,0.15); color: #FBBF24; font-weight: 700;">💰 資產與槓桿水位</span>
+                            <span style="font-size: 11px; color: #94A3B8;">試算器 <i class="fa-solid fa-chevron-right"></i></span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 8px;">
+                            <div>
+                                <span style="font-size: 11px; color: #94A3B8;">房貸成數 LTV：</span>
+                                <strong style="font-size: 22px; font-weight: 300; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; display: block;">53.57%</strong>
+                                <span style="font-size: 10px; color: #34D399;">🟢 安全 (&lt; 65%)</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: #94A3B8;">現金流 Runway：</span>
+                                <strong style="font-size: 22px; font-weight: 300; color: #FBBF24; font-family: 'Inter Tight', sans-serif; display: block;">15 個月</strong>
+                                <span style="font-size: 10px; color: #94A3B8;">儲備 NT$ 1.8M</span>
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: #94A3B8;">
+                            📈 ETF 投資組合：<strong style="color: #34D399;">NT$ 6.5M (+NT$ 850K)</strong>
+                        </div>
+                    </div>
+
+                    <!-- Bento 03: 高爾夫裝備與球場 (Golf Portal) -->
+                    <div class="card glass-card" style="padding: 20px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(52, 211, 153, 0.3); cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('golf')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <span class="badge" style="background: rgba(52,211,153,0.15); color: #34D399; font-weight: 700;">⛳ 高爾夫精選門戶</span>
+                            <span style="font-size: 11px; color: #94A3B8;">開啟高爾夫 <i class="fa-solid fa-chevron-right"></i></span>
+                        </div>
+                        <h3 style="font-size: 16px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">Honma / TaylorMade 新品 & 球場預訂</h3>
+                        <div style="display: flex; gap: 8px; font-size: 11px; color: #94A3B8; margin-bottom: 8px;">
+                            <span>川奈富士賽道: <strong style="color: #34D399;">NT$ 6,500</strong></span>
+                            <span>圓石灘: <strong style="color: #FBBF24;">USD 625</strong></span>
+                        </div>
+                        <div style="font-size: 11px; color: #94A3B8; background: rgba(255,255,255,0.04); padding: 6px 10px; border-radius: 8px;">
+                            🏌️ 揮桿重點：下桿髖關節轉體 90° 順暢釋放
+                        </div>
+                    </div>
+
+                    <!-- Bento 04: 每日美股台股與猶太智庫 (Intel & Wisdom) -->
+                    <div class="card glass-card" style="padding: 20px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(168, 85, 247, 0.3); cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('jewish')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <span class="badge" style="background: rgba(168,85,247,0.15); color: #c084fc; font-weight: 700;">📰 財經與猶太智庫</span>
+                            <span style="font-size: 11px; color: #94A3B8;">閱讀新聞 <i class="fa-solid fa-chevron-right"></i></span>
+                        </div>
+                        <h3 style="font-size: 16px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">每日樂觀訊號與商道智慧</h3>
+                        <p style="font-size: 11px; color: #94A3B8; line-height: 1.4; margin-bottom: 8px;">
+                            台積電與美股 NVDA 創新高 ‧ 「延遲享樂與契約精神是槓桿防護網」
+                        </p>
+                        <span style="font-size: 10px; color: #c084fc; background: rgba(168,85,247,0.1); padding: 3px 8px; border-radius: 6px;">✡️ 猶太商道每日評註</span>
+                    </div>
+
+                    <!-- Bento 05: 待辦與 Quick Inbox -->
+                    <div class="card glass-card" style="padding: 20px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(236, 72, 153, 0.3); cursor: pointer; transition: all 0.3s ease;" onclick="openQuickCaptureModal()">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <span class="badge" style="background: rgba(236,72,153,0.15); color: #f472b6; font-weight: 700;">⚡ 瞬時靈感隨手記</span>
+                            <span style="font-size: 11px; color: #94A3B8;">錄入靈感 <i class="fa-solid fa-chevron-right"></i></span>
+                        </div>
+                        <h3 style="font-size: 16px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">工程技術與財務隨寫</h3>
+                        <p style="font-size: 11px; color: #94A3B8; line-height: 1.4; margin-bottom: 8px;">
+                            自動歸類 $ (Finance)、Flight (Travel)、PLC (Engineering)。
+                        </p>
+                        <button class="pill-action-btn" style="padding: 4px 10px; font-size: 10px;"><i class="fa-solid fa-bolt"></i> 按快捷鍵 N 錄入</button>
+                    </div>
+
+                    <!-- Bento 06: 自動化與 Cloudflare 公網 Tunnel 狀態 -->
+                    <div class="card glass-card" style="padding: 20px; background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(52, 211, 153, 0.3);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <span class="badge" style="background: rgba(52,211,153,0.15); color: #34D399; font-weight: 700;">☁️ 自動化與公網 Tunnel</span>
+                            <span style="font-size: 10px; color: #34D399; font-weight: 700;">🟢 ONLINE</span>
+                        </div>
+                        <h3 style="font-size: 16px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">Cloudflare HTTP2 Daemon</h3>
+                        <p style="font-size: 11px; color: #94A3B8; line-height: 1.4; margin-bottom: 8px;">
+                            TryCloudflare 外部安全連線生效中 ‧ 智慧旅遊資料庫 11,272+ 筆 4.5★ 景點隨查隨現。
+                        </p>
+                        <span style="font-size: 10px; color: #38BDF8;">HTTPS 200 OK ‧ 安全加密通道</span>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Tab: 高爾夫 (Golf Hub) -->
+                        
+            <!-- Tab: 生活日常 (Lifestyle & Singapore Starbucks/Dining Perks) -->
+            <section id="tab-lifestyle" class="tab-content">
+                <div class="grid-layout">
+                    <!-- Banner -->
+                    <div class="card glass-card span-3 trip-banner" style="background: linear-gradient(135deg, rgba(17, 21, 30, 0.95) 0%, rgba(14, 30, 22, 0.95) 100%); border: 1px solid rgba(52, 211, 153, 0.4); border-radius: 20px; padding: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                            <div>
+                                <h2 style="font-size: 24px; font-weight: 700; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;"><i class="fa-solid fa-mug-hot icon-accent" style="color: #34D399;"></i> 生活日常 ‧ 新加坡星巴克與餐飲速食優惠 (Lifestyle Perks)</h2>
+                                <p style="font-size: 13px; color: #94A3B8; margin-top: 6px;">即時監控新加坡星巴克 (Starbucks SG) 買一送一/限定杯款、麥當勞/KFC 速食店特價、土司工坊/亞坤傳統早餐折價券與 GrabFood 外送促銷碼。</p>
+                            </div>
+                            <button id="btn-refresh-lifestyle" class="glow-btn" style="width: auto; align-self: center; background: rgba(52, 211, 153, 0.15); color: #34D399; border: 1px solid rgba(52, 211, 153, 0.4);">
+                                <i class="fa-solid fa-arrows-rotate"></i> ⚡ 即時抓取新加坡星巴克與餐飲最新優惠
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter Chips -->
+                    <div class="span-3">
+                        <div class="sub-nav-bar" style="display: flex; gap: 10px; background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(52, 211, 153, 0.3); padding: 8px 12px; border-radius: 14px; flex-wrap: wrap;">
+                            <button class="sub-nav-btn active" onclick="filterLifestyleCategory('all', this)"><i class="fa-solid fa-border-all"></i> 🌐 全部生活日常優惠</button>
+                            <button class="sub-nav-btn" onclick="filterLifestyleCategory('Starbucks', this)"><i class="fa-solid fa-mug-saucer" style="color: #34D399;"></i> ☕ 新加坡星巴克專區 (Starbucks SG)</button>
+                            <button class="sub-nav-btn" onclick="filterLifestyleCategory('FastFood', this)"><i class="fa-solid fa-burger" style="color: #FBBF24;"></i> 🍔 麥當勞 / KFC / 漢堡速食 (Fast Food)</button>
+                            <button class="sub-nav-btn" onclick="filterLifestyleCategory('Dining', this)"><i class="fa-solid fa-utensils" style="color: #38BDF8;"></i> 🍞 土司工坊 / 亞坤本地餐飲 (Local Dining)</button>
+                            <button class="sub-nav-btn" onclick="filterLifestyleCategory('Lifestyle', this)"><i class="fa-solid fa-ticket" style="color: #C084FC;"></i> 🛍️ GrabFood 外送與商場折價碼 (Vouchers)</button>
+                        </div>
+                    </div>
+
+                    <!-- Lifestyle Deals Grid Container -->
+                    <div class="span-3">
+                        <div id="lifestyle-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;">
+                            <!-- Loaded via JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- Tab: 高爾夫雙視角旗艦門戶 (Golf Hub - Senior Golfer & Novice Co-Designed) -->
+            <section id="tab-golf" class="tab-content">
+                <div class="grid-layout">
+                    <!-- Banner -->
+                    <div class="card glass-card span-3 trip-banner" style="background: linear-gradient(135deg, rgba(17, 21, 30, 0.95) 0%, rgba(14, 26, 20, 0.95) 100%); border: 1px solid rgba(52, 211, 153, 0.4); border-radius: 20px; padding: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                            <div>
+                                <h2 style="font-size: 24px; font-weight: 700; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;"><i class="fa-solid fa-golf-ball-tee icon-accent" style="color: #34D399;"></i> 高爾夫旗艦門戶 (Golf Hub 2.0)</h2>
+                                <p style="font-size: 13px; color: #94A3B8; margin-top: 6px;">資深選手與高爾夫新手雙視角協同設計 ‧ 收錄 2026 新品規格 (TaylorMade Qi10 / Qi4D, Honma, Callaway)、日本/美國中古認證網站、世界名門球場一鍵預訂與新手入門指南。</p>
+                            </div>
+                            <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #34D399; border: 1px solid rgba(52, 211, 153, 0.4); font-size: 12px; font-weight: 700; padding: 8px 16px;">
+                                ⛳ 雙視角專業對接 ‧ 價格與官網直連 100% 透明
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Golf Sub-Navigation Pills Bar -->
+                    <div class="span-3" style="margin: -6px 0 10px 0;">
+                        <div class="sub-nav-bar" style="display: flex; gap: 10px; background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(52, 211, 153, 0.3); padding: 8px 12px; border-radius: 14px; flex-wrap: wrap;">
+                            <button class="sub-nav-btn active" onclick="switchGolfSubTab('gear', this)"><i class="fa-solid fa-wand-magic-sparkles" style="color: #FBBF24;"></i> 🆕 2026 新品與 Qi10/Qi4D 科技</button>
+                            <button class="sub-nav-btn" onclick="switchGolfSubTab('market', this)"><i class="fa-solid fa-cart-shopping" style="color: #34D399;"></i> 🛍️ 中古認證桿門市</button>
+                            <button class="sub-nav-btn" onclick="switchGolfSubTab('courses', this)"><i class="fa-solid fa-flag" style="color: #38BDF8;"></i> 🌍 世界名門球場與價格預訂</button>
+                            <button class="sub-nav-btn" onclick="switchGolfSubTab('novice', this)"><i class="fa-solid fa-graduation-cap" style="color: #C084FC;"></i> 🔰 新手選桿與禮儀指南</button>
+                        </div>
+                    </div>
+
+                    <!-- 1. 最新的高爾夫球品牌新品介紹區 (Golf Gear New Releases) -->
+                    <div id="golf-section-gear" class="card glass-card span-3" style="background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
+                        <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                            <div class="header-left">
+                                <i class="fa-solid fa-wand-magic-sparkles icon-accent" style="color: #FBBF24;"></i>
+                                <div>
+                                    <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 18px; color: #FFFFFF;">🆕 2026 高爾夫球品牌新品介紹區 (Golf Gear New Releases)</h3>
+                                    <p style="font-size: 11px; color: #94A3B8; margin-top: 2px;">雙視角評測：資深選手彈道自旋分析 vs 高爾夫新手容錯率與飛行距離</p>
+                                </div>
+                            </div>
+                            <span class="badge" style="background: rgba(251, 191, 36, 0.15); color: #FBBF24; font-size: 11px; font-weight: 700;">2026 旗艦科技球具 ‧ 官方售價對照</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;">
+                            
+                            <!-- Product 1: TaylorMade Qi10 / Qi4D Max 10K Driver -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span class="badge" style="background: rgba(56,189,248,0.2); color: #38BDF8; font-size: 11px; font-weight: 800;">🇺🇸 TAYLORMADE (Qi10 / Qi4D 旗艦系列)</span>
+                                        <span style="font-size: 14px; color: #34D399; font-weight: 800;">NT$ 24,500 <span style="font-size: 11px; color: #94A3B8;">(USD $599)</span></span>
+                                    </div>
+                                    <h4 style="font-size: 17px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 8px;">TaylorMade Qi10 / Qi4D Max 10K 碳纖維 Driver</h4>
+                                    
+                                    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; margin-bottom: 8px;">
+                                        <div style="font-size: 11px; color: #38BDF8; font-weight: 700; margin-bottom: 2px;">👑 資深選手觀點 (Tour Player Perspective)：</div>
+                                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">突破 10,000 MOI 極致慣性矩，一體成型 60 層藍色碳纖維打擊面，搭配 Fujikura Ventus 剛性桿身，偏離甜心球速完全不減，高抗扭轉帶來精準攻綠視野。</div>
+                                    </div>
+
+                                    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px;">
+                                        <div style="font-size: 11px; color: #34D399; font-weight: 700; margin-bottom: 2px;">🔰 高爾夫新手觀點 (Novice Golfer Perspective)：</div>
+                                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">超高容錯率！即使擊球點偏離桿頭中心（打開或打包），球依然能穩定向前直線飛行，有效修正右曲球 (Slice)，新手發球的最佳神兵。</div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; margin-top: 6px;">
+                                    <a href="https://www.taylormadegolf.com" target="_blank" rel="noopener noreferrer" class="glow-btn" style="flex: 1; text-align: center; text-decoration: none; font-size: 12px; padding: 10px;">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟 TaylorMade 官網與 Qi10 價格 ↗
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Product 2: Honma BERES 08 AI-Forged -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span class="badge" style="background: rgba(251,191,36,0.2); color: #FBBF24; font-size: 11px; font-weight: 800;">🇯🇵 HONMA JAPAN (BERES 08 四星級)</span>
+                                        <span style="font-size: 14px; color: #34D399; font-weight: 800;">NT$ 88,000 <span style="font-size: 11px; color: #94A3B8;">(11支套桿)</span></span>
+                                    </div>
+                                    <h4 style="font-size: 17px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 8px;">Honma BERES 08 AI-Forged 鐵桿組 (11 支)</h4>
+                                    
+                                    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; margin-bottom: 8px;">
+                                        <div style="font-size: 11px; color: #FBBF24; font-weight: 700; margin-bottom: 2px;">👑 資深選手觀點 (Tour Player Perspective)：</div>
+                                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">日本酒田工廠匠人純手造金頭，四星等級 ARMRQ FX 碳纖維桿身，軟鐵鍛造帶來極致扎實打感與高角度倒旋停球控制。</div>
+                                    </div>
+
+                                    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px;">
+                                        <div style="font-size: 11px; color: #34D399; font-weight: 700; margin-bottom: 2px;">🔰 高爾夫新手觀點 (Novice Golfer Perspective)：</div>
+                                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">超低重心腔體設計，極易起球，揮桿體感極其輕鬆即可獲得遠距離飛躍，奢華頂級首選。</div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; margin-top: 6px;">
+                                    <a href="https://honmagolf.com" target="_blank" rel="noopener noreferrer" class="glow-btn" style="flex: 1; text-align: center; text-decoration: none; font-size: 12px; padding: 10px; background: rgba(251,191,36,0.15); color: #FBBF24; border-color: rgba(251,191,36,0.4);">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟 Honma 官網規格與價格 ↗
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Product 3: Callaway Paradym Ai Smoke -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(192, 132, 252, 0.3); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span class="badge" style="background: rgba(192,132,252,0.2); color: #c084fc; font-size: 11px; font-weight: 800;">🇺🇸 CALLAWAY (Ai Smoke 系列)</span>
+                                        <span style="font-size: 14px; color: #34D399; font-weight: 800;">NT$ 23,000 <span style="font-size: 11px; color: #94A3B8;">(USD $549)</span></span>
+                                    </div>
+                                    <h4 style="font-size: 17px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 8px;">Callaway Paradym Ai Smoke 開球木桿</h4>
+                                    
+                                    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; margin-bottom: 8px;">
+                                        <div style="font-size: 11px; color: #c084fc; font-weight: 700; margin-bottom: 2px;">👑 資深選手觀點：</div>
+                                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">真實球員揮桿軌跡大數據 AI 運算 Smart Face 擊球面，創造彈性極大化的多重微甜區。</div>
+                                    </div>
+
+                                    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px;">
+                                        <div style="font-size: 11px; color: #34D399; font-weight: 700; margin-bottom: 2px;">🔰 新手觀點：</div>
+                                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">Ai 擊球面能自動修正未擊中甜心的偏差角，為新手提供優異的距離與方向雙重補償。</div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; margin-top: 6px;">
+                                    <a href="https://www.callawaygolf.com" target="_blank" rel="noopener noreferrer" class="glow-btn" style="flex: 1; text-align: center; text-decoration: none; font-size: 12px; padding: 10px; background: rgba(192,132,252,0.15); color: #c084fc; border-color: rgba(192,132,252,0.4);">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟 Callaway 官網與價格 ↗
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Product 4: Titleist TSR3 -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span class="badge" style="background: rgba(248,113,113,0.2); color: #F87171; font-size: 11px; font-weight: 800;">🇺🇸 TITLEIST (TSR 巡迴賽系列)</span>
+                                        <span style="font-size: 14px; color: #34D399; font-weight: 800;">NT$ 22,500 <span style="font-size: 11px; color: #94A3B8;">(USD $549)</span></span>
+                                    </div>
+                                    <h4 style="font-size: 17px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 8px;">Titleist TSR3 / T100 專業巡迴賽球桿</h4>
+                                    
+                                    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; margin-bottom: 8px;">
+                                        <div style="font-size: 11px; color: #F87171; font-weight: 700; margin-bottom: 2px;">👑 資深選手觀點：</div>
+                                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">PGA 巡迴賽使用率第一，SureFitCG 前後可調重錘重心配置，給予極致彈道形塑掌控力。</div>
+                                    </div>
+
+                                    <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px;">
+                                        <div style="font-size: 11px; color: #34D399; font-weight: 700; margin-bottom: 2px;">🔰 新手觀點：</div>
+                                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5;">俐落簡潔的鍛造造型與空氣力學桿頭，適合建立高質感標準揮桿動線。</div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; margin-top: 6px;">
+                                    <a href="https://www.titleist.com" target="_blank" rel="noopener noreferrer" class="glow-btn" style="flex: 1; text-align: center; text-decoration: none; font-size: 12px; padding: 10px; background: rgba(248,113,113,0.15); color: #F87171; border-color: rgba(248,113,113,0.4);">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟 Titleist 官網與規格 ↗
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- 2. 高爾夫二手網站購物區 (Pre-owned Golf Market) -->
+                    <div id="golf-section-market" class="card glass-card span-3" style="background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
+                        <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                            <div class="header-left">
+                                <i class="fa-solid fa-cart-shopping icon-accent" style="color: #34D399;"></i>
+                                <div>
+                                    <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 18px; color: #FFFFFF;">🛍️ 高爾夫二手網站與球具購物區 (Pre-owned Golf Market)</h3>
+                                    <p style="font-size: 11px; color: #94A3B8; margin-top: 2px;">資深選手挖寶限量桿 vs 新手以 3-5 折預算輕鬆入手頂級品牌認證中古桿</p>
+                                </div>
+                            </div>
+                            <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #34D399; font-size: 11px; font-weight: 700;">日本/美國/台灣中古認證門市</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;">
+                            <a href="https://www.2ndstreet.jp" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; transition: all 0.2s ease;">
+                                <div style="font-size: 26px; color: #38BDF8; margin-bottom: 8px;"><i class="fa-solid fa-store"></i></div>
+                                <h4 style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">2nd Street Golf</h4>
+                                <span style="font-size: 11px; color: #94A3B8;">日本全國連鎖中古認證</span>
+                            </a>
+
+                            <a href="https://www.golfpartner.co.jp" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; transition: all 0.2s ease;">
+                                <div style="font-size: 26px; color: #34D399; margin-bottom: 8px;"><i class="fa-solid fa-handshake"></i></div>
+                                <h4 style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">Golf Partner Japan</h4>
+                                <span style="font-size: 11px; color: #94A3B8;">55萬支現貨免稅檢驗</span>
+                            </a>
+
+                            <a href="https://www.callawaygolfpreowned.com" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; transition: all 0.2s ease;">
+                                <div style="font-size: 26px; color: #FBBF24; margin-bottom: 8px;"><i class="fa-solid fa-shield-halved"></i></div>
+                                <h4 style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">Callaway Pre-Owned</h4>
+                                <span style="font-size: 11px; color: #94A3B8;">美國原廠 19 項檢驗保固</span>
+                            </a>
+
+                            <a href="https://www.globalgolf.com" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; transition: all 0.2s ease;">
+                                <div style="font-size: 26px; color: #c084fc; margin-bottom: 8px;"><i class="fa-solid fa-globe"></i></div>
+                                <h4 style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">GlobalGolf USA</h4>
+                                <span style="font-size: 11px; color: #94A3B8;">美國最大中古名桿交易</span>
+                            </a>
+
+                            <a href="https://auctions.yahoo.co.jp" target="_blank" rel="noopener noreferrer" class="booking-affiliate-card" style="text-decoration: none; text-align: center; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; transition: all 0.2s ease;">
+                                <div style="font-size: 26px; color: #f472b6; margin-bottom: 8px;"><i class="fa-solid fa-gavel"></i></div>
+                                <h4 style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">Yahoo! Mercari 拍賣</h4>
+                                <span style="font-size: 11px; color: #94A3B8;">日本絕版競標挖寶</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 3. 世界各地球場目錄、價格與一鍵預訂 (Global Golf Courses & Pricing) -->
+                    <div id="golf-section-courses" class="card glass-card span-3" style="background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
+                        <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                            <div class="header-left">
+                                <i class="fa-solid fa-flag icon-accent" style="color: #38BDF8;"></i>
+                                <div>
+                                    <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 18px; color: #FFFFFF;">🌍 世界各地球場目錄與一鍵預訂 (Global Golf Courses & Pricing)</h3>
+                                    <p style="font-size: 11px; color: #94A3B8; margin-top: 2px;">收錄日本、美國、蘇格蘭、泰國、越南與台灣名門球場果嶺費、桿弟服務與一鍵預訂通道</p>
+                                </div>
+                            </div>
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 11px; font-weight: 700;">即時價格透明 ‧ 一鍵預訂</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                            
+                            <!-- Course 1: Japan Kawana -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span class="badge" style="background: rgba(56,189,248,0.2); color: #38BDF8; font-size: 10px;">🇯🇵 日本靜岡</span>
+                                        <span style="font-size: 12px; color: #34D399; font-weight: 800;">NT$ 6,500 / 場</span>
+                                    </div>
+                                    <h4 style="font-size: 15px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">川奈飯店高爾夫球場 (Kawana Fuji Course)</h4>
+                                    <p style="font-size: 11px; color: #94A3B8; line-height: 1.5; margin: 0;">富士山景與太平洋懸崖海風交織的百大名門賽道。含 1 桿弟與高爾夫單人車。</p>
+                                </div>
+                                <button onclick="bookGolfCourse('川奈飯店高爾夫球場 (Kawana Fuji)', 'NT$ 6,500')" class="glow-btn" style="width: 100%; padding: 10px; font-size: 12px;">
+                                    <i class="fa-solid fa-calendar-check"></i> 一鍵預訂川奈球場
+                                </button>
+                            </div>
+
+                            <!-- Course 2: USA Pebble Beach -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span class="badge" style="background: rgba(248,113,113,0.2); color: #F87171; font-size: 10px;">🇺🇸 美國加州</span>
+                                        <span style="font-size: 12px; color: #FBBF24; font-weight: 800;">USD 625 (約 NT$ 20k)</span>
+                                    </div>
+                                    <h4 style="font-size: 15px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">圓石灘高爾夫球場 (Pebble Beach Golf Links)</h4>
+                                    <p style="font-size: 11px; color: #94A3B8; line-height: 1.5; margin: 0;">PGA 公開賽傳奇球場，17 Mile Drive 太平洋海岸線海浪與懸崖揮桿夢幻絕景。</p>
+                                </div>
+                                <button onclick="bookGolfCourse('圓石灘高爾夫球場 (Pebble Beach)', 'USD 625')" class="glow-btn" style="width: 100%; padding: 10px; font-size: 12px;">
+                                    <i class="fa-solid fa-calendar-check"></i> 一鍵預訂圓石灘球場
+                                </button>
+                            </div>
+
+                            <!-- Course 3: Thailand Alpine -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span class="badge" style="background: rgba(251,191,36,0.2); color: #FBBF24; font-size: 10px;">🇹🇭 泰國曼谷</span>
+                                        <span style="font-size: 12px; color: #34D399; font-weight: 800;">NT$ 3,200 / 場</span>
+                                    </div>
+                                    <h4 style="font-size: 15px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">曼谷 Alpine Golf Club</h4>
+                                    <p style="font-size: 11px; color: #94A3B8; line-height: 1.5; margin: 0;">泰國 PGA 錦標賽與老虎伍茲奪冠場地，專屬 1 桿弟 1 球車 VIP 尊榮球道。</p>
+                                </div>
+                                <button onclick="bookGolfCourse('曼谷 Alpine Golf Club', 'NT$ 3,200')" class="glow-btn" style="width: 100%; padding: 10px; font-size: 12px;">
+                                    <i class="fa-solid fa-calendar-check"></i> 一鍵預訂 Alpine 球場
+                                </button>
+                            </div>
+
+                            <!-- Course 4: Vietnam Da Nang -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span class="badge" style="background: rgba(52,211,153,0.2); color: #34D399; font-size: 10px;">🇻🇳 越南峴港</span>
+                                        <span style="font-size: 12px; color: #34D399; font-weight: 800;">NT$ 2,800 / 場</span>
+                                    </div>
+                                    <h4 style="font-size: 15px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">峴港 BRG Da Nang Golf Resort</h4>
+                                    <p style="font-size: 11px; color: #94A3B8; line-height: 1.5; margin: 0;">Greg Norman 簽名設計大自然沙丘賽道，亞洲最佳度假球場之一。</p>
+                                </div>
+                                <button onclick="bookGolfCourse('峴港 BRG Da Nang Golf Resort', 'NT$ 2,800')" class="glow-btn" style="width: 100%; padding: 10px; font-size: 12px;">
+                                    <i class="fa-solid fa-calendar-check"></i> 一鍵預訂峴港球場
+                                </button>
+                            </div>
+
+                            <!-- Course 5: Taiwan Miramar -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span class="badge" style="background: rgba(192,132,252,0.2); color: #c084fc; font-size: 10px;">🇹🇼 台灣林口</span>
+                                        <span style="font-size: 12px; color: #34D399; font-weight: 800;">NT$ 3,800 / 場</span>
+                                    </div>
+                                    <h4 style="font-size: 15px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">美麗華高爾夫鄉村俱樂部 (Miramar Golf)</h4>
+                                    <p style="font-size: 11px; color: #94A3B8; line-height: 1.5; margin: 0;">Jack Nicklaus 設計之國際 PGA 錦標賽球場，綠草如茵水池障礙豐富。</p>
+                                </div>
+                                <button onclick="bookGolfCourse('美麗華高爾夫鄉村俱樂部 (Miramar)', 'NT$ 3,800')" class="glow-btn" style="width: 100%; padding: 10px; font-size: 12px;">
+                                    <i class="fa-solid fa-calendar-check"></i> 一鍵預訂美麗華球場
+                                </button>
+                            </div>
+
+                            <!-- Course 6: Taiwan Kuo Hua -->
+                            <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span class="badge" style="background: rgba(192,132,252,0.2); color: #c084fc; font-size: 10px;">🇹🇼 台灣淡水</span>
+                                        <span style="font-size: 12px; color: #34D399; font-weight: 800;">NT$ 3,200 / 場</span>
+                                    </div>
+                                    <h4 style="font-size: 15px; color: #FFFFFF; font-weight: 700; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">國華高爾夫俱樂部 (Kuo Hua Golf Club)</h4>
+                                    <p style="font-size: 11px; color: #94A3B8; line-height: 1.5; margin: 0;">大屯山系天然樹林屏障，景致優美且挑戰性高之台北經典老牌球場。</p>
+                                </div>
+                                <button onclick="bookGolfCourse('國華高爾夫俱樂部 (Kuo Hua)', 'NT$ 3,200')" class="glow-btn" style="width: 100%; padding: 10px; font-size: 12px;">
+                                    <i class="fa-solid fa-calendar-check"></i> 一鍵預訂國華球場
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- 4. 新手選桿與禮儀指南 (Novice Golf Beginner Guide & Etiquette) -->
+                    <div id="golf-section-novice" class="card glass-card span-3" style="background: rgba(17, 21, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
+                        <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                            <div class="header-left">
+                                <i class="fa-solid fa-graduation-cap icon-accent" style="color: #C084FC;"></i>
+                                <div>
+                                    <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 18px; color: #FFFFFF;">🔰 高爾夫新手選桿與下場禮儀指南 (Beginner Golf Guide)</h3>
+                                    <p style="font-size: 11px; color: #94A3B8; margin-top: 2px;">專為新手設計：硬度選桿 (R/SR/S)、起球角度、練習場規劃與下場禮儀小費規範</p>
+                                </div>
+                            </div>
+                            <span class="badge" style="background: rgba(192, 132, 252, 0.15); color: #C084FC; font-size: 11px; font-weight: 700;">新手必看懶人包</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                            <div style="background: rgba(6, 12, 26, 0.7); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                                <h4 style="font-size: 14px; color: #38BDF8; font-weight: 700; margin-bottom: 8px;">1. 桿身硬度選擇 (Flex Guide)</h4>
+                                <ul style="font-size: 12px; color: #E2E8F0; line-height: 1.6; padding-left: 18px; margin: 0;">
+                                    <li><strong>R (Regular)</strong>: 揮桿速度 80~90 mph 新手首選。</li>
+                                    <li><strong>SR (Stiff-Regular)</strong>: 揮桿速度 90~98 mph 進階。</li>
+                                    <li><strong>S (Stiff)</strong>: 98+ mph 資深強打選手首選。</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(6, 12, 26, 0.7); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                                <h4 style="font-size: 14px; color: #34D399; font-weight: 700; margin-bottom: 8px;">2. 木桿起球角度 (Loft Guide)</h4>
+                                <ul style="font-size: 12px; color: #E2E8F0; line-height: 1.6; padding-left: 18px; margin: 0;">
+                                    <li><strong>新手推薦 10.5° 或 12°</strong>：高起球角度，輕鬆增加飛行距離與容錯。</li>
+                                    <li><strong>資深選手 8.5° 或 9.0°</strong>：低自旋、強勁穿透彈道。</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(6, 12, 26, 0.7); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                                <h4 style="font-size: 14px; color: #FBBF24; font-weight: 700; margin-bottom: 8px;">3. 桿弟小費與禮儀 (Tipping & Etiquette)</h4>
+                                <ul style="font-size: 12px; color: #E2E8F0; line-height: 1.6; padding-left: 18px; margin: 0;">
+                                    <li><strong>台灣/日本球場</strong>：小費已內含或依球場收費明細。</li>
+                                    <li><strong>泰國/越南渡假球場</strong>：建議打完 18 洞提供 300~500 THB / 200,000 VND 額外小費。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Tab: 防禦性資產與槓桿水位監控 (Asset & Leverage Monitor - 規約 7) -->
+            <section id="tab-asset" class="tab-content">
+                <div class="grid-layout">
+                    <div class="card glass-card span-3 trip-banner">
+                        <div>
+                            <h2><i class="fa-solid fa-building-columns icon-accent" style="color: #FBBF24;"></i> 防禦性資產與槓桿水位監控 (Leverage & Asset Monitor)</h2>
+                            <p>結構化理財與資產配置監控，即時試算理財型房貸貸款成數 (LTV) 與防禦性現金水位可支撐月數</p>
+                        </div>
+                        <button class="pill-action-btn" style="padding: 10px 20px;" onclick="openAssetUpdateModal()"><i class="fa-solid fa-pen-to-square"></i> 更新資產水位數據</button>
+                    </div>
+
+                    <!-- 3 Core Metric Cards -->
+                    <div class="card glass-card span-1">
+                        <div style="padding: 18px;">
+                            <span style="font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px;">LTV 貸款成數 (Loan-to-Value)</span>
+                            <h3 id="asset-ltv-val" style="font-size: 32px; font-weight: 300; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin: 8px 0;">53.57%</h3>
+                            <div style="font-size: 11px; color: #34D399;">
+                                房貸餘額 NT$ 15,000,000 / 房產市值 NT$ 28,000,000
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card span-1">
+                        <div style="padding: 18px;">
+                            <span style="font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px;">防禦性現金流可支撐月數 (Runway)</span>
+                            <h3 id="asset-runway-val" style="font-size: 32px; font-weight: 300; color: #FBBF24; font-family: 'Inter Tight', sans-serif; margin: 8px 0;">15.0 個月</h3>
+                            <div style="font-size: 11px; color: #94A3B8;">
+                                現金儲備 NT$ 1,800,000 / 每月支出 NT$ 120,000
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card span-1">
+                        <div style="padding: 18px;">
+                            <span style="font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px;">核心 ETF 投資組合權重</span>
+                            <h3 id="asset-etf-val" style="font-size: 32px; font-weight: 300; color: #38BDF8; font-family: 'Inter Tight', sans-serif; margin: 8px 0;">NT$ 6.5M</h3>
+                            <div style="font-size: 11px; color: #34D399;">
+                                累積未實現損益：+NT$ 850,000 (權重無偏離觸發)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div id="quick-capture-fab" class="quick-fab" onclick="openQuickCaptureModal()" title="快捷隨筆 (Press N)">
+                <i class="fa-solid fa-feather-pointed" style="font-size: 20px; color: #FFFFFF;"></i>
+            </div>
+            
+            <!-- Quick Capture FAB Modal (規約 9) -->
+            <div id="modal-quick-capture" class="modal-overlay">
+                <div class="modal-box" style="max-width: 500px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 12px; margin-bottom: 16px;">
+                        <h3 style="color: #FFFFFF; font-size: 18px; font-family: 'Inter Tight', sans-serif;"><i class="fa-solid fa-feather-pointed text-gold"></i> 浮動隨寫 Quick Capture (按 N 隨時開啟)</h3>
+                        <button onclick="closeQuickCaptureModal()" class="btn-delete" style="font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <form id="form-quick-capture" onsubmit="submitQuickCapture(event)">
+                        <textarea id="qc-text-input" rows="4" class="cyber-input" style="width: 100%; resize: vertical; padding: 12px; font-size: 14px;" placeholder="輸入瞬時靈感...&#10;• 包含 $ 或 TWD ➔ 自動歸類至 💰 財務/資產&#10;• 包含 Flight 或 Hotel ➔ 自動歸類至 ✈️ 差旅/行程&#10;• 包含 Water, PLC, Interlock ➔ 自動歸類至 ⚙️ 工程/純水"></textarea>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+                            <span style="font-size: 11px; color: #94A3B8;">系統將進行 Auto-Routing 自動分流標籤</span>
+                            <button type="submit" class="glow-btn" style="width: auto; padding: 8px 20px;"><i class="fa-solid fa-paper-plane"></i> 儲存隨寫靈感</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Command Palette Modal (Ctrl+K - 規約 1) -->
+            <div id="command-palette-modal" class="modal-overlay">
+                <div class="modal-box" style="max-width: 600px; padding: 18px; border-radius: 18px; background: rgba(14, 18, 26, 0.95); border: 1px solid rgba(56, 189, 248, 0.4);">
+                    <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;">
+                        <i class="fa-solid fa-terminal" style="color: #38BDF8; font-size: 16px;"></i>
+                        <input type="text" id="cmd-input" placeholder="輸入指令或關鍵字 (例如: Go to Travel, New Trip, 搜尋秋葉原, LTV)..." style="flex: 1; border: none; background: transparent; color: #FFFFFF; font-size: 15px; outline: none;" onkeyup="filterCommandItems()">
+                        <span style="font-size: 11px; color: #94A3B8; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px;">Esc 關閉</span>
+                    </div>
+                    <div id="cmd-results-list" style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Filtered command items loaded via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Off-Canvas Side Drawer (規約 3) -->
+            <div id="offcanvas-backdrop" class="offcanvas-backdrop" onclick="closeOffCanvasDrawer()"></div>
+            <div id="offcanvas-drawer" class="offcanvas-drawer">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 16px; margin-bottom: 20px;">
+                    <h3 id="offcanvas-title" style="color: #FFFFFF; font-size: 18px; font-family: 'Inter Tight', sans-serif;">抽屜詳細內容</h3>
+                    <button onclick="closeOffCanvasDrawer()" class="btn-delete" style="font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="offcanvas-body">
+                    <!-- Loaded via JS -->
+                </div>
+            </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Copy Travel Guide Modal -->
+    <div id="modal-copy-guide" class="modal-overlay">
+        <div class="modal-box" style="max-width: 550px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px; margin-bottom: 20px;">
+                <h3 style="color: var(--primary-color); font-size: 20px;"><i class="fa-solid fa-copy"></i> 一鍵複製旅遊書架構 (Duplicate Guide)</h3>
+                <button id="btn-close-copy-modal" class="btn-delete" style="font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="form-copy-guide" style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label style="font-size: 14px; font-weight: 700;">來源旅遊書範本：</label>
+                    <select id="copy-source-guide" class="cyber-input" style="margin-top: 6px;">
+                        <option value="1">🇺🇸《2026 美西公路旅行攻略》 (標竿範本)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 14px; font-weight: 700;">新旅遊書標題：</label>
+                    <input type="text" id="copy-new-title" placeholder="例如：日本關東東京奢華 7 日遊" class="cyber-input" style="margin-top: 6px;">
+                </div>
+                <div>
+                    <label style="font-size: 14px; font-weight: 700;">目標國家：</label>
+                    <select id="copy-target-country" class="cyber-input" style="margin-top: 6px;">
+                        <option value="2">🇯🇵 日本 (Japan)</option>
+                        <option value="3">🇰🇷 韓國 (Korea)</option>
+                        <option value="4">🇹🇭 泰國 (Thailand)</option>
+                        <option value="5">🇪🇺 歐洲 (Europe)</option>
+                        <option value="6">🇦🇺 澳洲 (Australia)</option>
+                        <option value="1">🇺🇸 美國 (USA)</option>
+                    </select>
+                </div>
+                <button type="submit" class="glow-btn" style="margin-top: 10px;">
+                    <i class="fa-solid fa-clone"></i> 立即複製並產生新旅遊書
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Travel Guide Metadata Modal -->
+    <div id="modal-edit-guide" class="modal-overlay">
+        <div class="modal-box" style="max-width: 550px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px; margin-bottom: 20px;">
+                <h3 style="color: var(--primary-color); font-size: 20px;"><i class="fa-solid fa-pen-to-square"></i> 編輯旅遊書基本資訊 (Edit Guide)</h3>
+                <button id="btn-close-edit-guide-modal" class="btn-delete" style="font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="form-edit-guide" style="display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="eg-guide-id" value="">
+                <div>
+                    <label style="font-size: 14px; font-weight: 700;">旅遊書標題：</label>
+                    <input type="text" id="eg-title" placeholder="旅遊書標題" class="cyber-input" style="margin-top: 6px;">
+                </div>
+                <div>
+                    <label style="font-size: 14px; font-weight: 700;">目標國家：</label>
+                    <select id="eg-country" class="cyber-input" style="margin-top: 6px;">
+                        <option value="1">🇺🇸 美國 (USA)</option>
+                        <option value="2">🇯🇵 日本 (Japan)</option>
+                        <option value="3">🇰🇷 韓國 (Korea)</option>
+                        <option value="4">🇹🇭 泰國 (Thailand)</option>
+                        <option value="5">🇪🇺 歐洲 (Europe)</option>
+                        <option value="6">🇦🇺 澳洲 (Australia)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 14px; font-weight: 700;">旅遊總天數 (天)：</label>
+                    <input type="number" id="eg-days" value="7" class="cyber-input" style="margin-top: 6px;">
+                </div>
+                <div>
+                    <label style="font-size: 14px; font-weight: 700;">簡介描述：</label>
+                    <textarea id="eg-desc" rows="3" class="cyber-input" style="margin-top: 6px; resize: vertical;" placeholder="旅遊書簡介說明..."></textarea>
+                </div>
+                <button type="submit" class="glow-btn" style="margin-top: 10px;">
+                    <i class="fa-solid fa-save"></i> 儲存旅遊書資訊
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Place CMS Modal -->
+    <div id="modal-place-editor" class="modal-overlay">
+        <div class="modal-box" style="max-width: 650px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 12px; margin-bottom: 20px;">
+                <h3 style="color: var(--primary-color); font-size: 20px;"><i class="fa-solid fa-location-dot"></i> 新增 / 編輯地點內容 (CMS Place Editor)</h3>
+                <button id="btn-close-place-modal" class="btn-delete" style="font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="form-place-editor" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
+                <input type="hidden" id="pe-id" value="">
+                <div>
+                    <label style="font-size: 13px; font-weight: 700;">所屬旅遊書：</label>
+                    <select id="pe-guide-id" class="cyber-input" style="margin-top: 4px;">
+                        <option value="1">2026 美西公路旅行攻略</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: 700;">主要分類：</label>
+                    <select id="pe-category" class="cyber-input" style="margin-top: 4px;">
+                        <option value="attraction">景點 (Attraction)</option>
+                        <option value="food">美食 (Food)</option>
+                        <option value="hotel">飯店 (Hotel)</option>
+                        <option value="entertainment">娛樂/賽事 (Entertainment)</option>
+                        <option value="transport">交通 (Transport)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: 700;">次分類 (如 michelin / nba / outlet / gas)：</label>
+                    <input type="text" id="pe-subcategory" placeholder="michelin, steakhouse, nba, outlet..." class="cyber-input" style="margin-top: 4px;">
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: 700;">地點標題名稱：</label>
+                    <input type="text" id="pe-title" placeholder="地點名稱" class="cyber-input" style="margin-top: 4px;">
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: 700;">Google 評分 (1.0 - 5.0)：</label>
+                    <input type="number" step="0.1" id="pe-rating" value="4.8" class="cyber-input" style="margin-top: 4px;">
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: 700;">預估費用 (NT$)：</label>
+                    <input type="number" id="pe-price" value="0" class="cyber-input" style="margin-top: 4px;">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="font-size: 13px; font-weight: 700;">地址 / Google Map 導航連結：</label>
+                    <input type="text" id="pe-address" placeholder="地址或 Google Maps 連結" class="cyber-input" style="margin-top: 4px;">
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: 700;">官方網站連結：</label>
+                    <input type="text" id="pe-official-url" placeholder="https://..." class="cyber-input" style="margin-top: 4px;">
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: 700;">訂位 / 訂票連結：</label>
+                    <input type="text" id="pe-booking-url" placeholder="Booking / Ticketmaster / OpenTable 連結" class="cyber-input" style="margin-top: 4px;">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="font-size: 13px; font-weight: 700;">詳細介紹與攻略建議：</label>
+                    <textarea id="pe-desc" rows="3" class="cyber-input" style="margin-top: 4px; resize: vertical;" placeholder="景點或美食介紹..."></textarea>
+                </div>
+                <div style="grid-column: span 2;">
+                    <button type="submit" class="submit-btn" style="width: 100%;">
+                        <i class="fa-solid fa-save"></i> 儲存地點內容至 CMS
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Travel Book Preview & Printable Modal -->
+    <div id="modal-travelbook" class="modal-overlay">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 16px; margin-bottom: 20px;">
+                <h2 id="modal-trip-title" style="color: var(--primary-color); font-size: 24px;"><i class="fa-solid fa-book-bookmark"></i> 個人專屬電子旅遊手冊</h2>
+                <button id="btn-close-modal" class="btn-delete" style="font-size: 20px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="modal-travelbook-content">
+                <!-- Loaded via JS -->
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <button onclick="window.print()" class="submit-btn"><i class="fa-solid fa-print"></i> 列印 / 儲存為 PDF 手冊</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide-Over Drawer / Detail Modal for Stock & Jewish News -->
+    <div id="modal-news-drawer" class="modal-overlay">
+        <div class="modal-box" style="max-width: 620px; border-radius: 24px; padding: 26px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(148,163,184,0.2); padding-bottom: 14px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="nd-badge" class="badge" style="font-size: 12px; font-weight: 700;"></span>
+                    <span id="nd-source" style="font-size: 12px; color: var(--text-muted);"></span>
+                </div>
+                <button onclick="closeNewsDrawer()" class="btn-delete" style="font-size: 20px; border: none; background: transparent; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <h3 id="nd-title" style="font-size: 20px; font-weight: 800; color: var(--text-main); font-family: 'Noto Serif TC', serif; line-height: 1.4; margin-bottom: 16px;"></h3>
+            
+            <div id="nd-takeaway" style="display: none; background: rgba(212,163,115,0.12); border-left: 4px solid var(--accent-tea); padding: 14px 18px; border-radius: 10px; font-size: 13px; color: var(--text-main); margin-bottom: 18px; line-height: 1.5;">
+            </div>
+
+            <p id="nd-summary" style="font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 24px;"></p>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(148,163,184,0.2); padding-top: 16px;">
+                <span id="nd-date" style="font-size: 12px; color: var(--text-muted);"></span>
+                <a id="nd-link" href="#" target="_blank" rel="noopener noreferrer" class="submit-btn" style="padding: 8px 20px; font-size: 13px; text-decoration: none; border-radius: 20px;">
+                    閱讀新聞全文 <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
