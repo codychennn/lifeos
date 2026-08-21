@@ -130,8 +130,16 @@ BEARISH_KEYWORDS = [
 ]
 
 # Real-Time Crawler Schedule Intervals (User High-Frequency Scanning Directive)
-TRAVEL_DEALS_INTERVAL_MINUTES = 30   # 旅遊特價與機票航班：每 30 分鐘超快速全網掃描一次
-FINANCE_NEWS_INTERVAL_MINUTES = 30   # 各類財經新聞與美股/台股情緒：每 30 分鐘即時掃描更新一次
-JEWISH_NEWS_INTERVAL_MINUTES = 30    # 猶太重點新聞與商道翻譯：每 30 分鐘即時更新一次
+TRAVEL_DEALS_INTERVAL_MINUTES = 720  # 旅遊特價與機票航班：每 12 小時定時推播一次 (12 Hours)
+FINANCE_NEWS_INTERVAL_MINUTES = 180  # 各類財經新聞與美股/台股情緒：每 3 小時更新一次 (3 Hours)
+JEWISH_NEWS_INTERVAL_MINUTES = 180   # 猶太重點新聞與商道翻譯：每 3 小時更新一次 (3 Hours)
 DAILY_SUMMARY_HOUR = 21              # 21:00 定時推送每日財務與行情摘要
 
+
+# Real-Time Urgent Emergency Push Keywords (Trump & International War / Geopolitics)
+EMERGENCY_KEYWORDS = [
+    "Trump", "川普", "特朗普",
+    "戰爭", "War", "衝突", "開戰", "軍事", "導彈", "Missile", "空襲", "炸彈",
+    "地緣政治", "Geopolitics", "中東", "Middle East", "以巴", "以色列", "巴勒斯坦",
+    "Iran", "伊朗", "Ukraine", "烏克蘭", "Russia", "俄羅斯", "制裁", "核武", "美中關係"
+]

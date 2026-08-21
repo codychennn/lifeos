@@ -7,73 +7,116 @@ import deal_crawler
 import news_analyzer
 import jewish_analyzer
 import telegram_notifier
-from config import TRAVEL_DEALS_INTERVAL_MINUTES, FINANCE_NEWS_INTERVAL_MINUTES, JEWISH_NEWS_INTERVAL_MINUTES, DAILY_SUMMARY_HOUR
+from config import (
+    TRAVEL_DEALS_INTERVAL_MINUTES, 
+    FINANCE_NEWS_INTERVAL_MINUTES, 
+    JEWISH_NEWS_INTERVAL_MINUTES, 
+    DAILY_SUMMARY_HOUR,
+    EMERGENCY_KEYWORDS
+)
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
+def is_emergency_news(title: str, summary: str):
+    """
+    Checks if news contains Trump or International War / Geopolitical Conflict keywords for immediate real-time push.
+    """
+    text = f"{title} {summary}"
+    for kw in EMERGENCY_KEYWORDS:
+        if kw.lower() in text.lower():
+            return True
+    return False
+
 def job_crawl_deals():
     """
-    Crawls travel discount deals & flight tickets (Runs every 30 minutes).
+    Crawls travel discount deals & flight tickets (Runs every 12 hours).
     Pushes unsent alerts to Telegram.
     """
-    print("[Scheduler ⚡ 30m] Running travel deals & flight ticket crawler job...")
+    print("[Scheduler ✈️ 12h] Running travel deals & flight ticket crawler job (12-hour cycle)...")
     try:
         new_deals = deal_crawler.fetch_and_process_deals()
-        if new_deals:
-            print(f"[Scheduler ⚡ 30m] Found {len(new_deals)} new deals & flights.")
-            unnotified = database.get_recent_deals(limit=10, unnotified_only=True)
-            if unnotified:
-                msg_lines = ["✈️ *【最新機票航班與旅遊促銷警示 (30分即時)】* 🔥\n"]
-                ids_to_mark = []
-                for d in unnotified:
-                    msg_lines.append(f"• [{d['source']}] *{d['title']}*\n  關鍵字: `{d['matched_keyword']}` | [點此連結]({d['link']})")
-                    ids_to_mark.append(d["id"])
-                    
-                pushed = telegram_notifier.send_push_notification("\n\n".join(msg_lines))
-                if pushed:
-                    database.mark_deals_notified(ids_to_mark)
+        unnotified = database.get_recent_deals(limit=10, unnotified_only=True)
+        if unnotified:
+            print(f"[Scheduler ✈️ 12h] Found {len(unnotified)} travel deals to push.")
+            msg_lines = ["✈️ *【最新機票航班與旅遊促銷彙整 (12小時定時推播)】* 🔥\n"]
+            ids_to_mark = []
+            for d in unnotified:
+                msg_lines.append(f"• [{d['source']}] *{d['title']}*\n  關鍵字: `{d['matched_keyword']}` | [點此連結]({d['link']})")
+                ids_to_mark.append(d["id"])
+                
+            pushed = telegram_notifier.send_push_notification("\n\n".join(msg_lines))
+            if pushed:
+                database.mark_deals_notified(ids_to_mark)
     except Exception as e:
         print(f"[Scheduler Error - Deal Crawler] {e}")
 
 def job_analyze_news():
     """
-    Analyzes stock news sentiment for US & TW markets (Runs every 1 hour).
-    Pushes unsent extreme sentiment alerts to Telegram.
+    Analyzes stock news sentiment for US & TW markets (Runs every 3 hours).
+    Immediately pushes Trump/War emergency news, and batches routine news every 3 hours.
     """
-    print("[Scheduler ⏱️ 1h] Running stock & financial news sentiment analysis job...")
+    print("[Scheduler 📈 3h] Running stock & financial news sentiment analysis job (3-hour cycle)...")
     try:
         new_alerts = news_analyzer.fetch_and_analyze_stock_news()
-        if new_alerts:
-            print(f"[Scheduler ⏱️ 1h] Found {len(new_alerts)} new stock sentiment alerts.")
-            unnotified = database.get_recent_stock_alerts(limit=10, unnotified_only=True)
-            if unnotified:
-                msg_lines = ["📈 *【重大美股/台股財經新聞警示 (1小時即時)】* 📉\n"]
+        unnotified = database.get_recent_stock_alerts(limit=20, unnotified_only=True)
+        
+        if unnotified:
+            emergency_items = []
+            routine_items = []
+            
+            for a in unnotified:
+                if is_emergency_news(a["title"], a.get("summary", "")):
+                    emergency_items.append(a)
+                else:
+                    routine_items.append(a)
+                    
+            # 1. Real-Time Emergency Push (Trump or International War / Geopolitics)
+            if emergency_items:
+                print(f"[Scheduler 🚨 EMERGENCY] Pushing {len(emergency_items)} Trump/War real-time emergency alerts!")
+                emerg_lines = ["🚨 *【川普與國際戰爭地緣政治 - 突發即時緊急推播】* 🚨\n"]
                 ids_to_mark = []
-                for a in unnotified:
-                    icon = "🚀" if "樂觀" in a["sentiment"] else "⚠️"
-                    msg_lines.append(
+                for a in emergency_items:
+                    icon = "💥" if "悲觀" in a["sentiment"] else "🏛️"
+                    emerg_lines.append(
                         f"{icon} *[{a['sentiment']}] {a['title']}*\n"
                         f"  {a['summary']}\n"
                         f"  [閱讀全文]({a['link']})"
                     )
                     ids_to_mark.append(a["id"])
-                    
-                pushed = telegram_notifier.send_push_notification("\n\n".join(msg_lines))
+                pushed = telegram_notifier.send_push_notification("\n\n".join(emerg_lines))
                 if pushed:
                     database.mark_stock_alerts_notified(ids_to_mark)
+
+            # 2. Routine 3-Hour Batch Push
+            if routine_items:
+                print(f"[Scheduler ⏱️ 3h Batch] Pushing {len(routine_items)} routine stock sentiment alerts.")
+                routine_lines = ["📈 *【美股/台股財經新聞與情緒分析 (3小時定時掃描)】* 📉\n"]
+                ids_to_mark = []
+                for a in routine_items[:10]:
+                    icon = "🚀" if "樂觀" in a["sentiment"] else "⚠️"
+                    routine_lines.append(
+                        f"{icon} *[{a['sentiment']}] {a['title']}*\n"
+                        f"  {a['summary']}\n"
+                        f"  [閱讀全文]({a['link']})"
+                    )
+                    ids_to_mark.append(a["id"])
+                pushed = telegram_notifier.send_push_notification("\n\n".join(routine_lines))
+                if pushed:
+                    database.mark_stock_alerts_notified(ids_to_mark)
+
     except Exception as e:
         print(f"[Scheduler Error - News Analyzer] {e}")
 
 def job_crawl_jewish_news():
     """
-    Crawls and analyzes Jewish business & tech insights (Runs every 1 hour).
+    Crawls and analyzes Jewish business & tech insights (Runs every 3 hours).
     """
-    print("[Scheduler ⏱️ 1h] Running Jewish news & business insights crawler job...")
+    print("[Scheduler ⏱️ 3h] Running Jewish news & business insights crawler job...")
     try:
         new_items = jewish_analyzer.fetch_and_analyze_jewish_news()
         if new_items:
-            print(f"[Scheduler ⏱️ 1h] Found {len(new_items)} new Jewish news items.")
+            print(f"[Scheduler ⏱️ 3h] Found {len(new_items)} new Jewish news items.")
     except Exception as e:
         print(f"[Scheduler Error - Jewish Analyzer] {e}")
 
@@ -106,29 +149,20 @@ def job_daily_summary():
 def start_scheduler():
     scheduler = BackgroundScheduler()
     
-    # 1. Travel Deals & Flight Tickets (Every 30 Minutes)
+    # 1. Travel Deals & Flight Tickets (Every 12 Hours = 720 Minutes)
     scheduler.add_job(job_crawl_deals, 'interval', minutes=TRAVEL_DEALS_INTERVAL_MINUTES, id='deal_job')
     
-    # 2. Finance & Stock Market News (Every 1 Hour)
+    # 2. Finance & Stock Market News (Every 3 Hours = 180 Minutes)
     scheduler.add_job(job_analyze_news, 'interval', minutes=FINANCE_NEWS_INTERVAL_MINUTES, id='news_job')
     
-    # 3. Jewish Business News & Insights (Every 1 Hour)
+    # 3. Jewish Business News & Insights (Every 3 Hours = 180 Minutes)
     scheduler.add_job(job_crawl_jewish_news, 'interval', minutes=JEWISH_NEWS_INTERVAL_MINUTES, id='jewish_job')
     
     # Daily summary cron job (21:00)
     scheduler.add_job(job_daily_summary, 'cron', hour=DAILY_SUMMARY_HOUR, minute=0, id='summary_job')
     
     scheduler.start()
-    print(f"[Scheduler 🚀] Started: Travel Deals & Flights (Every {TRAVEL_DEALS_INTERVAL_MINUTES}m), Finance News (Every {FINANCE_NEWS_INTERVAL_MINUTES}m), Jewish News (Every {JEWISH_NEWS_INTERVAL_MINUTES}m).")
-    
-    # Run initial check asynchronously in background thread so Web App starts immediately
-    import threading
-    t1 = threading.Thread(target=job_crawl_deals, daemon=True)
-    t2 = threading.Thread(target=job_analyze_news, daemon=True)
-    t3 = threading.Thread(target=job_crawl_jewish_news, daemon=True)
-    t1.start()
-    t2.start()
-    t3.start()
+    print(f"[Scheduler 🚀] Started: Travel Deals (Every {TRAVEL_DEALS_INTERVAL_MINUTES//60}h), Finance News (Every {FINANCE_NEWS_INTERVAL_MINUTES//60}h), Jewish News (Every {JEWISH_NEWS_INTERVAL_MINUTES//60}h). Emergency Trump/War news pushed in real-time!")
     
     return scheduler
 
