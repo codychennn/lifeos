@@ -54,17 +54,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.switchTab = function(tabId) {
-        const targetBtn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+        const aliasMap = {
+            'dashboard': 'bento',
+            'travel': 'guide2026',
+            'finance': 'asset',
+            'knowledge': 'jewish'
+        };
+        const mappedTabId = aliasMap[tabId] || tabId;
+
+        const targetBtn = document.querySelector(`.nav-btn[data-tab="${mappedTabId}"]`);
         if (targetBtn) {
             targetBtn.click();
         } else {
             navBtns.forEach(b => b.classList.remove('active'));
             tabContents.forEach(t => t.classList.remove('active'));
-            const targetElem = document.getElementById(`tab-${tabId}`);
+            const targetElem = document.getElementById(`tab-${mappedTabId}`);
             if (targetElem) targetElem.classList.add('active');
-            if (tabHeaders[tabId]) {
-                pageTitle.textContent = tabHeaders[tabId].title;
-                pageDesc.textContent = tabHeaders[tabId].desc;
+            if (tabHeaders[mappedTabId]) {
+                pageTitle.textContent = tabHeaders[mappedTabId].title;
+                pageDesc.textContent = tabHeaders[mappedTabId].desc;
             }
         }
         const mainContent = document.querySelector('.main-content');
@@ -893,7 +901,7 @@ document.addEventListener('DOMContentLoaded', () => {
         crawlerStatusMsg.textContent = '正在爬取最新特價與新聞...';
 
         try {
-            const res = await fetch('/api/trigger-crawler', { method: 'POST' });
+            const res = await fetch('/api/admin/refresh-scrapers', { method: 'POST' });
             const data = await res.json();
 
             if (data.status === 'success') {
