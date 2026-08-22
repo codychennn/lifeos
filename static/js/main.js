@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
         expenses: { title: "智慧記帳管理", desc: "輸入簡短文字即可自動解析與分類" },
         deals: { title: "特價與機票優惠監控", desc: "自動監控 PTT 省錢板、長榮/阿拉斯加促銷" },
         stocks: { title: "財經新聞與股市情緒分析 (美股 vs 台股)", desc: "自動掃描華爾街日報 WSJ 與極度樂觀新聞" },
-        flights: { title: "智能機票專區 (Smart Flight Search)", desc: "150-300km 鄰近替代機場自動擴展 ‧ 跨航司自轉機拆票推薦 ‧ Z-Score 異常低價/Bug票發掘與降價監控" },
+        flights: { title: "智能機票專區", desc: "即時分析最佳航班與票價走勢" },
+        deals: { title: "特價優惠監控", desc: "全網機票閃促與飯店特惠即時追蹤" },
         jewish: { title: "猶太人智庫與每日重點新聞專區", desc: "塔木德商道智慧與商業焦點解析" }
     };
 
@@ -55,15 +56,45 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.switchTab = function(tabId) {
-        const aliasMap = {
-            'dashboard': 'bento',
-            'travel': 'guide2026',
-            'finance': 'asset',
-            'knowledge': 'jewish',
-            'flights': 'flights',
-            'deals': 'flights',
-            'golf': 'golf'
-        };
+    const aliasMap = {
+        'dashboard': 'bento',
+        'travel': 'guide2026',
+        'finance': 'asset',
+        'knowledge': 'jewish',
+        'flights': 'flights',
+        'deals': 'deals'
+    };
+    const mappedTabId = aliasMap[tabId] || tabId;
+    const targetBtn = document.querySelector(`.nav-btn[data-tab="${mappedTabId}"]`);
+    
+    // 移除所有按鈕 active
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    navBtns.forEach(b => b.classList.remove('active'));
+
+    // 顯示目標分頁，隱藏其他分頁
+    tabContents.forEach(t => {
+        if (t.id === `tab-${mappedTabId}`) {
+            t.classList.remove('hidden');
+            t.style.display = 'block';
+        } else {
+            t.classList.add('hidden');
+            t.style.display = 'none';
+        }
+    });
+
+    if (targetBtn) {
+        targetBtn.classList.add('active');
+    }
+
+    // 更新頂部標題
+    const pageTitle = document.getElementById('page-title');
+    const pageDesc = document.getElementById('page-desc');
+    if (tabHeaders && tabHeaders[mappedTabId] && pageTitle && pageDesc) {
+        pageTitle.textContent = tabHeaders[mappedTabId].title;
+        pageDesc.textContent = tabHeaders[mappedTabId].desc;
+    }
+};
         const mappedTabId = aliasMap[tabId] || tabId;
 
         const targetBtn = document.querySelector(`.nav-btn[data-tab="${mappedTabId}"]`);
