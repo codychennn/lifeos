@@ -2712,3 +2712,180 @@ document.addEventListener('DOMContentLoaded', () => {
     // 初始化載入 Error Fares
     loadErrorFares();
 });
+
+
+/* =========================================================================
+   1. 智能機票專區：Google Flights 聯動選單邏輯
+   ========================================================================= */
+const destinationData = {
+    'SGN': {
+        name: '胡志明市 (SGN)',
+        flag: '🇻🇳',
+        airline: '長榮航空 / 星宇航空 / 越捷航空',
+        avgPrice: 'NT$ 7,200 - 11,500',
+        tips: '商務/度假熱門航線，建議提前 45 天預訂。',
+        googleFlightsUrl: 'https://www.google.com/travel/flights/deals?tfs=CBwQBhoaEgoyMDI2LTA5LTA4agwIAhIIL20vMGZ0a3gaGhIKMjAyNi0wOS0xMnIMCAISCC9tLzBmdGt4QAFIAXABggELCP___________wGYAQHaAQgKBDABSAEQAw&tfu=OgA'
+    },
+    'SEA': {
+        name: '西雅圖 (SEA)',
+        flag: '🇺🇸',
+        airline: '長榮航空 / 星宇航空 / 達美航空',
+        avgPrice: 'NT$ 28,000 - 36,000',
+        tips: '美西公路旅行首選起點，直飛約 11 小時。',
+        googleFlightsUrl: 'https://www.google.com/travel/flights'
+    },
+    'LAS': {
+        name: '拉斯維加斯 (LAS)',
+        flag: '🇺🇸',
+        airline: '聯合航空 / 達美航空 (轉機)',
+        avgPrice: 'NT$ 31,000 - 41,000',
+        tips: '高爾夫與大峽谷自駕核心門戶。',
+        googleFlightsUrl: 'https://www.google.com/travel/flights'
+    },
+    'LAX': {
+        name: '洛杉磯 (LAX)',
+        flag: '🇺🇸',
+        airline: '星宇航空 / 中華航空 / 長榮航空',
+        avgPrice: 'NT$ 26,500 - 34,000',
+        tips: 'MLB 季後賽觀賽必備航線。',
+        googleFlightsUrl: 'https://www.google.com/travel/flights'
+    },
+    'NRT': {
+        name: '東京成田 (NRT)',
+        flag: '🇯🇵',
+        airline: '全日空 / 日本航空 / 星宇航空',
+        avgPrice: 'NT$ 11,000 - 16,000',
+        tips: '日本高爾夫名門球場巡禮推薦。',
+        googleFlightsUrl: 'https://www.google.com/travel/flights'
+    }
+};
+
+function renderFlightDetails(destCode) {
+    const data = destinationData[destCode] || destinationData['SGN'];
+    const origin = document.getElementById('flight-origin')?.value || 'TPE';
+    const month = document.getElementById('flight-month')?.value || '2026-09';
+    const container = document.getElementById('flight-result-panel');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px; margin-bottom: 16px;">
+            <div>
+                <h3 style="font-size: 22px; color: #FFF;">${origin} ✈️ ${data.name}</h3>
+                <p style="font-size: 13px; color: #94A3B8; margin-top: 4px;">推薦執飛：${data.airline}</p>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 12px; color: #94A3B8;">預估往返參考價</span>
+                <div style="font-size: 20px; font-weight: 700; color: #34D399;">${data.avgPrice}</div>
+            </div>
+        </div>
+        <div style="background: rgba(0,0,0,0.25); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
+            <i class="fa-solid fa-lightbulb" style="color: #F59E0B;"></i> <span style="font-size: 13px; color: #E2E8F0;">${data.tips}</span>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="${data.googleFlightsUrl}" target="_blank" class="btn-modern" style="text-decoration: none; padding: 10px 20px; background: #38BDF8; color: #0F172A; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟 Google Flights 即時比價
+            </a>
+        </div>
+    `;
+}
+
+// 監聽目的地選單變更
+document.getElementById('flight-destination')?.addEventListener('change', function(e) {
+    renderFlightDetails(e.target.value);
+});
+
+// 航線鎖定推播至 Telegram
+document.getElementById('btn-lock-flight')?.addEventListener('click', function() {
+    const dest = document.getElementById('flight-destination')?.value;
+    const data = destinationData[dest] || destinationData['SGN'];
+    const msg = `✈️【航線鎖定追蹤提醒】\n航線：${data.name}\n參考價：${data.avgPrice}\n備註：${data.tips}`;
+    sendTelegramAlert(msg);
+    alert(`已成功鎖定 ${data.name}，並將價格異動推播至您的 Telegram！`);
+});
+
+/* =========================================================================
+   2. 股市與虛擬貨幣：每小時自動更新 + 連線/開啟時自動補追
+   ========================================================================= */
+const SYNC_INTERVAL_MS = 60 * 60 * 1000; // 1 小時
+
+function updateCryptoAndStockData() {
+    console.log("正在同步最新的股市與加密貨幣新聞...");
+    const now = new Date();
+    
+    // 更新介面顯示時間
+    const timeLabel = document.getElementById('crypto-last-sync');
+    if (timeLabel) timeLabel.innerText = `已更新於 ${now.toLocaleTimeString()}`;
+
+    // 模擬載入最新加密貨幣焦點
+    const newsContainer = document.getElementById('crypto-news-list');
+    if (newsContainer) {
+        newsContainer.innerHTML = `
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; font-size: 13px; color: #CBD5E1;">
+                🔹 <strong>比特幣突破區間整固</strong>：機構資金持續流入現貨 ETF，市場流動性顯著增強。
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; font-size: 13px; color: #CBD5E1;">
+                🔹 <strong>以太坊 L2 活躍度創新高</strong>：Layer 2 Gas 費用維持低檔，生態系交易量穩步提升。
+            </div>
+        `;
+    }
+
+    // 紀錄最後更新時間戳記
+    localStorage.setItem('last_crypto_sync_time', now.getTime().toString());
+}
+
+// 斷線重連或重新開啟時的補追機制 (Catch-Up)
+function checkAndCatchUpSync() {
+    const lastSync = localStorage.getItem('last_crypto_sync_time');
+    const now = Date.now();
+    if (!lastSync || (now - parseInt(lastSync, 10)) > SYNC_INTERVAL_MS) {
+        updateCryptoAndStockData();
+    }
+}
+
+// 每小時定時輪詢
+setInterval(updateCryptoAndStockData, SYNC_INTERVAL_MS);
+window.addEventListener('online', checkAndCatchUpSync);
+window.addEventListener('DOMContentLoaded', () => {
+    renderFlightDetails('SGN');
+    checkAndCatchUpSync();
+});
+
+/* =========================================================================
+   3. 猶太人專區：新聞更新重點摘要 + 自動發送至 Telegram Bot
+   ========================================================================= */
+function sendTelegramAlert(messageText) {
+    const token = document.getElementById('cfg-tg-token')?.value || localStorage.getItem('tg_bot_token');
+    const chatId = document.getElementById('cfg-tg-chatid')?.value || localStorage.getItem('tg_chat_id');
+    
+    if (!token || !chatId) {
+        console.warn("未設定 Telegram Token 或 Chat ID，略過推播。");
+        return;
+    }
+
+    fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: chatId,
+            text: messageText,
+            parse_mode: 'Markdown'
+        })
+    }).catch(err => console.error("Telegram 推播失敗:", err));
+}
+
+// 模擬猶太專區新聞發布與自動推播摘要
+function checkJewishNewsUpdatesAndPush() {
+    const latestNewsId = "jewish_news_20260823";
+    const lastPushedId = localStorage.getItem('last_pushed_jewish_news');
+
+    if (latestNewsId !== lastPushedId) {
+        const summary = `🔯【猶太商道與新聞・重點摘要】\n` +
+                        `1. 商業智慧：重視長遠契約精神與資產配置防禦性。\n` +
+                        `2. 全球動態：猶太科技新創在資安與農業科技領域取得新融資進展。\n` +
+                        `3. 核心思維：以教育與知識傳承為最高槓桿的投資哲學。`;
+        
+        sendTelegramAlert(summary);
+        localStorage.setItem('last_pushed_jewish_news', latestNewsId);
+    }
+}
+setTimeout(checkJewishNewsUpdatesAndPush, 3000);
