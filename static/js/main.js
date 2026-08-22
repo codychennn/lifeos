@@ -59,7 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'dashboard': 'bento',
             'travel': 'guide2026',
             'finance': 'asset',
-            'knowledge': 'jewish'
+            'knowledge': 'jewish',
+            'flights': 'flights',
+            'deals': 'flights',
+            'golf': 'golf'
         };
         const mappedTabId = aliasMap[tabId] || tabId;
 

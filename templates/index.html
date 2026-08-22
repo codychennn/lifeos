@@ -1093,18 +1093,7 @@
             </section>
 
             <!-- Tab 2: Deals & Flight Monitor -->
-            <section id="tab-deals" class="tab-content">
-                <div class="deals-header-banner glass-card">
-                    <div class="banner-info">
-                        <h2><i class="fa-solid fa-tags"></i> 特價與旅遊優惠即時監控</h2>
-                        <p>系統自動爬取 PTT 省錢板、日本旅遊板與機票/飯店促銷 RSS 訊息</p>
-                    </div>
-                </div>
-
-                <div id="deals-container" class="deals-grid">
-                    <!-- Loaded via JS -->
-                </div>
-            </section>
+            
 
             <!-- Tab 3: Stocks & News Sentiment (US vs TW) -->
             <section id="tab-stocks" class="tab-content">
@@ -1170,31 +1159,32 @@
                 </div>
             </section>
 
-            <!-- Tab 4: System Settings -->
-            <section id="tab-settings" class="tab-content">
-                <div class="grid-layout">
-                    <!-- Interactive Telegram Setup Form -->
-                    <div class="card glass-card span-3">
-                        <div class="card-header">
-                            <i class="fa-solid fa-paper-plane icon-accent"></i>
-                            <h3>Telegram 推播與對話機器人一鍵設定</h3>
-                        </div>
-                        <div class="card-body">
-                            <form id="form-telegram-setup" style="display: flex; flex-direction: column; gap: 16px;">
-                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    <label style="font-size: 14px; font-weight: 600;">1. TELEGRAM_BOT_TOKEN (機器人 Token)</label>
-                                    <input type="text" id="tg-bot-token" placeholder="例如：7123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" style="padding: 12px; background: rgba(15,23,42,0.6); border: 1px solid var(--border-color); border-radius: 8px; color: #fff;">
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    <label style="font-size: 14px; font-weight: 600;">2. TELEGRAM_CHAT_ID (您的用戶 Chat ID)</label>
-                                    <input type="text" id="tg-chat-id" placeholder="例如：123456789" style="padding: 12px; background: rgba(15,23,42,0.6); border: 1px solid var(--border-color); border-radius: 8px; color: #fff;">
-                                </div>
-                                <button type="submit" id="btn-save-tg" class="glow-btn" style="width: auto; align-self: flex-start;">
-                                    <i class="fa-solid fa-check-circle"></i>
-                                    <span>儲存設定並發送測試推播訊息</span>
-                                </button>
-                                <div id="tg-setup-msg" class="status-msg" style="text-align: left; font-size: 14px;"></div>
-                            </form>
+           <!-- Tab: 系統設定 (System Settings) -->
+            <section id="tab-settings" class="tab-content">
+                <div class="grid-layout">
+                    <div class="card glass-card span-3">
+                        <div class="card-header">
+                            <i class="fa-solid fa-paper-plane icon-accent"></i>
+                            <h3>Telegram 推播與對話機器人一鍵設定</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="form-telegram-setup" style="display: flex; flex-direction: column; gap: 16px;">
+                                <div class="form-group">
+                                    <label style="color: #94A3B8; font-size: 13px;">Telegram Bot Token</label>
+                                    <input type="text" id="cfg-tg-token" class="input-modern" placeholder="例: 1234567890:ABCdefGhIJKlmNoPQRstuVWXyz" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #FFF;">
+                                </div>
+                                <div class="form-group">
+                                    <label style="color: #94A3B8; font-size: 13px;">Telegram Chat ID (群組或個人 ID)</label>
+                                    <input type="text" id="cfg-tg-chatid" class="input-modern" placeholder="例: 987654321 或 -100123456789" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #FFF;">
+                                </div>
+                                <button type="button" id="btn-save-telegram" class="btn-modern btn-primary" style="align-self: flex-start; padding: 10px 20px; background: #38BDF8; color: #0F172A; font-weight: 700; border-radius: 8px; border: none; cursor: pointer;">
+                                    <i class="fa-solid fa-floppy-disk"></i> 儲存設定並發送測試推播
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section> <!--
 
                             <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border-color);">
 
@@ -1212,6 +1202,7 @@
                     </div>
                 </div>
             <!-- Tab: 100vh 零滾動便當盒儀表板 (Bento Box Dashboard) -->
+            </section>
             <section id="tab-bento" class="tab-content">
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-height: calc(100vh - 120px); overflow-y: auto; padding-bottom: 20px;">
                     
@@ -1664,121 +1655,18 @@
             </section>
 
                         <!-- Tab: 智能機票專區 (Smart Flight Search Engine) -->
+            
+
             <section id="tab-flights" class="tab-content">
-                <div class="grid-layout">
-                    <!-- Hero Banner -->
-                    <div class="card glass-card span-3 trip-banner" style="background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 20px; padding: 24px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-                            <div>
-                                <h2 style="font-size: 24px; font-weight: 700; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;"><i class="fa-solid fa-plane-departure icon-accent" style="color: #38BDF8;"></i> 智能機票專區 (Smart Flight Search Engine)</h2>
-                                <p style="font-size: 13px; color: #94A3B8; margin-top: 6px;">超越傳統 OTA ‧ 150-300km 鄰近替代機場自動擴展 ‧ 跨航司自轉機拆票推薦 ‧ Z-Score 異常低價/Bug票監控與 Telegram 降價即時通報。</p>
-                            </div>
-                            <button onclick="openFlightAlertModal()" class="glow-btn" style="width: auto; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.4);">
-                                <i class="fa-solid fa-bell"></i> 🔔 訂閱航線降價與 Bug 票推播
-                            </button>
-                        </div>
+                <div class="deals-header-banner glass-card">
+                    <div class="banner-info">
+                        <h2><i class="fa-solid fa-tags"></i> 特價與旅遊優惠即時監控</h2>
+                        <p>系統自動爬取 PTT 省錢板、日本旅遊板與機票/飯店促銷 RSS 訊息</p>
                     </div>
+                </div>
 
-                    <!-- Interactive Flight Search Form Panel -->
-                    <div class="card glass-card span-3" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 18px; padding: 22px;">
-                        <form id="form-flight-search" onsubmit="handleFlightSearchSubmit(event)" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
-                            <div>
-                                <label style="font-size: 11px; color: #94A3B8; font-weight: 700; margin-bottom: 6px; display: block;">🛫 出發機場 / 城市代碼</label>
-                                <select id="flight-origin" style="width: 100%; background: rgba(6, 12, 26, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #FFF; padding: 10px; font-size: 13px;">
-                                    <option value="TPE">🇹🇼 台北 (TPE/TSA - 桃園/松山)</option>
-                                    <option value="KHH">🇹🇼 高雄 (KHH - 小港)</option>
-                                    <option value="TYO">🇯🇵 東京 (HND/NRT - 羽田/成田)</option>
-                                    <option value="LON">🇬🇧 倫敦 (LHR/LGW/STN - 希斯洛/蓋威克/史坦斯特)</option>
-                                    <option value="BKK">🇹🇭 曼谷 (BKK/DMK - 蘇凡納布/廊曼)</option>
-                                    <option value="SIN">🇸🇬 新加坡 (SIN - 樟宜)</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label style="font-size: 11px; color: #94A3B8; font-weight: 700; margin-bottom: 6px; display: block;">🛬 目的地機場 / 城市代碼</label>
-                                <select id="flight-destination" style="width: 100%; background: rgba(6, 12, 26, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #FFF; padding: 10px; font-size: 13px;">
-                                    <option value="TYO">🇯🇵 東京 (HND/NRT - 羽田/成田)</option>
-                                    <option value="LON">🇬🇧 倫敦 (LHR/LGW/STN - 希斯洛/蓋威克)</option>
-                                    <option value="OSA">🇯🇵 大阪 (KIX/ITM - 關西/伊丹)</option>
-                                    <option value="BKK">🇹🇭 曼谷 (BKK/DMK - 蘇凡納布/廊曼)</option>
-                                    <option value="SIN">🇸🇬 新加坡 (SIN - 樟宜)</option>
-                                    <option value="TPE">🇹🇼 台北 (TPE/TSA - 桃園/松山)</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label style="font-size: 11px; color: #94A3B8; font-weight: 700; margin-bottom: 6px; display: block;">📅 去程與回程日期</label>
-                                <input type="date" id="flight-depart-date" style="width: 100%; background: rgba(6, 12, 26, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #FFF; padding: 9px; font-size: 12px; margin-bottom: 4px;">
-                            </div>
-
-                            <div>
-                                <label style="font-size: 11px; color: #94A3B8; font-weight: 700; margin-bottom: 6px; display: block;">🧳 行李與服務等級需求</label>
-                                <select id="flight-baggage-req" style="width: 100%; background: rgba(6, 12, 26, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #FFF; padding: 10px; font-size: 13px;">
-                                    <option value="baggage_20kg">🧳 包含托運行李 20kg (標準首選)</option>
-                                    <option value="hand_baggage_only">🎒 僅隨身輕便行李 7-10kg (小資最省)</option>
-                                    <option value="business_class">💎 商務艙服務 (2x32kg 託運)</option>
-                                </select>
-                            </div>
-
-                            <div style="grid-column: span 4; display: flex; justify-content: space-between; align-items: center; background: rgba(6, 12, 26, 0.6); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
-                                <div style="display: flex; gap: 20px; align-items: center;">
-                                    <label style="font-size: 12px; color: #38BDF8; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                        <input type="checkbox" id="chk-expand-nearby" checked style="accent-color: #38BDF8;">
-                                        🌐 自動擴展 150-300km 鄰近替代機場 (LON/TYO/TPE 全群組)
-                                    </label>
-                                    <label style="font-size: 12px; color: #FBBF24; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                        <input type="checkbox" id="chk-allow-self-transfer" checked style="accent-color: #FBBF24;">
-                                        ⚡ 啟用跨航司自轉機與拆票推薦引擎 (Virtual Interlining $\ge$ 3h)
-                                    </label>
-                                </div>
-                                <button type="submit" class="glow-btn" style="width: auto; padding: 10px 24px; font-size: 13px; font-weight: 700;">
-                                    <i class="fa-solid fa-magnifying-glass"></i> 開始深度智能搜尋
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Live Error Fare Showcase Ticker -->
-                    <div class="span-3">
-                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span class="badge" style="background: #EF4444; color: #FFF; font-weight: 800; font-size: 11px; padding: 4px 10px;">🚨 全網快閃 Error Fare 監控中</span>
-                                <div id="error-fare-ticker-msg" style="font-size: 12px; color: #FCA5A5;">
-                                    即時掃描全網 60 天均價... 已發現 3 筆 $Z$-Score $\le -2.0$ 錯價機票！(台北 ➔ 東京成田星宇航空 5,880 元起)
-                                </div>
-                            </div>
-                            <button onclick="loadErrorFares()" style="background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: #FCA5A5; font-size: 11px; padding: 4px 10px; border-radius: 8px; cursor: pointer;">
-                                <i class="fa-solid fa-rotate"></i> 重新載入 Bug 票列表
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Flight Search Results Container -->
-                    <div class="span-3">
-                        <div class="card-header space-between" style="margin-bottom: 14px;">
-                            <div class="header-left">
-                                <i class="fa-solid fa-list-check icon-accent" style="color: #38BDF8;"></i>
-                                <div>
-                                    <h3 style="font-size: 18px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;">智能比價結果矩陣 (Smart Search Results)</h3>
-                                    <p style="font-size: 11px; color: #94A3B8;">按含稅總價由低至高排序 ‧ 含跨航司自轉機警示與雙單程拆票價差計算</p>
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #34D399; font-size: 11px;">含稅透明定價</span>
-                                <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 11px;">Scatter-Gather 即時聚合</span>
-                            </div>
-                        </div>
-
-                        <div id="flight-results-container" style="display: flex; flex-direction: column; gap: 16px;">
-                            <!-- Dynamic Content Rendered via JS -->
-                            <div style="text-align: center; padding: 40px; background: rgba(15, 23, 42, 0.6); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.15);">
-                                <i class="fa-solid fa-plane-departure fa-spin" style="font-size: 32px; color: #38BDF8; margin-bottom: 12px;"></i>
-                                <div style="font-size: 14px; color: #FFF; font-weight: 700;">點擊「開始深度智能搜尋」發起即時比價</div>
-                                <div style="font-size: 12px; color: #94A3B8; margin-top: 4px;">系統將同步掃描出發地/目的地 300km 內所有替代機場與樞紐拆票組合</div>
-                            </div>
-                        </div>
-                    </div>
-
+                <div id="deals-container" class="deals-grid">
+                    <!-- Loaded via JS -->
                 </div>
             </section>
 
