@@ -200,3 +200,91 @@ document.addEventListener("DOMContentLoaded", () => {
     // 9. 預設顯示首頁
     window.switchTab('home');
 });
+
+
+/* =========================================================================
+   Top 30 Countries, 50k Viral Spots, TradingView & MA30 Buy Signal Handlers
+   ========================================================================= */
+
+window.changeTradingViewSymbol = function(symbol) {
+    const iframe = document.getElementById('tradingview-iframe');
+    if (!iframe) return;
+    const encoded = encodeURIComponent(symbol);
+    iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=${encoded}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FTaipei`;
+};
+
+window.loadMA30Signals = function() {
+    const container = document.getElementById('ma30-radar-container');
+    if (!container) return;
+
+    fetch('/api/crypto-stocks/ma30-signals')
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data) {
+            let html = '';
+            data.data.forEach(s => {
+                html += `
+                    <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 14px; font-weight: 800; color: #FFF;">${s.name} (${s.symbol})</span>
+                            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; font-size: 10px; font-weight: 800;">${s.signal_level}</span>
+                        </div>
+                        <div style="font-size: 18px; font-weight: 800; color: #34D399;">$${s.current_price.toLocaleString()} <span style="font-size: 11px; color: #94A3B8;">(MA30: $${s.ma30.toLocaleString()})</span></div>
+                        <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
+                            💡 ${s.reason}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    })
+    .catch(err => console.error(err));
+};
+
+window.triggerMA30Scan = function() {
+    fetch('/api/crypto-stocks/check-ma30', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        alert(`已完成 MA30 均線抄底雷達全網掃描！已發送 ${data.pushed || 0} 則 Telegram 抄底提醒。`);
+        loadMA30Signals();
+    })
+    .catch(err => console.error(err));
+};
+
+window.triggerViralSpotSearch = function() {
+    const query = document.getElementById('viral-search-query')?.value || '';
+    const platform = document.getElementById('viral-filter-tag')?.value || 'ALL';
+    const grid = document.getElementById('viral-spots-results-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #38BDF8; padding: 20px;">正在檢索 50,000+ 筆社群爆款景點...</div>';
+
+    fetch(`/api/travel/viral-spots?query=${encodeURIComponent(query)}&platform_tag=${encodeURIComponent(platform)}&limit=18`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data && data.data.spots) {
+            let html = '';
+            data.data.spots.forEach(s => {
+                html += `
+                    <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="badge" style="background: rgba(244, 63, 94, 0.15); color: #F43F5E; font-size: 10px; font-weight: 800;">${s.platform_tag}</span>
+                            <span style="font-size: 11px; color: #FBBF24; font-weight: 700;">★ ${s.rating}</span>
+                        </div>
+                        <h4 style="font-size: 14px; font-weight: 700; color: #FFF; margin: 0;">${s.spot_name}</h4>
+                        <div style="font-size: 11px; color: #94A3B8;">${s.city} ‧ ${s.category} ‧ ${s.price_level}</div>
+                        <div style="font-size: 11px; color: #CBD5E1; line-height: 1.4;">${s.summary}</div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+    })
+    .catch(err => console.error(err));
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadMA30Signals();
+    triggerViralSpotSearch();
+});

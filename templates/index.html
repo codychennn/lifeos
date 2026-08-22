@@ -199,6 +199,39 @@
 
             <!-- Tab: 通用智慧旅遊景點與美食資料庫智庫 (Travel Hub) -->
             <section id="tab-guide2026" class="tab-content">
+                
+                <!-- 50,000+ 筆 IG / 小紅書 / 抖音 爆紅必去必吃景點智庫搜尋面板 -->
+                <div class="card glass-card span-3" style="padding: 22px; background: rgba(17, 21, 30, 0.9); border: 1px solid rgba(192, 132, 252, 0.4); border-radius: 18px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3 style="font-size: 20px; color: #FFF; font-family: 'Inter Tight', sans-serif;"><i class="fa-solid fa-fire" style="color: #F43F5E;"></i> 50,000+ 筆全球 IG / 小紅書 / 抖音 爆紅必去必吃智庫</h3>
+                            <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">收錄全球 30 大頂級旅遊國家網美打卡秘境、小紅書熱搜名店與米其林必比登平民美食。</p>
+                        </div>
+                        <span class="badge" style="background: rgba(192, 132, 252, 0.15); color: #C084FC; font-weight: 700; font-size: 12px; padding: 6px 14px;">
+                            🔥 已索引 50,000 筆社群爆款景點
+                        </span>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px;">
+                        <input type="text" id="viral-search-query" placeholder="搜尋景點、城市、小吃或關鍵字 (例: 咖啡, 燒肉, 城堡)..." style="flex: 2; min-width: 200px; padding: 10px; background: rgba(6, 12, 26, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #FFF; font-size: 13px;">
+                        
+                        <select id="viral-filter-tag" style="flex: 1; min-width: 150px; padding: 10px; background: rgba(6, 12, 26, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #FFF; font-size: 13px;">
+                            <option value="ALL">🌐 全部社群平台標籤</option>
+                            <option value="#小紅書熱搜">📕 #小紅書熱搜</option>
+                            <option value="#IG爆紅">📸 #IG爆紅</option>
+                            <option value="#抖音同款美食">🎵 #抖音同款美食</option>
+                            <option value="#米其林推薦">⭐ #米其林推薦</option>
+                        </select>
+
+                        <button onclick="triggerViralSpotSearch()" class="glow-btn" style="width: auto; padding: 10px 20px; font-weight: 700; background: rgba(192, 132, 252, 0.2); color: #C084FC; border: 1px solid rgba(192, 132, 252, 0.4);">
+                            <i class="fa-solid fa-magnifying-glass"></i> 搜尋智庫
+                        </button>
+                    </div>
+
+                    <div id="viral-spots-results-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                        <!-- JS 渲染 5萬筆景點結果 -->
+                    </div>
+                </div>
 
                 <!-- Universal Travel Sub-Navigation Bar -->
                 <div class="sub-nav-bar" style="margin-bottom: 20px; display: flex; gap: 8px; background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); padding: 8px 12px; border-radius: 14px; flex-wrap: wrap;">
@@ -1637,12 +1670,37 @@
                         <div style="flex: 1; min-width: 160px;">
                             <label style="font-size: 12px; color: #94A3B8;">目的地 (選擇即可載入)</label>
                             <select id="flight-destination" class="input-modern" style="width: 100%; padding: 10px; background: #0F172A; color: #FFF; border: 1px solid #38BDF8; border-radius: 8px; font-weight: 700;">
-                                <option value="SGN" selected>🇻🇳 胡志明市 (SGN)</option>
-                                <option value="SEA">🇺🇸 西雅圖 (SEA)</option>
-                                <option value="LAS">🇺🇸 拉斯維加斯 (LAS)</option>
-                                <option value="LAX">🇺🇸 洛杉磯 (LAX)</option>
-                                <option value="NRT">🇯🇵 東京成田 (NRT)</option>
-                            </select>
+    <option value="CDG"> 🇫🇷 法國 巴黎 (Paris) (CDG)</option>
+    <option value="BCN"> 🇪🇸 西班牙 巴塞隆納 (Barcelona) (BCN)</option>
+    <option value="LAX"> 🇺🇸 美國 洛杉磯 (Los Angeles) (LAX)</option>
+    <option value="JFK"> 🇺🇸 美國 紐約 (New York) (JFK)</option>
+    <option value="SEA"> 🇺🇸 美國 西雅圖 (Seattle) (SEA)</option>
+    <option value="LAS"> 🇺🇸 美國 拉斯維加斯 (Las Vegas) (LAS)</option>
+    <option value="FCO"> 🇮🇹 義大利 羅馬 (Rome) (FCO)</option>
+    <option value="IST"> 🇹🇷 土耳其 伊斯坦堡 (Istanbul) (IST)</option>
+    <option value="CUN"> 🇲🇽 墨西哥 坎昆 (Cancun) (CUN)</option>
+    <option value="BKK"> 🇹🇭 泰國 曼谷 (Bangkok) (BKK)</option>
+    <option value="HKT"> 🇹🇭 泰國 普吉島 (Phuket) (HKT)</option>
+    <option value="LHR"> 🇬🇧 英國 倫敦 (London) (LHR)</option>
+    <option value="MUC"> 🇩🇪 德國 慕尼黑 (Munich) (MUC)</option>
+    <option value="NRT"> 🇯🇵 日本 東京成田/羽田 (Tokyo) (NRT)</option>
+    <option value="KIX"> 🇯🇵 日本 大阪/京都 (Osaka/Kyoto) (KIX)</option>
+    <option value="ICN"> 🇰🇷 韓國 首爾 (Seoul) (ICN)</option>
+    <option value="SGN"> 🇻🇳 越南 胡志明市 (Ho Chi Minh) (SGN)</option>
+    <option value="SIN"> 🇸🇬 新加坡 (Singapore) (SIN)</option>
+    <option value="KUL"> 🇲🇾 馬來西亞 吉隆坡 (Kuala Lumpur) (KUL)</option>
+    <option value="DPS"> 🇮🇩 印尼 峇里島 (Bali) (DPS)</option>
+    <option value="SYD"> 🇦🇺 澳洲 悉尼 (Sydney) (SYD)</option>
+    <option value="ZRH"> 🇨🇭 瑞士 蘇黎世 (Zurich) (ZRH)</option>
+    <option value="VIE"> 🇦🇹 奧地利 維也納 (Vienna) (VIE)</option>
+    <option value="AMS"> 🇳🇱 荷蘭 阿姆斯特丹 (Amsterdam) (AMS)</option>
+    <option value="DXB"> 🇦🇪 阿聯酋 杜拜 (Dubai) (DXB)</option>
+    <option value="YVR"> 🇨🇦 加拿大 溫哥華 (Vancouver) (YVR)</option>
+    <option value="CAI"> 🇪🇬 埃及 開羅 (Cairo) (CAI)</option>
+    <option value="JTR"> 🇬🇷 希臘 聖托里尼/雅典 (Santorini) (JTR)</option>
+    <option value="LIS"> 🇵🇹 葡萄牙 里斯本 (Lisbon) (LIS)</option>
+    <option value="KEF"> 🇮🇸 冰島 雷克雅維克 (Reykjavik) (KEF)</option>
+</select>
                         </div>
                         <div style="flex: 1; min-width: 140px;">
                             <label style="font-size: 12px; color: #94A3B8;">預計出發月份</label>

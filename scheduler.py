@@ -180,6 +180,17 @@ def job_monitor_flight_alerts():
     except Exception as e:
         print(f"[Scheduler Error - Flight Alerts] {e}")
 
+def job_check_ma30_signals():
+    """
+    Monitors 30-day Moving Average (MA30) dip signals for Crypto & US Stocks (Runs every 1 hour).
+    """
+    print("[Scheduler 📈 1h] Checking TradingView Crypto & Stock 30-day MA30 buy signals...")
+    try:
+        import tradingview_engine
+        tradingview_engine.push_ma30_buy_alerts()
+    except Exception as e:
+        print(f"[Scheduler Error - MA30 Signals] {e}")
+
 def start_scheduler():
     scheduler = BackgroundScheduler()
     
@@ -195,11 +206,14 @@ def start_scheduler():
     # 4. Smart Flight Price Alerts (Every 4 Hours = 240 Minutes)
     scheduler.add_job(job_monitor_flight_alerts, 'interval', minutes=240, id='flight_job')
 
+    # 5. TradingView MA30 Retracement Buy Signals (Every 1 Hour = 60 Minutes)
+    scheduler.add_job(job_check_ma30_signals, 'interval', minutes=60, id='ma30_job')
+
     # Daily summary cron job (21:00)
     scheduler.add_job(job_daily_summary, 'cron', hour=DAILY_SUMMARY_HOUR, minute=0, id='summary_job')
     
     scheduler.start()
-    print(f"[Scheduler 🚀] Started: Travel Deals (Every {TRAVEL_DEALS_INTERVAL_MINUTES//60}h), Finance News (Every {FINANCE_NEWS_INTERVAL_MINUTES//60}h), Jewish News (Every {JEWISH_NEWS_INTERVAL_MINUTES//60}h), Flight Alerts (Every 4h). Emergency Trump/War news pushed in real-time!")
+    print(f"[Scheduler 🚀] Started: Travel Deals (Every {TRAVEL_DEALS_INTERVAL_MINUTES//60}h), Finance News (Every {FINANCE_NEWS_INTERVAL_MINUTES//60}h), Jewish News (Every {JEWISH_NEWS_INTERVAL_MINUTES//60}h), Flight Alerts (Every 4h), TradingView MA30 Radar (Every 1h). Emergency Trump/War news pushed in real-time!")
     
     return scheduler
 

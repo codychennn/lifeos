@@ -494,6 +494,57 @@ def api_handle_flight_alerts():
             "data": alerts
         })
 
+# --- Top 30 Countries, 50k Viral Spots & TradingView MA30 APIs ---
+
+@app.route("/api/travel/top30-countries", methods=["GET"])
+def api_get_top30_countries():
+    import viral_travel_engine
+    return jsonify({
+        "status": "success",
+        "count": len(viral_travel_engine.TOP_30_COUNTRIES),
+        "data": viral_travel_engine.TOP_30_COUNTRIES
+    })
+
+@app.route("/api/travel/viral-spots", methods=["GET"])
+def api_get_viral_spots():
+    import viral_travel_engine
+    query = request.args.get("query", "")
+    country_code = request.args.get("country_code", "ALL")
+    category = request.args.get("category", "ALL")
+    platform_tag = request.args.get("platform_tag", "ALL")
+    page = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 30))
+
+    res = viral_travel_engine.search_viral_spots(
+        query=query,
+        country_code=country_code,
+        category=category,
+        platform_tag=platform_tag,
+        page=page,
+        limit=limit
+    )
+    return jsonify({
+        "status": "success",
+        "data": res
+    })
+
+@app.route("/api/crypto-stocks/ma30-signals", methods=["GET"])
+def api_get_ma30_signals():
+    import tradingview_engine
+    signals = tradingview_engine.check_ma30_retracement_signals()
+    return jsonify({
+        "status": "success",
+        "count": len(signals),
+        "data": signals,
+        "watchlist": tradingview_engine.WATCHLIST
+    })
+
+@app.route("/api/crypto-stocks/check-ma30", methods=["POST"])
+def api_trigger_ma30_push():
+    import tradingview_engine
+    res = tradingview_engine.push_ma30_buy_alerts()
+    return jsonify(res)
+
 # --- Telegram Setup APIs ---
 
 @app.route("/api/settings/telegram", methods=["GET"])
