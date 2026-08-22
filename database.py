@@ -443,6 +443,79 @@ def get_lifestyle_deals(limit=30, category: str = None):
     conn.close()
     return [dict(row) for row in rows]
 
+# --- Smart Flight Search Database Operations ---
+
+def save_flight_alert(origin: str, destination: str, target_price: float, depart_date: str = None, return_date: str = None, passenger_email: str = None, telegram_chat_id: str = None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO flight_alerts (origin, destination, target_price, depart_date, return_date, passenger_email, telegram_chat_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (origin.upper(), destination.upper(), target_price, depart_date, return_date, passenger_email, telegram_chat_id))
+    conn.commit()
+    alert_id = cursor.lastrowid
+    conn.close()
+    return alert_id
+
+def get_flight_alerts(active_only=True):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM flight_alerts"
+    if active_only:
+        query += " WHERE is_active = 1"
+    query += " ORDER BY created_at DESC"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def mark_flight_alert_triggered(alert_id: int):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE flight_alerts SET triggered = 1 WHERE id = ?", (alert_id,))
+    conn.commit()
+    conn.close()
+
+def get_all_airports():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM airport_codes ORDER BY country, iata_code")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def get_airport_info(iata_code: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM airport_codes WHERE iata_code = ? OR city_code = ?", (iata_code.upper(), iata_code.upper()))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def save_historical_flight_price(route_key: str, depart_airport: str, arrive_airport: str, price: float, airline: str, is_ulcc: int = 0, baggage_included: int = 1):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO historical_flight_prices (route_key, depart_airport, arrive_airport, price, airline, is_ulcc, baggage_included)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (route_key.upper(), depart_airport.upper(), arrive_airport.upper(), price, airline, is_ulcc, baggage_included))
+    conn.commit()
+    conn.close()
+
+def get_flight_price_stats(route_key: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT AVG(price) as avg_price, MIN(price) as min_price, COUNT(price) as sample_count
+        FROM historical_flight_prices
+        WHERE route_key = ?
+    ''', (route_key.upper(),))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row['sample_count'] and row['sample_count'] > 0:
+        return dict(row)
+    return {"avg_price": None, "min_price": None, "sample_count": 0}
+
 # --- Jewish News & Insights Operations ---
 
 def save_jewish_news(title_zh: str, summary_zh: str, key_takeaway: str, source: str, link: str, category: str = "商業財經"):

@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         expenses: { title: "智慧記帳管理", desc: "輸入簡短文字即可自動解析與分類" },
         deals: { title: "特價與機票優惠監控", desc: "自動監控 PTT 省錢板、長榮/阿拉斯加促銷" },
         stocks: { title: "財經新聞與股市情緒分析 (美股 vs 台股)", desc: "自動掃描華爾街日報 WSJ 與極度樂觀新聞" },
+        flights: { title: "智能機票專區 (Smart Flight Search)", desc: "150-300km 鄰近替代機場自動擴展 ‧ 跨航司自轉機拆票推薦 ‧ Z-Score 異常低價/Bug票發掘與降價監控" },
         jewish: { title: "猶太人智庫與每日重點新聞專區", desc: "塔木德商道智慧與商業焦點解析" }
     };
 
@@ -2521,3 +2522,190 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+
+
+// --- Smart Flight Search Engine Frontend Handlers ---
+
+window.handleFlightSearchSubmit = function(e) {
+    if (e) e.preventDefault();
+    const container = document.getElementById('flight-results-container');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="text-align: center; padding: 36px; background: rgba(15, 23, 42, 0.6); border-radius: 16px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px; color: #38BDF8; margin-bottom: 10px;"></i>
+            <div style="font-size: 13px; color: #FFF; font-weight: 700;">正在啟動 Scatter-Gather 全網平行掃描與圖論拆票計算...</div>
+        </div>
+    `;
+
+    const origin = document.getElementById('flight-origin').value;
+    const destination = document.getElementById('flight-destination').value;
+    const depart_date = document.getElementById('flight-depart-date').value;
+    const baggage_req = document.getElementById('flight-baggage-req').value;
+    const expand_nearby = document.getElementById('chk-expand-nearby').checked;
+    const allow_self_transfer = document.getElementById('chk-allow-self-transfer').checked;
+
+    fetch('/api/flights/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            origin: origin,
+            destination: destination,
+            depart_date: depart_date,
+            expand_nearby: expand_nearby,
+            allow_self_transfer: allow_self_transfer,
+            baggage_req: baggage_req
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data) {
+            renderFlightResults(data.data);
+        } else {
+            container.innerHTML = '<div style="color:#EF4444; padding:20px;">搜尋失敗，請稍後重試。</div>';
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        container.innerHTML = '<div style="color:#EF4444; padding:20px;">連線失敗。</div>';
+    });
+};
+
+window.renderFlightResults = function(flights) {
+    const container = document.getElementById('flight-results-container');
+    if (!container) return;
+
+    if (!flights || flights.length === 0) {
+        container.innerHTML = '<div style="color:#94A3B8; padding:20px; text-align:center;">未找到符合條件的航班紀錄。</div>';
+        return;
+    }
+
+    let html = '';
+    flights.forEach(f => {
+        const isSelfTransfer = f.is_self_transfer;
+        const isAlternative = f.is_alternative_airport;
+        const isBug = f.is_bug_fare;
+        const isSplitCheaper = f.is_split_cheaper;
+
+        html += `
+            <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid ${isBug ? '#EF4444' : isSelfTransfer ? '#FBBF24' : 'rgba(255,255,255,0.12)'}; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; transition: all 0.2s ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 16px; font-weight: 800; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;">
+                            ${f.airline}
+                        </span>
+                        <span style="font-size: 11px; color: #94A3B8; background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px;">
+                            ${f.baggage_desc}
+                        </span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 20px; font-weight: 800; color: #34D399; font-family: 'Inter Tight', sans-serif;">
+                            NT$ ${f.price_roundtrip.toLocaleString()}
+                        </span>
+                        <span style="font-size: 10px; color: #94A3B8; display: block;">含稅總價 (來回)</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 14px; background: rgba(6, 12, 26, 0.6); padding: 12px 16px; border-radius: 12px;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px; font-weight: 700; color: #38BDF8;">${f.origin_name} (${f.origin_code})</div>
+                        <div style="font-size: 10px; color: #94A3B8;">出發地</div>
+                    </div>
+                    <div style="text-align: center; color: #64748B;">
+                        <i class="fa-solid fa-plane" style="font-size: 16px; color: #38BDF8;"></i>
+                        ${isSelfTransfer ? `<div style="font-size: 9px; color: #FBBF24; margin-top: 2px;">經由 ${f.layover_hub} 轉機</div>` : `<div style="font-size: 9px; color: #94A3B8; margin-top: 2px;">直飛/聯程航段</div>`}
+                    </div>
+                    <div style="flex: 1; text-align: right;">
+                        <div style="font-size: 14px; font-weight: 700; color: #38BDF8;">${f.destination_name} (${f.destination_code})</div>
+                        <div style="font-size: 10px; color: #94A3B8;">目的地</div>
+                    </div>
+                </div>
+
+                <!-- Badges & Warnings -->
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                    ${isBug ? `<span style="background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 8px;">🚨 疑似 Bug 錯價票 (同航線均價 -${f.discount_pct}% | Z-Score: ${f.z_score})</span>` : ''}
+                    ${isSelfTransfer ? `<span style="background: rgba(251, 191, 36, 0.2); color: #FBBF24; border: 1px solid rgba(251, 191, 36, 0.4); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 8px;">⚠️ 跨航司自轉機 ‧ 樞紐 ${f.layover_hub} 緩衝 ${f.layover_buffer_hours}h (${f.shuttle_notes})</span>` : ''}
+                    ${isAlternative ? `<span style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 11px; padding: 4px 10px; border-radius: 8px;">🌐 鄰近替代機場省錢組合 (接駁時間: ${f.shuttle_time_mins}分 | 車資約 NT$ ${f.shuttle_cost_twd})</span>` : ''}
+                    ${isSplitCheaper ? `<span style="background: rgba(52, 211, 153, 0.15); color: #34D399; font-size: 11px; padding: 4px 10px; border-radius: 8px;">💡 雙單程拆票比傳統來回票省下 NT$ ${f.split_savings.toLocaleString()}</span>` : ''}
+                </div>
+
+                <!-- Multi-Platform Aggregator Matrix -->
+                <div style="display: flex; justify-content: space-between; align-items: center; pt-2; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px; padding-top: 8px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: 10px; color: #94A3B8;">全網聚合價：</span>
+                        <span style="font-size: 10px; color: #E2E8F0;">Google Flights: NT$ ${f.ota_prices.google_flights ? f.ota_prices.google_flights.toLocaleString() : f.price_roundtrip.toLocaleString()}</span>
+                        <span style="font-size: 10px; color: #E2E8F0;"> Skyscanner: NT$ ${f.ota_prices.skyscanner ? f.ota_prices.skyscanner.toLocaleString() : f.price_roundtrip.toLocaleString()}</span>
+                        <span style="font-size: 10px; color: #34D399; font-weight: 700;"> 官網直連: NT$ ${f.price_roundtrip.toLocaleString()}</span>
+                    </div>
+                    <a href="${f.booking_link}" target="_blank" rel="noopener noreferrer" class="glow-btn" style="text-decoration: none; padding: 6px 14px; font-size: 11px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 一鍵前往官網/OTA 開票 ↗
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+};
+
+window.loadErrorFares = function() {
+    fetch('/api/flights/error-fares')
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data && data.data.length > 0) {
+            const ticker = document.getElementById('error-fare-ticker-msg');
+            if (ticker) {
+                const first = data.data[0];
+                ticker.innerHTML = `🔥 最新發現 <strong>${first.route_title}</strong> 錯價機票！原價 NT$ ${first.normal_avg_twd.toLocaleString()} ➔ 降至 <strong>NT$ ${first.price_twd.toLocaleString()}</strong> (-${first.discount_pct}%)`;
+            }
+        }
+    })
+    .catch(err => console.error(err));
+};
+
+window.openFlightAlertModal = function() {
+    const modal = document.getElementById('modal-flight-alert');
+    if (modal) modal.style.display = 'flex';
+};
+
+window.closeFlightAlertModal = function() {
+    const modal = document.getElementById('modal-flight-alert');
+    if (modal) modal.style.display = 'none';
+};
+
+window.handleFlightAlertSubmit = function(e) {
+    if (e) e.preventDefault();
+    const origin = document.getElementById('alert-origin').value;
+    const destination = document.getElementById('alert-destination').value;
+    const target_price = document.getElementById('alert-target-price').value;
+    const telegram_id = document.getElementById('alert-telegram-id').value;
+
+    fetch('/api/flights/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            origin: origin,
+            destination: destination,
+            target_price: parseFloat(target_price),
+            telegram_chat_id: telegram_id
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert(data.message);
+            closeFlightAlertModal();
+        }
+    })
+    .catch(err => console.error(err));
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 預設當日期
+    const todayStr = new Date().toISOString().split('T')[0];
+    const departInput = document.getElementById('flight-depart-date');
+    if (departInput) departInput.value = todayStr;
+    
+    // 初始化載入 Error Fares
+    loadErrorFares();
+});

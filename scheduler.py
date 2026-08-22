@@ -146,6 +146,40 @@ def job_daily_summary():
     except Exception as e:
         print(f"[Scheduler Error - Daily Summary] {e}")
 
+def job_monitor_flight_alerts():
+    """
+    Monitors flight price alerts and pushes Telegram notification when target price is met or when an Error Fare is detected (Runs every 4 hours).
+    """
+    print("[Scheduler ✈️ 4h] Running Smart Flight Search price alert monitor job...")
+    try:
+        import flight_engine
+        alerts = database.get_flight_alerts(active_only=True)
+        for alert in alerts:
+            results = flight_engine.search_smart_flights(
+                origin=alert['origin'],
+                destination=alert['destination'],
+                depart_date=alert.get('depart_date'),
+                return_date=alert.get('return_date')
+            )
+            if results:
+                lowest = results[0]
+                price = lowest['price_roundtrip']
+                if price <= alert['target_price']:
+                    msg = (
+                        f"✈️ *【智能機票降價警報觸發！】*\n\n"
+                        f"• 航線：`{alert['origin']}` ➔ `{alert['destination']}`\n"
+                        f"• 目前全網最低價： *NT$ {price:,.0f}*\n"
+                        f"• 您的目標設定價： *NT$ {alert['target_price']:,.0f}*\n"
+                        f"• 推薦航司： {lowest['airline']}\n"
+                        f"• 行李規範： {lowest['baggage_desc']}\n"
+                        f"• 節省金額： *省下 NT$ {alert['target_price'] - price:,.0f}*\n\n"
+                        f"👉 [立即一鍵開票預訂]({lowest['booking_link']})"
+                    )
+                    telegram_notifier.send_push_notification(msg)
+                    database.mark_flight_alert_triggered(alert['id'])
+    except Exception as e:
+        print(f"[Scheduler Error - Flight Alerts] {e}")
+
 def start_scheduler():
     scheduler = BackgroundScheduler()
     
@@ -158,11 +192,14 @@ def start_scheduler():
     # 3. Jewish Business News & Insights (Every 3 Hours = 180 Minutes)
     scheduler.add_job(job_crawl_jewish_news, 'interval', minutes=JEWISH_NEWS_INTERVAL_MINUTES, id='jewish_job')
     
+    # 4. Smart Flight Price Alerts (Every 4 Hours = 240 Minutes)
+    scheduler.add_job(job_monitor_flight_alerts, 'interval', minutes=240, id='flight_job')
+
     # Daily summary cron job (21:00)
     scheduler.add_job(job_daily_summary, 'cron', hour=DAILY_SUMMARY_HOUR, minute=0, id='summary_job')
     
     scheduler.start()
-    print(f"[Scheduler 🚀] Started: Travel Deals (Every {TRAVEL_DEALS_INTERVAL_MINUTES//60}h), Finance News (Every {FINANCE_NEWS_INTERVAL_MINUTES//60}h), Jewish News (Every {JEWISH_NEWS_INTERVAL_MINUTES//60}h). Emergency Trump/War news pushed in real-time!")
+    print(f"[Scheduler 🚀] Started: Travel Deals (Every {TRAVEL_DEALS_INTERVAL_MINUTES//60}h), Finance News (Every {FINANCE_NEWS_INTERVAL_MINUTES//60}h), Jewish News (Every {JEWISH_NEWS_INTERVAL_MINUTES//60}h), Flight Alerts (Every 4h). Emergency Trump/War news pushed in real-time!")
     
     return scheduler
 

@@ -399,6 +399,101 @@ def api_crawl_lifestyle():
         "count": len(deals)
     })
 
+# --- Smart Flight Search Engine APIs ---
+
+@app.route("/api/flights/search", methods=["POST"])
+def api_search_flights():
+    import flight_engine
+    req_data = request.json or {}
+    origin = req_data.get("origin", "TPE")
+    destination = req_data.get("destination", "TYO")
+    depart_date = req_data.get("depart_date")
+    return_date = req_data.get("return_date")
+    expand_nearby = req_data.get("expand_nearby", True)
+    allow_self_transfer = req_data.get("allow_self_transfer", True)
+    baggage_req = req_data.get("baggage_req", "baggage_20kg")
+
+    results = flight_engine.search_smart_flights(
+        origin=origin,
+        destination=destination,
+        depart_date=depart_date,
+        return_date=return_date,
+        expand_nearby=expand_nearby,
+        allow_self_transfer=allow_self_transfer,
+        baggage_req=baggage_req
+    )
+    return jsonify({
+        "status": "success",
+        "count": len(results),
+        "data": results
+    })
+
+@app.route("/api/flights/compare-split", methods=["GET"])
+def api_compare_split_flights():
+    import flight_engine
+    origin = request.args.get("origin", "TPE")
+    destination = request.args.get("destination", "TYO")
+    results = flight_engine.search_smart_flights(origin=origin, destination=destination)
+    split_cheaper = [r for r in results if r.get("is_split_cheaper")]
+    return jsonify({
+        "status": "success",
+        "count": len(split_cheaper),
+        "data": split_cheaper
+    })
+
+@app.route("/api/flights/error-fares", methods=["GET"])
+def api_get_error_fares():
+    import flight_engine
+    error_fares = flight_engine.get_active_error_fares()
+    return jsonify({
+        "status": "success",
+        "count": len(error_fares),
+        "data": error_fares
+    })
+
+@app.route("/api/flights/airports", methods=["GET"])
+def api_get_airports():
+    airports = database.get_all_airports()
+    return jsonify({
+        "status": "success",
+        "count": len(airports),
+        "data": airports
+    })
+
+@app.route("/api/flights/alerts", methods=["GET", "POST"])
+def api_handle_flight_alerts():
+    if request.method == "POST":
+        req_data = request.json or {}
+        origin = req_data.get("origin", "TPE")
+        destination = req_data.get("destination", "TYO")
+        target_price = float(req_data.get("target_price", 10000))
+        depart_date = req_data.get("depart_date")
+        return_date = req_data.get("return_date")
+        passenger_email = req_data.get("passenger_email")
+        telegram_chat_id = req_data.get("telegram_chat_id")
+
+        alert_id = database.save_flight_alert(
+            origin=origin,
+            destination=destination,
+            target_price=target_price,
+            depart_date=depart_date,
+            return_date=return_date,
+            passenger_email=passenger_email,
+            telegram_chat_id=telegram_chat_id
+        )
+        return jsonify({
+            "status": "success",
+            "message": f"✈️ 成功建立 [{origin} ➔ {destination}] 票價降價監控警報！當票價低於 NT$ {target_price:,.0f} 時將自動推播通知。",
+            "alert_id": alert_id
+        })
+    else:
+        alerts = database.get_flight_alerts(active_only=True)
+        return jsonify({
+            "status": "success",
+            "count": len(alerts),
+            "data": alerts
+        })
+
 # --- Telegram Setup APIs ---
 
 @app.route("/api/settings/telegram", methods=["GET"])
