@@ -494,6 +494,54 @@ def api_handle_flight_alerts():
             "data": alerts
         })
 
+# --- Headless Data & Contextual Decision Engine APIs ---
+
+@app.route("/api/context/city-bundle", methods=["GET"])
+def api_get_city_context_bundle():
+    import context_engine
+    city = request.args.get("city", "SIN")
+    bundle = context_engine.get_city_context_bundle(city)
+    return jsonify({
+        "status": "success",
+        "city": city,
+        "data": bundle
+    })
+
+@app.route("/api/proactive/alerts", methods=["GET"])
+def api_get_proactive_alerts():
+    import event_driven_engine
+    alerts = event_driven_engine.evaluate_proactive_arbitrage_alerts()
+    return jsonify({
+        "status": "success",
+        "count": len(alerts),
+        "data": alerts
+    })
+
+@app.route("/api/proactive/trigger-scan", methods=["POST"])
+def api_trigger_proactive_scan():
+    import event_driven_engine
+    res = event_driven_engine.run_event_driven_proactive_push()
+    return jsonify(res)
+
+@app.route("/api/headless/ltv-calculate", methods=["POST"])
+def api_headless_ltv_calculate():
+    data = request.json or {}
+    total_assets = float(data.get("total_assets", 12000000))
+    mortgage_loan = float(data.get("mortgage_loan", 6428400))
+    monthly_reserve = float(data.get("monthly_reserve", 120000))
+    cash_liquid = float(data.get("cash_liquid", 1800000))
+
+    ltv_ratio = round((mortgage_loan / total_assets) * 100, 2) if total_assets > 0 else 0
+    runway_months = round(cash_liquid / monthly_reserve, 1) if monthly_reserve > 0 else 0
+
+    return jsonify({
+        "status": "success",
+        "ltv_ratio": ltv_ratio,
+        "is_safe": ltv_ratio < 65.0,
+        "runway_months": runway_months,
+        "summary": f"房貸成數 LTV 為 {ltv_ratio}% ({'🟢 安全水平' if ltv_ratio < 65.0 else '⚠️ 建議降槓桿'})，現金流防禦可覆蓋 {runway_months} 個月生活支出。"
+    })
+
 # --- Top 30 Countries, 50k Viral Spots & TradingView MA30 APIs ---
 
 @app.route("/api/travel/top30-countries", methods=["GET"])

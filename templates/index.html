@@ -113,6 +113,25 @@
 
             <!-- Section: Home Landing Page (Executive Standard) -->
             <section id="tab-home" class="tab-content active">
+                
+                <!-- ⚡ 24/7 事件驅動主動風控與套利推播雷達 (Proactive Risk & Arbitrage Radar) -->
+                <div class="card glass-card span-3" style="padding: 22px; background: linear-gradient(135deg, rgba(17, 21, 30, 0.95) 0%, rgba(20, 32, 45, 0.95) 100%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 20px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
+                        <div>
+                            <h3 style="font-size: 20px; color: #FFF; font-family: 'Inter Tight', sans-serif; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-bolt" style="color: #38BDF8;"></i> 24/7 事件驅動主動風控與套利雷達
+                            </h3>
+                            <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">離線持續監控：匯率超跌買點 ‧ 航線暴跌 &gt; 20% ‧ 美股/加密貨幣 MA30 抄底警報（自動產出 3點式黃金行動建議）</p>
+                        </div>
+                        <button onclick="triggerProactiveScan()" class="glow-btn" style="width: auto; padding: 10px 20px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.4); font-weight: 700; font-size: 12px;">
+                            <i class="fa-solid fa-paper-plane"></i> ⚡ 手動觸發風控套利掃描並推播 Telegram
+                        </button>
+                    </div>
+
+                    <div id="proactive-alerts-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                        <!-- JS 動態載入 3點式行動建議 -->
+                    </div>
+                </div>
                 <div class="home-hero-card">
                     <h1 class="home-hero-title">LifeOS</h1>
                     <p class="home-hero-subtitle">Your Personal AI Operating System</p>

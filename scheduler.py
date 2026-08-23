@@ -191,6 +191,18 @@ def job_check_ma30_signals():
     except Exception as e:
         print(f"[Scheduler Error - MA30 Signals] {e}")
 
+def job_event_driven_proactive_scan():
+    """
+    Monitors FX arbitrage thresholds, flight dips >= 20%, and market shock signals (Runs every 1 hour).
+    Generates structured 3-bullet action items and pushes to Telegram.
+    """
+    print("[Scheduler 🚨 1h] Running Event-Driven Proactive Risk & Arbitrage Alert Scan...")
+    try:
+        import event_driven_engine
+        event_driven_engine.run_event_driven_proactive_push()
+    except Exception as e:
+        print(f"[Scheduler Error - Event Driven Scan] {e}")
+
 def start_scheduler():
     scheduler = BackgroundScheduler()
     
@@ -209,11 +221,14 @@ def start_scheduler():
     # 5. TradingView MA30 Retracement Buy Signals (Every 1 Hour = 60 Minutes)
     scheduler.add_job(job_check_ma30_signals, 'interval', minutes=60, id='ma30_job')
 
+    # 6. Event-Driven Proactive Risk & Arbitrage Radar (Every 1 Hour = 60 Minutes)
+    scheduler.add_job(job_event_driven_proactive_scan, 'interval', minutes=60, id='proactive_job')
+
     # Daily summary cron job (21:00)
     scheduler.add_job(job_daily_summary, 'cron', hour=DAILY_SUMMARY_HOUR, minute=0, id='summary_job')
     
     scheduler.start()
-    print(f"[Scheduler 🚀] Started: Travel Deals (Every {TRAVEL_DEALS_INTERVAL_MINUTES//60}h), Finance News (Every {FINANCE_NEWS_INTERVAL_MINUTES//60}h), Jewish News (Every {JEWISH_NEWS_INTERVAL_MINUTES//60}h), Flight Alerts (Every 4h), TradingView MA30 Radar (Every 1h). Emergency Trump/War news pushed in real-time!")
+    print(f"[Scheduler 🚀] Started: Travel Deals (Every {TRAVEL_DEALS_INTERVAL_MINUTES//60}h), Finance News (Every {FINANCE_NEWS_INTERVAL_MINUTES//60}h), Jewish News (Every {JEWISH_NEWS_INTERVAL_MINUTES//60}h), Flight Alerts (Every 4h), TradingView MA30 (Every 1h), Proactive Alerts Radar (Every 1h). Emergency Trump/War news pushed in real-time!")
     
     return scheduler
 

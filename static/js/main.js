@@ -460,3 +460,106 @@ window.switchTab = function(tabId) {
         window.loadDeals('all');
     }
 };
+
+
+/* =========================================================================
+   動態情境決策引擎 (Contextual Engine) & 事件驅動主動風控 Handler
+   ========================================================================= */
+
+window.handleCityContextChange = function(cityCode) {
+    fetch(`/api/context/city-bundle?city=${cityCode}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data) {
+            const ctx = data.data;
+
+            // 1. 全域連動：智能機票 (tab-flights) 自動設置目的地並渲染比價
+            const destSelect = document.getElementById('flight-destination');
+            if (destSelect) {
+                destSelect.value = ctx.flight_destination;
+                if (window.renderFlightDetails) {
+                    window.renderFlightDetails(ctx.flight_destination);
+                }
+            }
+
+            // 2. 全域連動：預算計算器 (tab-budget) 幣別與換算因子
+            const budgetFx = document.getElementById('budget-currency');
+            if (budgetFx) {
+                budgetFx.value = ctx.currency_code;
+            }
+
+            // 3. 全域連動：生活日常 (tab-lifestyle) 過濾標籤
+            const lifestyleBtns = document.querySelectorAll('#tab-lifestyle .sub-nav-btn');
+            if (lifestyleBtns && lifestyleBtns.length > 0) {
+                lifestyleBtns.forEach(btn => {
+                    if (btn.getAttribute('onclick')?.includes(ctx.lifestyle_filter)) {
+                        btn.click();
+                    }
+                });
+            }
+
+            console.log(`[Contextual Engine ⚡] Successfully synced city context to ${ctx.name_zh}`);
+        }
+    })
+    .catch(err => console.error("Contextual Engine Sync Error:", err));
+};
+
+window.loadProactiveAlerts = function() {
+    const container = document.getElementById('proactive-alerts-container');
+    if (!container) return;
+
+    fetch('/api/proactive/alerts')
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data) {
+            let html = '';
+            data.data.forEach(a => {
+                html += `
+                    <div style="background: rgba(6, 12, 26, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 10px; font-weight: 800;">${a.category}</span>
+                            <span style="font-size: 10px; color: #94A3B8;">24/7 自動風控</span>
+                        </div>
+                        <h4 style="font-size: 14px; font-weight: 700; color: #FFF; margin: 0; line-height: 1.4;">${a.title}</h4>
+                        <div style="font-size: 11px; color: #F59E0B; font-weight: 700; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 6px;">
+                            📊 ${a.metrics}
+                        </div>
+                        <div style="font-size: 11px; color: #CBD5E1; line-height: 1.5; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
+                            <div style="color: #34D399; font-weight: 700; margin-bottom: 4px;">💡 3點式行動建議：</div>
+                            <div>${a.recommendation_3bullets[0]}</div>
+                            <div>${a.recommendation_3bullets[1]}</div>
+                            <div>${a.recommendation_3bullets[2]}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    })
+    .catch(err => console.error("Load Proactive Alerts Error:", err));
+};
+
+window.triggerProactiveScan = function() {
+    fetch('/api/proactive/trigger-scan', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        alert(`⚡ 已手動觸發 24/7 事件驅動風控與套利掃描！已發送 ${data.pushed || 0} 則 3點行動建議通知至 Telegram。`);
+        loadProactiveAlerts();
+    })
+    .catch(err => console.error("Trigger Proactive Scan Error:", err));
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 綁定城市切換事件連動 Contextual Engine
+    const citySelect = document.getElementById('header-city-select');
+    if (citySelect) {
+        citySelect.addEventListener('change', (e) => {
+            window.handleCityContextChange(e.target.value);
+        });
+        // 初始載入連動
+        window.handleCityContextChange(citySelect.value || 'SIN');
+    }
+
+    // 載入 24/7 主動風控雷達卡片
+    loadProactiveAlerts();
+});
