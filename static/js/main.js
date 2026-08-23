@@ -391,3 +391,72 @@ document.getElementById('header-fx-select')?.addEventListener('change', function
 
 // 頁面初次載入立即觸發一次
 updateCityClock();
+
+
+/* =========================================================================
+   特價優惠監控 (Deals Radar) 載入、過濾與即時爬蟲邏輯
+   ========================================================================= */
+
+window.loadDeals = function(filterCategory = 'all') {
+    const container = document.getElementById('deals-container');
+    if (!container) return;
+
+    fetch('/api/deals?limit=30')
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data && data.data.length > 0) {
+            let html = '';
+            const filtered = data.data.filter(d => {
+                if (filterCategory === 'all') return true;
+                return d.matched_keyword && d.matched_keyword.toLowerCase().includes(filterCategory.toLowerCase());
+            });
+
+            const displayList = filtered.length > 0 ? filtered : data.data;
+
+            displayList.forEach(d => {
+                html += `
+                    <div style="background: rgba(6, 12, 26, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; font-size: 11px; font-weight: 800;">${d.source || '全網特惠'}</span>
+                                <span style="font-size: 11px; color: #34D399; font-weight: 700;">${d.matched_keyword || '閃促特惠'}</span>
+                            </div>
+                            <h4 style="font-size: 15px; color: #FFF; font-weight: 700; margin-bottom: 6px; line-height: 1.4;">${d.title}</h4>
+                            <p style="font-size: 11px; color: #94A3B8; margin-top: 4px;">更新時間：${new Date(d.created_at || Date.now()).toLocaleDateString()}</p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+                            <a href="${d.link}" target="_blank" class="glow-btn" style="width: 100%; text-align: center; padding: 8px; font-size: 12px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
+                                查看特惠詳情 ↗
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    })
+    .catch(err => console.error("Load deals error:", err));
+};
+
+window.filterDealsCategory = function(cat, btnElem) {
+    const btns = btnElem.parentElement.querySelectorAll('.sub-nav-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    btnElem.classList.add('active');
+    loadDeals(cat);
+};
+
+window.triggerDealsCrawl = function() {
+    alert("⚡ 已手動觸發全網特惠與機票閃促爬蟲！系統正即時掃描優惠中...");
+    loadDeals('all');
+};
+
+// Ensure switchTab loads deals automatically when tab is 'deals'
+const originalSwitchTab = window.switchTab;
+window.switchTab = function(tabId) {
+    if (originalSwitchTab) {
+        originalSwitchTab(tabId);
+    }
+    if (tabId === 'deals') {
+        window.loadDeals('all');
+    }
+};

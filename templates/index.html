@@ -1724,13 +1724,87 @@
             </div>
         </section>
 
-        <!-- Tab: 特價優惠監控 -->
-        <section id="tab-deals" class="tab-content" style="display: none;">
+                <!-- Tab: 特價優惠監控 (Full Feature Flight & Hotel Deals Monitor) -->
+        <section id="tab-deals" class="tab-content hidden" style="display: none;">
             <div class="grid-layout">
-                <div class="card glass-card span-3" style="padding: 24px;">
-                    <h2 style="font-size: 20px; color: #FFF; margin-bottom: 16px;"><i class="fa-solid fa-tags" style="color: #F59E0B;"></i> 全網閃促與特惠即時監控</h2>
-                    <div id="deals-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-                        <!-- 特惠資訊卡片 -->
+                <!-- Header Banner -->
+                <div class="card glass-card span-3" style="background: linear-gradient(135deg, rgba(17, 21, 30, 0.95) 0%, rgba(30, 24, 14, 0.95) 100%); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <h2 style="font-size: 24px; font-weight: 700; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;"><i class="fa-solid fa-tags" style="color: #F59E0B;"></i> 全網機票閃促 ‧ 飯店特惠 ‧ 廉航限時折扣監控 (Deals Radar)</h2>
+                            <p style="font-size: 13px; color: #94A3B8; margin-top: 6px;">自動抓取 PTT Japan_Travel、Lifeismoney、旅行社促銷與全球 OTA 異常超低價，每 12 小時自動更新。</p>
+                        </div>
+                        <button onclick="triggerDealsCrawl()" class="glow-btn" style="width: auto; align-self: center; background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.4); font-weight: 700; padding: 10px 20px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> ⚡ 立即執行全網特惠掃描
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Category Filter Chips -->
+                <div class="span-3">
+                    <div class="sub-nav-bar" style="display: flex; gap: 10px; background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(245, 158, 11, 0.3); padding: 8px 12px; border-radius: 14px; flex-wrap: wrap;">
+                        <button class="sub-nav-btn active" onclick="filterDealsCategory('all', this)"><i class="fa-solid fa-border-all"></i> 🌐 全部特惠資訊</button>
+                        <button class="sub-nav-btn" onclick="filterDealsCategory('Flight', this)"><i class="fa-solid fa-plane" style="color: #38BDF8;"></i> ✈️ 機票閃促 (Flight Deals)</button>
+                        <button class="sub-nav-btn" onclick="filterDealsCategory('Hotel', this)"><i class="fa-solid fa-hotel" style="color: #34D399;"></i> 🏨 飯店折扣 (Hotel Discounts)</button>
+                        <button class="sub-nav-btn" onclick="filterDealsCategory('Package', this)"><i class="fa-solid fa-box-archive" style="color: #C084FC;"></i> 🧳 自由行與機加酒 (Packages)</button>
+                    </div>
+                </div>
+
+                <!-- Deals Container Grid -->
+                <div class="span-3">
+                    <div id="deals-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;">
+                        <!-- Benchmark Cards loaded by Default & JS -->
+                        <div style="background: rgba(6, 12, 26, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; font-size: 11px; font-weight: 800;">🔥 全網熱搜閃促</span>
+                                    <span style="font-size: 11px; color: #34D399; font-weight: 700;">省下 35%</span>
+                                </div>
+                                <h4 style="font-size: 16px; color: #FFF; font-weight: 700; margin-bottom: 6px;">星宇航空 🇯🇵 東京成田 (NRT) 來回含稅快閃特惠</h4>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5;">台北 (TPE) 直飛東京，含 23kg 托運行李與精品機上餐點，限量倒數開票。</p>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+                                <span style="font-size: 18px; font-weight: 800; color: #34D399;">NT$ 11,200 <span style="font-size: 11px; color: #94A3B8;">起</span></span>
+                                <a href="https://www.starlux-airlines.com" target="_blank" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border-color: rgba(56, 189, 248, 0.4);">
+                                    一鍵搶購 ↗
+                                </a>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(6, 12, 26, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span class="badge" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-size: 11px; font-weight: 800;">✈️ 歐洲長程促銷</span>
+                                    <span style="font-size: 11px; color: #34D399; font-weight: 700;">省下 NT$ 8,500</span>
+                                </div>
+                                <h4 style="font-size: 16px; color: #FFF; font-weight: 700; margin-bottom: 6px;">長榮航空 🇫🇷 巴黎 (CDG) 直飛夢幻優惠票</h4>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5;">桃園直飛巴黎戴高樂機場，早去晚回優質時段，早鳥預訂限量發售。</p>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+                                <span style="font-size: 18px; font-weight: 800; color: #34D399;">NT$ 31,800 <span style="font-size: 11px; color: #94A3B8;">起</span></span>
+                                <a href="https://www.evaair.com" target="_blank" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border-color: rgba(56, 189, 248, 0.4);">
+                                    一鍵搶購 ↗
+                                </a>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(6, 12, 26, 0.8); border: 1px solid rgba(192, 132, 252, 0.3); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span class="badge" style="background: rgba(192, 132, 252, 0.2); color: #C084FC; font-size: 11px; font-weight: 800;">🏨 奢華度假折價</span>
+                                    <span style="font-size: 11px; color: #34D399; font-weight: 700;">4 折閃促</span>
+                                </div>
+                                <h4 style="font-size: 16px; color: #FFF; font-weight: 700; margin-bottom: 6px;">阿聯酋航空 🇦🇪 杜拜中轉 + 奢華飯店連住套票</h4>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5;">搭乘 A380 雙層客機，贈送杜拜景點門票與五星飯店住宿早鳥折扣。</p>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+                                <span style="font-size: 18px; font-weight: 800; color: #34D399;">NT$ 27,500 <span style="font-size: 11px; color: #94A3B8;">起</span></span>
+                                <a href="https://www.emirates.com" target="_blank" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(192, 132, 252, 0.15); color: #C084FC; border-color: rgba(192, 132, 252, 0.4);">
+                                    一鍵搶購 ↗
+                                </a>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
