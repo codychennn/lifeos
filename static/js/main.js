@@ -315,3 +315,79 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMA30Signals();
     triggerViralSpotSearch();
 });
+
+
+/* =========================================================================
+   城市當地時間、天氣資訊與匯率自由切換連動邏輯
+   ========================================================================= */
+
+// 1. 各城市時區與氣象資訊資料庫
+const cityDatabase = {
+    'SIN': { name: '新加坡', timezone: 'Asia/Singapore', weather: '⛅ 30°C 晴時多雲', note: '熱帶氣候 ‧ 降雨機率 20%' },
+    'TPE': { name: '台北', timezone: 'Asia/Taipei', weather: '☀️ 31°C 晴朗高溫', note: '紫外線偏強 ‧ 降雨機率 10%' },
+    'LAX': { name: '洛杉磯', timezone: 'America/Los_Angeles', weather: '☀️ 24°C 晴朗乾燥', note: '日夜溫差大 ‧ 降雨機率 0%' },
+    'SEA': { name: '西雅圖', timezone: 'America/Los_Angeles', weather: '🌥️ 20°C 舒適多雲', note: '涼爽微風 ‧ 降雨機率 15%' },
+    'LAS': { name: '拉斯維加斯', timezone: 'America/Los_Angeles', weather: '☀️ 36°C 艷陽乾燥', note: '防曬保濕 ‧ 降雨機率 0%' },
+    'SGN': { name: '胡志明市', timezone: 'Asia/Ho_Chi_Minh', weather: '🌦️ 32°C 午後雷陣雨', note: '濕度 78% ‧ 出門請備傘' },
+    'LON': { name: '倫敦', timezone: 'Europe/London', weather: '☁️ 19°C 陰時多雲', note: '氣溫涼爽 ‧ 降雨機率 30%' },
+    'PAR': { name: '巴黎', timezone: 'Europe/Paris', weather: '⛅ 22°C 微風多雲', note: '早晚偏涼 ‧ 降雨機率 10%' },
+    'TYO': { name: '東京', timezone: 'Asia/Tokyo', weather: '☀️ 29°C 晴朗微熱', note: '日照充足 ‧ 降雨機率 5%' }
+};
+
+// 2. 匯率即時參考表
+const fxDatabase = {
+    'SGD_TWD': '1 SGD = 24.35 TWD',
+    'SGD_USD': '1 SGD = 0.76 USD',
+    'USD_TWD': '1 USD = 32.05 TWD',
+    'EUR_TWD': '1 EUR = 34.80 TWD',
+    'GBP_TWD': '1 GBP = 41.50 TWD',
+    'JPY_TWD': '100 JPY = 21.20 TWD',
+    'USD_VND': '1 USD = 25,400 VND'
+};
+
+// 3. 更新當地時間時鐘
+function updateCityClock() {
+    const citySelect = document.getElementById('header-city-select');
+    const timeDisplay = document.getElementById('header-local-time');
+    const weatherDisplay = document.getElementById('header-weather-info');
+    if (!citySelect || !timeDisplay) return;
+
+    const cityKey = citySelect.value || 'SIN';
+    const cityInfo = cityDatabase[cityKey] || cityDatabase['SIN'];
+
+    // 計算該城市當地時間
+    const now = new Date();
+    const timeFormatter = new Intl.DateTimeFormat('zh-TW', {
+        timeZone: cityInfo.timezone,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+
+    timeDisplay.innerText = timeFormatter.format(now);
+    if (weatherDisplay) {
+        weatherDisplay.innerText = cityInfo.weather;
+        weatherDisplay.title = cityInfo.note; // 滑鼠懸停顯示詳細氣象
+    }
+}
+
+// 每秒自動跳動當地時間
+setInterval(updateCityClock, 1000);
+
+// 城市切換事件
+document.getElementById('header-city-select')?.addEventListener('change', () => {
+    updateCityClock();
+});
+
+// 4. 匯率切換事件
+document.getElementById('header-fx-select')?.addEventListener('change', function(e) {
+    const fxPair = e.target.value;
+    const rateDisplay = document.getElementById('header-fx-rate');
+    if (rateDisplay && fxDatabase[fxPair]) {
+        rateDisplay.innerText = fxDatabase[fxPair];
+    }
+});
+
+// 頁面初次載入立即觸發一次
+updateCityClock();
