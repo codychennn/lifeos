@@ -92,8 +92,36 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 6. 智能機票專區：Google Flights 聯動選單邏輯
+        // 6. 智能機票專區：Google Flights 聯動選單邏輯 (擴充 30 國與歐洲樞紐 LHR, CDG, FCO, FRA)
     const destinationData = {
+        'LHR': {
+            name: '倫敦 (LHR)',
+            airline: '長榮航空 / 中華航空 / 國泰航空 / 土耳其航空',
+            avgPrice: 'NT$ 33,000 - 44,000',
+            tips: '大英博物館、大笨鐘與倫敦眼英式下午茶。搭乘土航/阿聯酋中轉可省 30%。',
+            googleFlightsUrl: 'https://www.google.com/travel/flights/explore?tfs=CBwQAhooEgoyMDI2LTA5LTA4agwIAhIIL20vMGZ0a3gSCjIwMjYtMDktMTJ6DAgCEggvbS80anBsQAFIAXAB'
+        },
+        'CDG': {
+            name: '巴黎 (CDG)',
+            airline: '長榮航空 直飛 / 法國航空 / 華航',
+            avgPrice: 'NT$ 32,000 - 42,000',
+            tips: '艾菲爾鐵塔、羅浮宮與米其林三星美饌首選。長榮直飛約 13.5 小時。',
+            googleFlightsUrl: 'https://www.google.com/travel/flights/explore?tfs=CBwQAhooEgoyMDI2LTA5LTA4agwIAhIIL20vMGZ0a3gSCjIwMjYtMDktMTJ6DAgCEggvbS81cXRqQAFIAXAB'
+        },
+        'FCO': {
+            name: '羅馬 (FCO)',
+            airline: '中華航空 直飛 / 阿聯酋航空 / 國泰航空',
+            avgPrice: 'NT$ 30,000 - 40,000',
+            tips: '競技場、梵蒂岡與義式 Gelato 人氣名店。華航有台北直飛班機。',
+            googleFlightsUrl: 'https://www.google.com/travel/flights/explore?tfs=CBwQAhooEgoyMDI2LTA5LTA4agwIAhIIL20vMGZ0a3gSCjIwMjYtMDktMTJ6DAgCEggvbS8zNXlyQAFIAXAB'
+        },
+        'FRA': {
+            name: '法蘭克福 (FRA)',
+            airline: '中華航空 直飛 / 長榮航空 / 德國漢莎航空',
+            avgPrice: 'NT$ 31,000 - 41,500',
+            tips: '德國與歐洲鐵路 ICE 交通心臟樞紐，轉乘 ICE 高鐵直達全德與古堡大道。',
+            googleFlightsUrl: 'https://www.google.com/travel/flights/explore?tfs=CBwQAhooEgoyMDI2LTA5LTA4agwIAhIIL20vMGZ0a3gSCjIwMjYtMDktMTJ6DAgCEggvbS8yejcxN5gBAdoBCAoEEABIAXAB'
+        },
         'SGN': {
             name: '胡志明市 (SGN)',
             airline: '長榮航空 / 星宇航空 / 越捷航空',
@@ -132,7 +160,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     function renderFlightDetails(destCode) {
-        const data = destinationData[destCode] || destinationData['SGN'];
+        const data = destinationData[destCode] || {
+            name: destCode,
+            airline: '全球國際知名航空連線執飛',
+            avgPrice: 'NT$ 18,000 - 38,000',
+            tips: '熱門旅遊國家核心航點，建議提前 60 天鎖定即時優惠。',
+            googleFlightsUrl: 'https://www.google.com/travel/flights'
+        };
         const origin = document.getElementById('flight-origin')?.value || 'TPE';
         const container = document.getElementById('flight-result-panel');
         if (!container) return;
@@ -151,19 +185,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <div style="background: rgba(0,0,0,0.25); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
                 <span style="font-size: 13px; color: #E2E8F0;">💡 ${data.tips}</span>
             </div>
-            <div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <a href="${data.googleFlightsUrl}" target="_blank" style="text-decoration: none; padding: 10px 20px; background: #38BDF8; color: #0F172A; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px;">
                     開啟 Google Flights 即時比價 ↗
                 </a>
             </div>
         `;
-    }
-
-    // 目的地選單切換監聽
-    const destSelect = document.getElementById('flight-destination');
-    if (destSelect) {
-        destSelect.addEventListener('change', (e) => renderFlightDetails(e.target.value));
-        renderFlightDetails(destSelect.value || 'SGN');
     }
 
     // 7. Telegram 推播小工具函式
