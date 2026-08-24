@@ -723,3 +723,114 @@ document.addEventListener("DOMContentLoaded", () => {
     // 初始載入旅行清單
     loadMyTravelList();
 });
+
+
+/* =========================================================================
+   Bento 點擊連動、歐洲 10D9N 4大維度切換與全站 Toast 提示 Handler
+   ========================================================================= */
+
+window.openBentoTimelineDrawer = function() {
+    const backdrop = document.getElementById('bento-timeline-backdrop');
+    const drawer = document.getElementById('bento-timeline-drawer');
+    if (backdrop && drawer) {
+        backdrop.classList.add('active');
+        drawer.classList.add('active');
+    }
+};
+
+window.closeBentoTimelineDrawer = function() {
+    const backdrop = document.getElementById('bento-timeline-backdrop');
+    const drawer = document.getElementById('bento-timeline-drawer');
+    if (backdrop && drawer) {
+        backdrop.classList.remove('active');
+        drawer.classList.remove('active');
+    }
+};
+
+window.openBentoCalcModal = function() {
+    const modal = document.getElementById('bento-calc-backdrop');
+    if (modal) {
+        modal.classList.add('active');
+        updateBentoCalcResult();
+    }
+};
+
+window.closeBentoCalcModal = function() {
+    const modal = document.getElementById('bento-calc-backdrop');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+};
+
+window.updateBentoCalcResult = function() {
+    const currency = document.getElementById('bento-calc-currency')?.value || 'USD';
+    const amount = parseFloat(document.getElementById('bento-calc-amount')?.value || 500);
+    const resultDisplay = document.getElementById('bento-calc-result');
+    if (!resultDisplay) return;
+
+    fetch('/api/fx/convert-twd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency: currency, amount: amount })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.formatted) {
+            resultDisplay.innerText = data.formatted;
+        }
+    })
+    .catch(err => console.error("Bento calc error:", err));
+};
+
+window.switchEuropeGuideTab = function(panelName, btnElem) {
+    const parent = btnElem.parentElement;
+    parent.querySelectorAll('.sub-nav-btn').forEach(b => b.classList.remove('active'));
+    btnElem.classList.add('active');
+
+    const panels = document.querySelectorAll('.europe-panel');
+    panels.forEach(p => p.style.display = 'none');
+
+    const target = document.getElementById(`europe-guide-panel-${panelName}`);
+    if (target) {
+        target.style.display = 'block';
+    }
+};
+
+window.updateEuropeBudgetContent = function() {
+    const currency = document.getElementById('europe-currency-select')?.value || 'TWD';
+    const display = document.getElementById('europe-budget-details');
+    if (!display) return;
+
+    if (currency === 'TWD') {
+        display.innerHTML = `✈️ 機票：NT$ 33,000 | 🏨 9夜住宿：NT$ 36,000 | 🚆 高鐵地鐵：NT$ 12,000 | 🍽️ 餐飲美饌：NT$ 18,000 | 🎟️ 門票：NT$ 8,000<br><strong style="color: #F8FAFC; font-size: 15px;">💰 預估每人總預算：NT$ 107,000 起</strong>`;
+    } else if (currency === 'SGD') {
+        display.innerHTML = `✈️ 機票：SGD 1,355 | 🏨 9夜住宿：SGD 1,478 | 🚆 高鐵地鐵：SGD 492 | 🍽️ 餐飲美饌：SGD 739 | 🎟️ 門票：SGD 328<br><strong style="color: #F8FAFC; font-size: 15px;">💰 預估每人總預算：SGD 4,392 起</strong>`;
+    } else {
+        display.innerHTML = `✈️ 機票：EUR 948 | 🏨 9夜住宿：EUR 1,034 | 🚆 高鐵地鐵：EUR 344 | 🍽️ 餐飲美饌：EUR 517 | 🎟️ 門票：EUR 229<br><strong style="color: #F8FAFC; font-size: 15px;">💰 預估每人總預算：EUR 3,072 起</strong>`;
+    }
+};
+
+window.showToast = function(msg) {
+    const toast = document.getElementById('toast-notification');
+    const msgElem = document.getElementById('toast-message');
+    if (toast && msgElem) {
+        msgElem.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 2500);
+    }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 按 Esc 鍵自動關閉所有彈窗與抽屜
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeBentoTimelineDrawer();
+            closeBentoCalcModal();
+        }
+    });
+
+    document.getElementById('bento-calc-currency')?.addEventListener('change', updateBentoCalcResult);
+    document.getElementById('bento-calc-amount')?.addEventListener('input', updateBentoCalcResult);
+});

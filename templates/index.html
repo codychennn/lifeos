@@ -247,6 +247,86 @@
             <!-- Tab: 通用智慧旅遊景點與美食資料庫智庫 (Travel Hub) -->
             <section id="tab-guide2026" class="tab-content">
                 
+                <!-- 🇪🇺 歐洲 10天9夜 新手經典路線 (倫敦 ➔ 巴黎) 展示模組 -->
+                <div class="card glass-card span-3" style="padding: 24px; background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3 style="font-size: 22px; font-weight: 700; color: #FFF; font-family: 'Inter Tight', sans-serif; display: flex; align-items: center; gap: 10px;">
+                                🇪🇺 歐洲 10天9夜 新手經典路線 (倫敦 ➔ 巴黎) 4 大維度指南
+                            </h3>
+                            <p style="font-size: 13px; color: #94A3B8; margin-top: 4px;">專為新手量身打造的跨國雙城自主規劃，含 Eurostar 歐洲之星高鐵與米其林食堂指南。</p>
+                        </div>
+                        <span class="badge">倫敦 ➔ 巴黎 雙城暢遊</span>
+                    </div>
+
+                    <!-- 4 Dimension Tabs -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;">
+                        <button onclick="switchEuropeGuideTab('itinerary', this)" class="sub-nav-btn active">📅 每日行程 (Itinerary)</button>
+                        <button onclick="switchEuropeGuideTab('budget', this)" class="sub-nav-btn">💰 預算估算 (Budget)</button>
+                        <button onclick="switchEuropeGuideTab('food', this)" class="sub-nav-btn">🍽️ 推薦餐廳 (Food)</button>
+                        <button onclick="switchEuropeGuideTab('transit', this)" class="sub-nav-btn">🚆 交通指南 (Transit)</button>
+                    </div>
+
+                    <!-- 4 Dimension Content Panels -->
+                    <div id="europe-guide-panel-itinerary" class="europe-panel" style="display: block;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
+                            <div style="background: rgba(10, 12, 16, 0.9); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <strong style="color: #FFF;">🇬🇧 Day 1-3：倫敦古典經典</strong>
+                                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">大笨鐘 ➔ 大英博物館 (建議 3.5h) ➔ 倫敦眼夕陽 ➔ Sky Garden 高空觀景。</p>
+                            </div>
+                            <div style="background: rgba(10, 12, 16, 0.9); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <strong style="color: #FFF;">🚆 Day 4：歐洲之星跨國高鐵</strong>
+                                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">St Pancras 車站搭乘 Eurostar 穿越海底隧道 (2h16m) 直達巴黎 Gare du Nord。</p>
+                            </div>
+                            <div style="background: rgba(10, 12, 16, 0.9); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <strong style="color: #FFF;">🇫🇷 Day 5-8：巴黎藝術浪漫</strong>
+                                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">羅浮宮 (建議 4h) ➔ 艾菲爾鐵塔 ➔ 凡爾賽宮鏡廳 ➔ 蒙馬特愛牆與聖心堂。</p>
+                            </div>
+                            <div style="background: rgba(10, 12, 16, 0.9); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <strong style="color: #FFF;">✈️ Day 9-10：香榭麗舍購物與返航</strong>
+                                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">香榭麗舍大道採買 ➔ 戴高樂機場 (CDG) 退稅與回程班機。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="europe-guide-panel-budget" class="europe-panel" style="display: none;">
+                        <div style="background: rgba(10, 12, 16, 0.9); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <strong style="color: #FFF;">預算結構與切換：</strong>
+                                <select id="europe-currency-select" onchange="updateEuropeBudgetContent()" class="input-modern" style="padding: 4px 8px; font-size: 12px;">
+                                    <option value="TWD">🇹🇼 新台幣 (NT$)</option>
+                                    <option value="SGD">🇸🇬 新幣 (SGD)</option>
+                                    <option value="EUR">🇪🇺 歐元 (EUR)</option>
+                                </select>
+                            </div>
+                            <div id="europe-budget-details" style="font-size: 13px; color: #CBD5E1; line-height: 1.8;">
+                                ✈️ 機票：NT$ 33,000 | 🏨 9夜住宿：NT$ 36,000 | 🚆 高鐵地鐵：NT$ 12,000 | 🍽️ 餐飲美饌：NT$ 18,000 | 🎟️ 博物館門票：NT$ 8,000<br>
+                                <strong style="color: #F8FAFC; font-size: 15px;">💰 預估每人總預算：NT$ 107,000 起</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="europe-guide-panel-food" class="europe-panel" style="display: none;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
+                            <div style="background: rgba(10, 12, 16, 0.9); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <strong style="color: #FFF;">🇬🇧 Poppies Fish & Chips (倫敦)</strong>
+                                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">倫敦經典傳統炸魚薯條，酥脆鱈魚配塔塔醬。 (約 NT$ 680)</p>
+                            </div>
+                            <div style="background: rgba(10, 12, 16, 0.9); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <strong style="color: #FFF;">🇫🇷 Bouillon Chartier 百年食堂 (巴黎)</strong>
+                                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">1896年創立平價法式老食堂，油封鴨腿與法式螺肉。 (約 NT$ 750)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="europe-guide-panel-transit" class="europe-panel" style="display: none;">
+                        <div style="background: rgba(10, 12, 16, 0.9); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); font-size: 13px; color: #CBD5E1; line-height: 1.8;">
+                            🚆 <strong>Eurostar 歐洲之星高鐵</strong>：建議提前 60 天預訂早鳥票 (約 £44 起)，車程 2 小時 16 分鐘。<br>
+                            💳 <strong>市區地鐵交通</strong>：倫敦直接刷 Contactless 信用卡感應；巴黎建議購買 Navigo Easy 卡搭乘 Metro。
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- 50,000+ 筆 IG / 小紅書 / 抖音 爆紅必去必吃景點智庫搜尋面板 -->
                 <div class="card glass-card span-3" style="padding: 22px; background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 18px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
@@ -1835,7 +1915,7 @@
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
                                 <span style="font-size: 18px; font-weight: 800; color: #F8FAFC;">NT$ 11,200 <span style="font-size: 11px; color: #94A3B8;">起</span></span>
-                                <a href="https://www.starlux-airlines.com" target="_blank" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border-color: rgba(56, 189, 248, 0.4);">
+                                <a href="https://www.starlux-airlines.com" target="_blank" rel="noopener noreferrer" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border-color: rgba(56, 189, 248, 0.4);">
                                     一鍵搶購 ↗
                                 </a>
                             </div>
@@ -1852,7 +1932,7 @@
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
                                 <span style="font-size: 18px; font-weight: 800; color: #F8FAFC;">NT$ 31,800 <span style="font-size: 11px; color: #94A3B8;">起</span></span>
-                                <a href="https://www.evaair.com" target="_blank" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border-color: rgba(56, 189, 248, 0.4);">
+                                <a href="https://www.evaair.com" target="_blank" rel="noopener noreferrer" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border-color: rgba(56, 189, 248, 0.4);">
                                     一鍵搶購 ↗
                                 </a>
                             </div>
@@ -1869,7 +1949,7 @@
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
                                 <span style="font-size: 18px; font-weight: 800; color: #F8FAFC;">NT$ 27,500 <span style="font-size: 11px; color: #94A3B8;">起</span></span>
-                                <a href="https://www.emirates.com" target="_blank" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(192, 132, 252, 0.15); color: #E2E8F0; border-color: rgba(192, 132, 252, 0.4);">
+                                <a href="https://www.emirates.com" target="_blank" rel="noopener noreferrer" class="glow-btn" style="padding: 6px 14px; font-size: 11px; text-decoration: none; background: rgba(192, 132, 252, 0.15); color: #E2E8F0; border-color: rgba(192, 132, 252, 0.4);">
                                     一鍵搶購 ↗
                                 </a>
                             </div>
@@ -2242,6 +2322,69 @@
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- 🔲 Bento Dashboard 側邊時間軸抽屜 (Timeline Drawer) -->
+    <div id="bento-timeline-backdrop" class="offcanvas-backdrop" onclick="closeBentoTimelineDrawer()"></div>
+    <div id="bento-timeline-drawer" class="offcanvas-drawer" style="width: 520px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 16px; margin-bottom: 20px;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #FFF;"><i class="fa-solid fa-timeline" style="color: #F8FAFC;"></i> 完整每日行程時間軸 (Timeline)</h3>
+            <button onclick="closeBentoTimelineDrawer()" class="sub-nav-btn" style="padding: 6px 12px;">✕ 關閉</button>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px;">
+                <span class="badge">Day 1</span> <strong style="color:#FFF;">抵達與城市初體驗</strong>
+                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">班機降落 ➔ 飯店 Check-in ➔ 附近地標與景觀酒吧探索</p>
+            </div>
+            <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px;">
+                <span class="badge">Day 2-3</span> <strong style="color:#FFF;">經典歷史與文化巡禮</strong>
+                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">博物館朝聖 ➔ 名店美饌 ➔ 城市地標高空展望台夕陽</p>
+            </div>
+            <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px;">
+                <span class="badge">Day 4-6</span> <strong style="color:#FFF;">跨國高鐵與雙城體驗</strong>
+                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">高鐵移動 ➔ 藝術花園巡禮 ➔ 米其林餐廳奢華饗宴</p>
+            </div>
+            <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px;">
+                <span class="badge">Day 7-10</span> <strong style="color:#FFF;">近郊古堡與購物回程</strong>
+                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">近郊古堡大道 ➔ 精品街購物採買 ➔ 機場返航</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🧮 Bento 快速旅費與匯率試算 Modal -->
+    <div id="bento-calc-backdrop" class="modal-overlay" onclick="closeBentoCalcModal()">
+        <div class="modal-box" onclick="event.stopPropagation();" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 14px; margin-bottom: 18px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #FFF;"><i class="fa-solid fa-calculator" style="color: #F8FAFC;"></i> 快速旅費與即期匯率試算器</h3>
+                <button onclick="closeBentoCalcModal()" class="sub-nav-btn">✕ 關閉</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                    <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">選擇外幣幣別：</label>
+                    <select id="bento-calc-currency" class="input-modern" style="width: 100%;">
+                        <option value="USD">🇺🇸 美元 (USD) - 即期賣出 32.10</option>
+                        <option value="JPY">🇯🇵 日圓 (JPY) - 即期賣出 0.2155</option>
+                        <option value="EUR">🇪🇺 歐元 (EUR) - 即期賣出 34.90</option>
+                        <option value="GBP">🇬🇧 英鎊 (GBP) - 即期賣出 41.70</option>
+                        <option value="SGD">🇸🇬 新幣 (SGD) - 即期賣出 24.45</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">預算/消費金額：</label>
+                    <input type="number" id="bento-calc-amount" value="500" class="input-modern" style="width: 100%;" placeholder="請輸入金額">
+                </div>
+                <div style="background: rgba(18, 20, 26, 0.95); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); text-align: center;">
+                    <span style="font-size: 12px; color: #94A3B8;">折合新台幣約</span>
+                    <div id="bento-calc-result" style="font-size: 24px; font-weight: 800; color: #F8FAFC; margin-top: 4px;">NT$ 16,050</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ⚡ 全站輕量 Toast 提示容器 -->
+    <div id="toast-notification" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(18, 20, 26, 0.95); border: 1px solid rgba(255, 255, 255, 0.3); color: #F8FAFC; padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 100000; display: none; transition: all 0.3s ease;">
+        <span id="toast-message">⚡ 提示訊息</span>
     </div>
 </body>
 </html>
