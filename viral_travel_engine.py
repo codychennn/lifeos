@@ -129,34 +129,35 @@ def search_viral_spots(query="", country_code="", category="", platform_tag="", 
     conn = database.get_db_connection()
     cursor = conn.cursor()
     
-    sql = "SELECT * FROM viral_spots WHERE 1=1"
+    where_sql = " WHERE 1=1"
     params = []
     
     if query:
-        sql += " AND (spot_name LIKE ? OR summary LIKE ? OR city LIKE ?)"
+        where_sql += " AND (spot_name LIKE ? OR summary LIKE ? OR city LIKE ?)"
         params.extend([f"%{query}%", f"%{query}%", f"%{query}%"])
     if country_code and country_code != "ALL":
-        sql += " AND country_code = ?"
+        where_sql += " AND country_code = ?"
         params.append(country_code)
     if category and category != "ALL":
-        sql += " AND category = ?"
+        where_sql += " AND category = ?"
         params.append(category)
     if platform_tag and platform_tag != "ALL":
-        sql += " AND platform_tag = ?"
+        where_sql += " AND platform_tag = ?"
         params.append(platform_tag)
         
+    # 1. 查詢該條件下的總筆數
+    count_sql = "SELECT COUNT(*) as total FROM viral_spots" + where_sql
+    cursor.execute(count_sql, params)
+    total_row = cursor.fetchone()
+    total = total_row['total'] if total_row else 0
+    
+    # 2. 分頁查詢資料
     offset = (page - 1) * limit
-    sql += " ORDER BY rating DESC, id ASC LIMIT ? OFFSET ?"
-    params.extend([limit, offset])
+    select_sql = "SELECT * FROM viral_spots" + where_sql + " ORDER BY rating DESC, id ASC LIMIT ? OFFSET ?"
+    select_params = list(params) + [limit, offset]
     
-    cursor.execute(sql, params)
+    cursor.execute(select_sql, select_params)
     rows = cursor.fetchall()
-    
-    # 統計總數
-    count_sql = "SELECT COUNT(*) as total FROM viral_spots WHERE 1=1"
-    count_params = params[:-2]
-    cursor.execute(count_sql, count_params)
-    total = cursor.fetchone()['total']
     
     conn.close()
     return {

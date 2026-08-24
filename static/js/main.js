@@ -494,3 +494,86 @@ document.addEventListener("DOMContentLoaded", () => {
     loadStreetwearFeed('all');
     updateQuickSpotConvert();
 });
+
+
+/* =========================================================================
+   50,000+ 筆景點智庫 (Viral Spots Intelligence Engine) 搜尋與渲染邏輯
+   ========================================================================= */
+
+window.loadViralSpots = function(query = "", tag = "ALL") {
+    const container = document.getElementById('viral-spots-results-grid');
+    if (!container) return;
+
+    container.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #CBD5E1; padding: 30px; font-weight: 700;">⚡ 正在連線自 50,000+ 筆社群景點智庫檢索中...</div>';
+
+    fetch(`/api/travel/viral-spots?query=${encodeURIComponent(query)}&platform_tag=${encodeURIComponent(tag)}&limit=30`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data && data.data.spots) {
+            let html = '';
+            data.data.spots.forEach(spot => {
+                html += `
+                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; transition: all 0.25s ease;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.14)'">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span class="badge">${spot.platform_tag}</span>
+                                <span style="font-size: 12px; font-weight: 700; color: #F8FAFC;">⭐ ${spot.rating} (${spot.price_level})</span>
+                            </div>
+                            <h4 style="font-size: 15px; font-weight: 700; color: #FFF; margin-bottom: 4px; line-height: 1.4;">${spot.spot_name}</h4>
+                            <p style="font-size: 11px; color: #94A3B8; margin-bottom: 6px;">📍 ${spot.address_desc}</p>
+                            <p style="font-size: 12px; color: #CBD5E1; line-height: 1.5;">${spot.summary}</p>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 11px; color: #94A3B8;">50,000+ 智庫收錄</span>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.spot_name)}" target="_blank" class="glow-btn" style="padding: 6px 12px; font-size: 11px; text-decoration: none;">
+                                地圖導航 ↗
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #94A3B8; padding: 20px;">無符合條件的景點，請嘗試其他關鍵字</div>';
+        }
+    })
+    .catch(err => {
+        console.error("Load viral spots error:", err);
+        container.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #94A3B8; padding: 20px;">載入景點資料庫發生錯誤，請重試</div>';
+    });
+};
+
+window.triggerViralSpotSearch = function() {
+    const query = document.getElementById('viral-search-query')?.value || '';
+    const tag = document.getElementById('viral-filter-tag')?.value || 'ALL';
+    loadViralSpots(query, tag);
+};
+
+// 在 switchTab 內自動連動載入景點智庫
+const oldSwitchTabInViral = window.switchTab;
+window.switchTab = function(tabId) {
+    if (oldSwitchTabInViral) {
+        oldSwitchTabInViral(tabId);
+    }
+    const aliasMap = { 'travel': 'guide2026' };
+    const mapped = aliasMap[tabId] || tabId;
+    if (mapped === 'guide2026') {
+        window.loadViralSpots('', 'ALL');
+    }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 綁定 Enter 鍵搜尋
+    document.getElementById('viral-search-query')?.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            triggerViralSpotSearch();
+        }
+    });
+
+    document.getElementById('viral-filter-tag')?.addEventListener('change', () => {
+        triggerViralSpotSearch();
+    });
+
+    // 初始載入 50k 景點智庫
+    loadViralSpots('', 'ALL');
+});
