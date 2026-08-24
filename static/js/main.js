@@ -412,3 +412,85 @@ document.addEventListener("DOMContentLoaded", () => {
     // 預設切換至首頁
     window.switchTab('home');
 });
+
+
+/* =========================================================================
+   世界潮牌動態牆 (Streetwear Feed) & 台灣銀行即期匯率快速換算 Handler
+   ========================================================================= */
+
+window.loadStreetwearFeed = function(brandFilter = 'all') {
+    const container = document.getElementById('streetwear-feed-container');
+    if (!container) return;
+
+    fetch(`/api/streetwear/feed?brand=${brandFilter}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data) {
+            let html = '';
+            data.data.forEach(item => {
+                html += `
+                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; transition: all 0.25s ease;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.14)'">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span class="badge">${item.brand}</span>
+                                <span style="font-size: 11px; color: #CBD5E1; font-weight: 700;">${item.category}</span>
+                            </div>
+                            <h4 style="font-size: 15px; color: #FFF; font-weight: 700; margin-bottom: 6px; line-height: 1.4;">${item.title}</h4>
+                            <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin-bottom: 8px;">${item.description}</p>
+                            <div style="font-size: 11px; color: #E2E8F0;">🗓️ ${item.release_date}</div>
+                        </div>
+
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 11px; color: #94A3B8;">原價: ${item.original_price}</span>
+                                <span style="font-size: 18px; font-weight: 800; color: #F8FAFC;">${item.twd_price}</span>
+                            </div>
+                            <a href="${item.source_url}" target="_blank" class="glow-btn" style="text-align: center; text-decoration: none; font-size: 12px; padding: 8px;">
+                                官方官網發售連結 ↗
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    })
+    .catch(err => console.error("Load streetwear feed error:", err));
+};
+
+window.filterStreetwearBrand = function(brand, btnElem) {
+    const btns = btnElem.parentElement.querySelectorAll('.sub-nav-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    btnElem.classList.add('active');
+    loadStreetwearFeed(brand);
+};
+
+window.updateQuickSpotConvert = function() {
+    const currency = document.getElementById('header-bank-fx-select')?.value || 'USD';
+    const amount = parseFloat(document.getElementById('quick-convert-amount')?.value || 100);
+    const resultDisplay = document.getElementById('quick-convert-result');
+    if (!resultDisplay) return;
+
+    fetch('/api/fx/convert-twd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency: currency, amount: amount })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.formatted) {
+            resultDisplay.innerText = data.formatted;
+        }
+    })
+    .catch(err => console.error("Quick convert error:", err));
+};
+
+// 綁定台銀即期換算事件
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('header-bank-fx-select')?.addEventListener('change', updateQuickSpotConvert);
+    document.getElementById('quick-convert-amount')?.addEventListener('input', updateQuickSpotConvert);
+    
+    // 初始化載入潮牌動態牆與即期換算
+    loadStreetwearFeed('all');
+    updateQuickSpotConvert();
+});

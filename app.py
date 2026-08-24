@@ -494,6 +494,33 @@ def api_handle_flight_alerts():
             "data": alerts
         })
 
+# --- World Streetwear Feed & Bank Spot FX APIs ---
+
+@app.route("/api/streetwear/feed", methods=["GET"])
+def api_get_streetwear_feed():
+    import streetwear_engine
+    brand = request.args.get("brand", "all")
+    feed = streetwear_engine.get_streetwear_feed(brand)
+    return jsonify({
+        "status": "success",
+        "count": len(feed),
+        "data": feed
+    })
+
+@app.route("/api/fx/bank-spot", methods=["GET"])
+def api_get_bank_spot_fx():
+    import bank_fx_engine
+    return jsonify(bank_fx_engine.get_bank_spot_fx_summary())
+
+@app.route("/api/fx/convert-twd", methods=["POST"])
+def api_convert_to_twd():
+    import bank_fx_engine
+    data = request.json or {}
+    currency = data.get("currency", "USD")
+    amount = float(data.get("amount", 100))
+    res = bank_fx_engine.convert_to_twd(currency, amount)
+    return jsonify(res)
+
 # --- Headless Data & Contextual Decision Engine APIs ---
 
 @app.route("/api/context/city-bundle", methods=["GET"])
