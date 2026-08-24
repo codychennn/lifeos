@@ -588,7 +588,7 @@ def api_get_viral_spots():
     category = request.args.get("category", "ALL")
     platform_tag = request.args.get("platform_tag", "ALL")
     page = int(request.args.get("page", 1))
-    limit = int(request.args.get("limit", 30))
+    limit = int(request.args.get("limit", 12))
 
     res = viral_travel_engine.search_viral_spots(
         query=query,
@@ -602,6 +602,26 @@ def api_get_viral_spots():
         "status": "success",
         "data": res
     })
+
+@app.route("/api/travel/my-list/add", methods=["POST"])
+def api_add_to_my_travel_list():
+    import viral_travel_engine
+    data = request.json or {}
+    spot_id = data.get("spot_id")
+    if not spot_id:
+        return jsonify({"status": "error", "message": "Missing spot_id"}), 400
+    res = viral_travel_engine.add_to_my_travel_list(spot_id)
+    return jsonify(res)
+
+@app.route("/api/travel/my-list", methods=["GET"])
+def api_get_my_travel_list():
+    import viral_travel_engine
+    return jsonify(viral_travel_engine.get_my_travel_list())
+
+@app.route("/api/travel/my-list/remove/<int:item_id>", methods=["DELETE"])
+def api_remove_from_my_travel_list(item_id):
+    import viral_travel_engine
+    return jsonify(viral_travel_engine.remove_from_my_travel_list(item_id))
 
 @app.route("/api/crypto-stocks/ma30-signals", methods=["GET"])
 def api_get_ma30_signals():

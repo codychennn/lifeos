@@ -59,6 +59,20 @@ def init_db():
 
     # 猶太人智庫與重點新聞資料表
     cursor.execute('''
+        CREATE TABLE IF NOT EXISTS my_travel_list (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            spot_name TEXT NOT NULL,
+            country_code TEXT,
+            city TEXT,
+            category TEXT,
+            address_desc TEXT,
+            rating REAL,
+            photo_url TEXT,
+            google_map_query TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS jewish_news (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title_zh TEXT NOT NULL,

@@ -132,6 +132,11 @@
                     <span id="quick-convert-result" style="font-size: 13px; font-weight: 700; color: #F8FAFC;">NT$ 3,210</span>
                 </div>
             </div>
+        
+            <!-- 🧳 我的個人旅行與美食清單捷徑 -->
+            <button id="btn-open-my-list" onclick="switchTab('travelbook')" class="glow-btn" style="width: auto; padding: 6px 14px; font-size: 12px; border-color: rgba(255,255,255,0.25);">
+                <i class="fa-solid fa-suitcase-rolling" style="color: #F8FAFC;"></i> 🧳 我的旅行清單 (<span id="my-list-count-badge">0</span>)
+            </button>
         </header>
 
             <!-- Section: Home Landing Page (Executive Standard) -->
@@ -173,7 +178,7 @@
                             <div>
                                 <div style="font-size: 28px; color: #F8FAFC; margin-bottom: 12px;"><i class="fa-solid fa-plane"></i></div>
                                 <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Travel</h3>
-                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin: 0;">11,272+ 景點庫 ‧ 美西 15 天自駕 ‧ AI 行程規劃 ‧ 預算計算</p>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin: 0;">50,000+ 筆 景點庫 ‧ 美西 15 天自駕 ‧ AI 行程規劃 ‧ 預算計算</p>
                             </div>
                             <span style="font-size: 12px; color: #F8FAFC; font-weight: 600;">開啟模組 <i class="fa-solid fa-arrow-right"></i></span>
                         </div>
@@ -228,7 +233,7 @@
                         </div>
                         <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
                             <span style="font-size: 11px; color: #94A3B8;">嚴選景點智庫</span>
-                            <div style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">11,272 筆</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">50,000+ 筆</div>
                         </div>
                         <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
                             <span style="font-size: 11px; color: #94A3B8;">Cloudflare Tunnel</span>
@@ -270,14 +275,20 @@
                         </button>
                     </div>
 
-                    <div id="viral-spots-results-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                    
+                    <div id="viral-spots-results-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
                         <!-- JS 渲染 5萬筆景點結果 -->
+                    </div>
+
+                    <!-- 📄 精緻分頁控制列 (避免無限拉到底使用感不佳) -->
+                    <div id="viral-pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 14px; padding: 16px; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px;">
+                        <!-- JS 動態渲染分頁按鈕 -->
                     </div>
                 </div>
 
                 <!-- Universal Travel Sub-Navigation Bar -->
                 <div class="sub-nav-bar" style="margin-bottom: 20px; display: flex; gap: 8px; background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); padding: 8px 12px; border-radius: 14px; flex-wrap: wrap;">
-                    <button class="sub-nav-btn" data-travel-tab="guide2026" onclick="switchTab('guide2026')"><i class="fa-solid fa-database"></i> 🗺️ 11,272+ 景點智庫</button>
+                    <button class="sub-nav-btn" data-travel-tab="guide2026" onclick="switchTab('guide2026')"><i class="fa-solid fa-database"></i> 🗺️ 50,000+ 筆 景點智庫</button>
                     <button class="sub-nav-btn" data-travel-tab="flights" onclick="switchTravelSubTab('flights', this)"><i class="fa-solid fa-plane-departure" style="color: #F8FAFC;"></i> ✈️ 智能機票專區</button>
                             <button class="sub-nav-btn" data-travel-tab="uswest" onclick="switchTab('uswest')"><i class="fa-solid fa-route"></i> 🇺🇸 美西自駕特輯</button>
                     <button class="sub-nav-btn" data-travel-tab="travelbook" onclick="switchTab('travelbook')"><i class="fa-solid fa-book-bookmark"></i> 🧳 自訂行程編排</button>
@@ -294,7 +305,7 @@
                                 <i class="fa-solid fa-database icon-accent" style="color: #F8FAFC; font-size: 20px;"></i>
                                 <div>
                                     <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 19px; color: #FFFFFF; font-weight: 600; margin: 0;">
-                                        🟢 全球 11,272+ 嚴選景點美食資料庫智庫 (架構支援 100,000+ 萬級容量)
+                                        🟢 全球 50,000+ 筆 嚴選景點美食資料庫智庫 (架構支援 100,000+ 萬級容量)
                                     </h3>
                                     <p style="font-size: 11px; color: #94A3B8; margin: 4px 0 0 0;">
                                         景點資料已安全收納至資料庫，無須向下滑動；輸入關鍵字或點擊下方快捷鍵即可瞬間調閱！
@@ -302,7 +313,7 @@
                                 </div>
                             </div>
                             <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border: 1px solid rgba(255, 255, 255, 0.15); font-size: 12px; font-weight: 700; padding: 6px 14px;">
-                                📦 資料庫已收納 11,272+ 筆 4.5★ 景點與美食
+                                📦 資料庫已收納 50,000+ 筆 筆 4.5★ 景點與美食
                             </span>
                         </div>
 
@@ -378,7 +389,7 @@
 
                             <!-- High Performance Pagination Bar -->
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; flex-wrap: wrap; gap: 10px;">
-                                <span id="spots-pagination-info" style="font-size: 12px; color: #94A3B8;">正在顯示 1 - 18 筆 (資料庫庫存共 11,272 筆)</span>
+                                <span id="spots-pagination-info" style="font-size: 12px; color: #94A3B8;">正在顯示 1 - 18 筆 (資料庫庫存共 50,000+ 筆)</span>
                                 <div style="display: flex; gap: 8px;">
                                     <button onclick="spotGoPage(1)" class="pill-action-btn" style="padding: 6px 14px; font-size: 11px;"><i class="fa-solid fa-angles-left"></i> 第一頁</button>
                                     <button onclick="prevSpotPage()" class="pill-action-btn" style="padding: 6px 14px; font-size: 11px;"><i class="fa-solid fa-chevron-left"></i> 上一頁</button>
@@ -510,7 +521,7 @@
                                 <i class="fa-solid fa-database icon-accent" style="color: #F8FAFC; font-size: 20px;"></i>
                                 <div>
                                     <h3 style="font-family: 'Inter Tight', sans-serif; font-size: 19px; color: #FFFFFF; font-weight: 600; margin: 0;">
-                                        🟢 全球 11,272+ 嚴選景點美食資料庫智庫 (架構支援 100,000+ 萬級容量)
+                                        🟢 全球 50,000+ 筆 嚴選景點美食資料庫智庫 (架構支援 100,000+ 萬級容量)
                                     </h3>
                                     <p style="font-size: 11px; color: #94A3B8; margin: 4px 0 0 0;">
                                         景點資料已安全收納至資料庫，無須向下滑動；輸入關鍵字或點擊下方快捷鍵即可瞬間調閱！
@@ -518,7 +529,7 @@
                                 </div>
                             </div>
                             <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border: 1px solid rgba(255, 255, 255, 0.15); font-size: 12px; font-weight: 700; padding: 6px 14px;">
-                                📦 資料庫已收納 11,272+ 筆 4.5★ 景點與美食
+                                📦 資料庫已收納 50,000+ 筆 筆 4.5★ 景點與美食
                             </span>
                         </div>
 
@@ -594,7 +605,7 @@
 
                             <!-- High Performance Pagination Bar -->
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px;">
-                                <span id="spots-pagination-info" style="font-size: 12px; color: #94A3B8;">正在顯示 1 - 12 筆 (資料庫庫存共 11,272 筆)</span>
+                                <span id="spots-pagination-info" style="font-size: 12px; color: #94A3B8;">正在顯示 1 - 12 筆 (資料庫庫存共 50,000+ 筆)</span>
                                 <div style="display: flex; gap: 8px;">
                                     <button onclick="prevSpotPage()" class="pill-action-btn" style="padding: 6px 16px; font-size: 11px;"><i class="fa-solid fa-chevron-left"></i> 上一頁</button>
                                     <button onclick="nextSpotPage()" class="pill-action-btn" style="padding: 6px 16px; font-size: 11px;">下一頁 <i class="fa-solid fa-chevron-right"></i></button>
@@ -953,6 +964,23 @@
 
             <!-- Tab: Travel Book & Planner -->
             <section id="tab-travelbook" class="tab-content">
+                
+                <!-- 🧳 我的客製化旅行與餐廳清單 (My Saved Itinerary List) -->
+                <div class="card glass-card span-3" style="padding: 24px; background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px;">
+                        <div>
+                            <h3 style="font-size: 22px; font-weight: 700; color: #FFF; font-family: 'Inter Tight', sans-serif;"><i class="fa-solid fa-bookmark" style="color: #F8FAFC;"></i> 🧳 我的客製化旅行景點與美食清單</h3>
+                            <p style="font-size: 13px; color: #94A3B8; margin-top: 4px;">由您自 50,000+ 筆智庫中親自挑選的私房景點與餐廳，支援一鍵即時地圖導航與行程排序。</p>
+                        </div>
+                        <button onclick="loadMyTravelList()" class="glow-btn" style="width: auto;">
+                            <i class="fa-solid fa-arrows-rotate"></i> 重新整理清單
+                        </button>
+                    </div>
+
+                    <div id="my-travel-list-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                        <!-- JS 動態載入使用者儲存的行程與餐廳 -->
+                    </div>
+                </div>
                 <div class="grid-layout">
                     <!-- Create New Trip Banner -->
                     <div class="card glass-card span-3 trip-banner">
@@ -1032,12 +1060,12 @@
 
                         <!-- Add Activity Form -->
                         <div class="card-body">
-                            <!-- Quick Spot Search Shortcut Bar (11,272+ Tripadvisor Spots Database) -->
+                            <!-- Quick Spot Search Shortcut Bar (50,000+ 筆 Tripadvisor Spots Database) -->
                             <div style="background: rgba(17, 21, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
                                         <i class="fa-solid fa-magnifying-glass text-gold" style="font-size: 16px;"></i>
-                                        <span style="font-weight: 600; font-size: 14px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;">🔍 景點快捷搜尋庫 (11,272+ 全球 Tripadvisor 4.5★ 嚴選資源)：</span>
+                                        <span style="font-weight: 600; font-size: 14px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;">🔍 景點快捷搜尋庫 (50,000+ 筆 全球 Tripadvisor 4.5★ 嚴選資源)：</span>
                                     </div>
                                     <span style="font-size: 11px; color: #94A3B8;">輸入國家/城市/景點 (例: 日本 東京 秋葉原 / 新加坡 濱海灣 / 巴黎鐵塔)</span>
                                 </div>
@@ -1330,7 +1358,7 @@
                         </div>
                         <h3 style="font-size: 16px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">Cloudflare HTTP2 Daemon</h3>
                         <p style="font-size: 11px; color: #94A3B8; line-height: 1.4; margin-bottom: 8px;">
-                            TryCloudflare 外部安全連線生效中 ‧ 智慧旅遊資料庫 11,272+ 筆 4.5★ 景點隨查隨現。
+                            TryCloudflare 外部安全連線生效中 ‧ 智慧旅遊資料庫 50,000+ 筆 筆 4.5★ 景點隨查隨現。
                         </p>
                         <span style="font-size: 10px; color: #F8FAFC;">HTTPS 200 OK ‧ 安全加密通道</span>
                     </div>

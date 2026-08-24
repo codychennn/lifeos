@@ -577,3 +577,149 @@ document.addEventListener("DOMContentLoaded", () => {
     // 初始載入 50k 景點智庫
     loadViralSpots('', 'ALL');
 });
+
+
+/* =========================================================================
+   50,000+ 筆真實景點智庫 (12筆/頁精緻分頁)、真實地圖導航與「我的旅行清單」處理器
+   ========================================================================= */
+
+window.currentViralPage = 1;
+
+window.loadViralSpots = function(query = "", tag = "ALL", page = 1) {
+    window.currentViralPage = page;
+    const container = document.getElementById('viral-spots-results-grid');
+    const paginationContainer = document.getElementById('viral-pagination-container');
+    if (!container) return;
+
+    container.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #CBD5E1; padding: 30px; font-weight: 700;">⚡ 正在連線自 50,000+ 筆真實景點與餐廳資料庫檢索中...</div>';
+
+    fetch(`/api/travel/viral-spots?query=${encodeURIComponent(query)}&platform_tag=${encodeURIComponent(tag)}&page=${page}&limit=12`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data && data.data.spots) {
+            let html = '';
+            data.data.spots.forEach(spot => {
+                html += `
+                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; transition: all 0.25s ease;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.14)'">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span class="badge">${spot.platform_tag}</span>
+                                <span style="font-size: 12px; font-weight: 700; color: #F8FAFC;">⭐ ${spot.rating} (${spot.price_level})</span>
+                            </div>
+                            <h4 style="font-size: 15px; font-weight: 700; color: #FFF; margin-bottom: 4px; line-height: 1.4;">${spot.spot_name}</h4>
+                            <p style="font-size: 11px; color: #94A3B8; margin-bottom: 6px;">📍 ${spot.address_desc}</p>
+                            <p style="font-size: 12px; color: #CBD5E1; line-height: 1.5;">${spot.summary}</p>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <button onclick="addToMyTravelList(${spot.id})" class="glow-btn" style="padding: 6px 12px; font-size: 11px; width: 100%; text-align: center; background: rgba(255, 255, 255, 0.1); color: #FFF; border-color: rgba(255,255,255,0.25);">
+                                    ➕ 加入旅行與美食清單
+                                </button>
+                            </div>
+                            <a href="${spot.google_map_url}" target="_blank" class="glow-btn" style="padding: 6px 12px; font-size: 11px; text-decoration: none; text-align: center; background: #FFFFFF; color: #0A0B0E;">
+                                📍 Google 地圖精準導航 ↗
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // 渲染精緻分頁元件 (不需一路往下拉)
+            if (paginationContainer && data.data.total_pages > 1) {
+                const totalPages = data.data.total_pages;
+                const prevDisabled = page <= 1 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : '';
+                const nextDisabled = page >= totalPages ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : '';
+
+                paginationContainer.innerHTML = `
+                    <button ${prevDisabled} onclick="changeViralPage(${page - 1})" class="sub-nav-btn">◀ 上一頁</button>
+                    <span style="font-size: 13px; font-weight: 700; color: #F8FAFC;">第 ${page} / ${totalPages.toLocaleString()} 頁 (共 ${data.data.total.toLocaleString()} 筆真實景點/餐廳)</span>
+                    <button ${nextDisabled} onclick="changeViralPage(${page + 1})" class="sub-nav-btn">下一頁 ▶</button>
+                `;
+            }
+        }
+    })
+    .catch(err => console.error("Load viral spots error:", err));
+};
+
+window.changeViralPage = function(newPage) {
+    const query = document.getElementById('viral-search-query')?.value || '';
+    const tag = document.getElementById('viral-filter-tag')?.value || 'ALL';
+    loadViralSpots(query, tag, newPage);
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) mainContent.scrollTop = 0;
+};
+
+window.addToMyTravelList = function(spotId) {
+    fetch('/api/travel/my-list/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ spot_id: spotId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || "已加入您的旅行清單！");
+        loadMyTravelList();
+    })
+    .catch(err => console.error("Add to my list error:", err));
+};
+
+window.loadMyTravelList = function() {
+    const container = document.getElementById('my-travel-list-container');
+    const badgeCount = document.getElementById('my-list-count-badge');
+
+    fetch('/api/travel/my-list')
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data) {
+            if (badgeCount) badgeCount.innerText = data.count;
+
+            if (!container) return;
+
+            if (data.data.length === 0) {
+                container.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #94A3B8; padding: 24px;">您的旅行清單尚無項目，請至「50,000+ 景點智庫」挑選喜歡的景點與餐廳點擊【➕ 加入旅行與美食清單】！</div>';
+                return;
+            }
+
+            let html = '';
+            data.data.forEach(item => {
+                html += `
+                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span class="badge">${item.category || '精選推薦'}</span>
+                                <span style="font-size: 12px; font-weight: 700; color: #F8FAFC;">⭐ ${item.rating || 4.8}</span>
+                            </div>
+                            <h4 style="font-size: 15px; font-weight: 700; color: #FFF; margin-bottom: 4px; line-height: 1.4;">${item.spot_name}</h4>
+                            <p style="font-size: 11px; color: #94A3B8; margin-bottom: 6px;">📍 ${item.address_desc || ''}</p>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; display: flex; gap: 8px;">
+                            <a href="${item.google_map_url}" target="_blank" class="glow-btn" style="flex: 1; text-align: center; text-decoration: none; font-size: 11px; padding: 6px;">
+                                📍 導航 ↗
+                            </a>
+                            <button onclick="removeFromMyTravelList(${item.id})" class="sub-nav-btn" style="padding: 6px 10px; font-size: 11px; color: #CBD5E1;">
+                                🗑️ 移除
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    })
+    .catch(err => console.error("Load my travel list error:", err));
+};
+
+window.removeFromMyTravelList = function(itemId) {
+    fetch(`/api/travel/my-list/remove/${itemId}`, { method: 'DELETE' })
+    .then(res => res.json())
+    .then(data => {
+        loadMyTravelList();
+    })
+    .catch(err => console.error("Remove from list error:", err));
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 初始載入旅行清單
+    loadMyTravelList();
+});
