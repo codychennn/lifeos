@@ -179,14 +179,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div style="text-align: right;">
                     <span style="font-size: 12px; color: #94A3B8;">預估往返參考價</span>
-                    <div style="font-size: 20px; font-weight: 700; color: #34D399;">${data.avgPrice}</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #F8FAFC;">${data.avgPrice}</div>
                 </div>
             </div>
             <div style="background: rgba(0,0,0,0.25); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
                 <span style="font-size: 13px; color: #E2E8F0;">💡 ${data.tips}</span>
             </div>
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <a href="${data.googleFlightsUrl}" target="_blank" style="text-decoration: none; padding: 10px 20px; background: #38BDF8; color: #0F172A; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px;">
+                <a href="${data.googleFlightsUrl}" target="_blank" style="text-decoration: none; padding: 10px 20px; background: #FFFFFF; color: #0A0B0E; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px;">
                     開啟 Google Flights 即時比價 ↗
                 </a>
             </div>
@@ -251,12 +251,12 @@ window.loadMA30Signals = function() {
             let html = '';
             data.data.forEach(s => {
                 html += `
-                    <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                    <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 14px; font-weight: 800; color: #FFF;">${s.name} (${s.symbol})</span>
-                            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; font-size: 10px; font-weight: 800;">${s.signal_level}</span>
+                            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #E2E8F0; font-size: 10px; font-weight: 800;">${s.signal_level}</span>
                         </div>
-                        <div style="font-size: 18px; font-weight: 800; color: #34D399;">$${s.current_price.toLocaleString()} <span style="font-size: 11px; color: #94A3B8;">(MA30: $${s.ma30.toLocaleString()})</span></div>
+                        <div style="font-size: 18px; font-weight: 800; color: #F8FAFC;">$${s.current_price.toLocaleString()} <span style="font-size: 11px; color: #94A3B8;">(MA30: $${s.ma30.toLocaleString()})</span></div>
                         <div style="font-size: 11px; color: #E2E8F0; line-height: 1.5; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
                             💡 ${s.reason}
                         </div>
@@ -285,7 +285,7 @@ window.triggerViralSpotSearch = function() {
     const grid = document.getElementById('viral-spots-results-grid');
     if (!grid) return;
 
-    grid.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #38BDF8; padding: 20px;">正在檢索 50,000+ 筆社群爆款景點...</div>';
+    grid.innerHTML = '<div style="grid-column: span 3; text-align: center; color: #F8FAFC; padding: 20px;">正在檢索 50,000+ 筆社群爆款景點...</div>';
 
     fetch(`/api/travel/viral-spots?query=${encodeURIComponent(query)}&platform_tag=${encodeURIComponent(platform)}&limit=18`)
     .then(res => res.json())
@@ -296,7 +296,7 @@ window.triggerViralSpotSearch = function() {
                 html += `
                     <div style="background: rgba(6, 12, 26, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="badge" style="background: rgba(244, 63, 94, 0.15); color: #F43F5E; font-size: 10px; font-weight: 800;">${s.platform_tag}</span>
+                            <span class="badge" style="background: rgba(244, 63, 94, 0.15); color: #F8FAFC; font-size: 10px; font-weight: 800;">${s.platform_tag}</span>
                             <span style="font-size: 11px; color: #FBBF24; font-weight: 700;">★ ${s.rating}</span>
                         </div>
                         <h4 style="font-size: 14px; font-weight: 700; color: #FFF; margin: 0;">${s.spot_name}</h4>
@@ -415,17 +415,17 @@ window.loadDeals = function(filterCategory = 'all') {
 
             displayList.forEach(d => {
                 html += `
-                    <div style="background: rgba(6, 12, 26, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                    <div style="background: rgba(6, 12, 26, 0.8); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; font-size: 11px; font-weight: 800;">${d.source || '全網特惠'}</span>
-                                <span style="font-size: 11px; color: #34D399; font-weight: 700;">${d.matched_keyword || '閃促特惠'}</span>
+                                <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #E2E8F0; font-size: 11px; font-weight: 800;">${d.source || '全網特惠'}</span>
+                                <span style="font-size: 11px; color: #F8FAFC; font-weight: 700;">${d.matched_keyword || '閃促特惠'}</span>
                             </div>
                             <h4 style="font-size: 15px; color: #FFF; font-weight: 700; margin-bottom: 6px; line-height: 1.4;">${d.title}</h4>
                             <p style="font-size: 11px; color: #94A3B8; margin-top: 4px;">更新時間：${new Date(d.created_at || Date.now()).toLocaleDateString()}</p>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
-                            <a href="${d.link}" target="_blank" class="glow-btn" style="width: 100%; text-align: center; padding: 8px; font-size: 12px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
+                            <a href="${d.link}" target="_blank" class="glow-btn" style="width: 100%; text-align: center; padding: 8px; font-size: 12px; text-decoration: none; background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
                                 查看特惠詳情 ↗
                             </a>
                         </div>
@@ -515,17 +515,17 @@ window.loadProactiveAlerts = function() {
             let html = '';
             data.data.forEach(a => {
                 html += `
-                    <div style="background: rgba(6, 12, 26, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                    <div style="background: rgba(6, 12, 26, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 10px; font-weight: 800;">${a.category}</span>
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #F8FAFC; font-size: 10px; font-weight: 800;">${a.category}</span>
                             <span style="font-size: 10px; color: #94A3B8;">24/7 自動風控</span>
                         </div>
                         <h4 style="font-size: 14px; font-weight: 700; color: #FFF; margin: 0; line-height: 1.4;">${a.title}</h4>
-                        <div style="font-size: 11px; color: #F59E0B; font-weight: 700; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 6px;">
+                        <div style="font-size: 11px; color: #E2E8F0; font-weight: 700; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 6px;">
                             📊 ${a.metrics}
                         </div>
                         <div style="font-size: 11px; color: #CBD5E1; line-height: 1.5; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
-                            <div style="color: #34D399; font-weight: 700; margin-bottom: 4px;">💡 3點式行動建議：</div>
+                            <div style="color: #F8FAFC; font-weight: 700; margin-bottom: 4px;">💡 3點式行動建議：</div>
                             <div>${a.recommendation_3bullets[0]}</div>
                             <div>${a.recommendation_3bullets[1]}</div>
                             <div>${a.recommendation_3bullets[2]}</div>
