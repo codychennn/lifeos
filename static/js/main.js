@@ -834,3 +834,77 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('bento-calc-currency')?.addEventListener('change', updateBentoCalcResult);
     document.getElementById('bento-calc-amount')?.addEventListener('input', updateBentoCalcResult);
 });
+
+
+/* =========================================================================
+   高爾夫旗艦門戶 (Golf Hub 2.0) 錨點平滑滾動與多平台比價搜尋器 Handlers
+   ========================================================================= */
+
+window.switchGolfSubTab = function(targetKey, btnElem) {
+    if (btnElem) {
+        const parent = btnElem.parentElement;
+        if (parent) {
+            parent.querySelectorAll('.sub-nav-btn').forEach(b => b.classList.remove('active'));
+            btnElem.classList.add('active');
+        }
+    }
+
+    let targetElem = null;
+
+    if (targetKey === 'gear' || targetKey === 'section-new-clubs') {
+        targetElem = document.getElementById('golf-section-gear') || document.querySelector('[data-alias-id="section-new-clubs"]');
+    } else if (targetKey === 'market' || targetKey === 'section-used-clubs') {
+        targetElem = document.getElementById('golf-section-market') || document.querySelector('[data-alias-id="section-used-clubs"]');
+    } else if (targetKey === 'courses' || targetKey === 'section-courses') {
+        targetElem = document.getElementById('golf-section-courses') || document.querySelector('[data-alias-id="section-courses"]');
+    } else if (targetKey === 'novice' || targetKey === 'section-guide') {
+        targetElem = document.getElementById('golf-section-novice') || document.querySelector('[data-alias-id="section-guide"]');
+    } else {
+        targetElem = document.getElementById(targetKey) || document.querySelector(`[data-alias-id="${targetKey}"]`);
+    }
+
+    if (targetElem) {
+        targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+window.setGolfSearchQuery = function(text) {
+    const input = document.getElementById('golf-search-query');
+    if (input) {
+        input.value = text;
+        input.focus();
+    }
+};
+
+window.openGolfSearchPlatform = function(platformKey) {
+    const input = document.getElementById('golf-search-query');
+    const query = (input?.value || 'TaylorMade P790').trim();
+    if (!query) {
+        alert("請輸入欲搜尋的球桿型號！");
+        return;
+    }
+    const encodedQuery = encodeURIComponent(query);
+    let url = "";
+
+    switch (platformKey) {
+        case 'golfpartner':
+            url = `https://www.golfpartner.jp/shop/goods/search.aspx?keyword=${encodedQuery}`;
+            break;
+        case 'ebay':
+            url = `https://www.ebay.com/sch/i.html?_nkw=${encodedQuery}+golf`;
+            break;
+        case '2ndswing':
+            url = `https://www.2ndswing.com/search?keyword=${encodedQuery}`;
+            break;
+        case 'mercari':
+            url = `https://jp.mercari.com/search?keyword=${encodedQuery}+%E3%82%B4%E3%83%AB%E3%83%95`;
+            break;
+        case 'googleshopping':
+            url = `https://www.google.com/search?tbm=shop&q=${encodedQuery}`;
+            break;
+        default:
+            url = `https://www.google.com/search?tbm=shop&q=${encodedQuery}`;
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+};

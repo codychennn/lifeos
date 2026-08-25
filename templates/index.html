@@ -1576,8 +1576,69 @@
                         </div>
                     </div>
 
+                    
+                    <!-- 🔍 全球名桿多平台即時比價搜尋器 (Global Golf Club Search Widget) -->
+                    <div id="golf-search-widget-container" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.95); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 20px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <h3 style="font-size: 17px; font-weight: 700; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-magnifying-glass" style="color: #F8FAFC;"></i> 全球名桿多平台即時比價搜尋器
+                                </h3>
+                                <p style="font-size: 11px; color: #94A3B8; margin-top: 2px;">輸入任意球桿型號 ‧ 1-Click 直連美/日/台二手拍賣與 Google Shopping 即時行情比價</p>
+                            </div>
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border: 1px solid rgba(255,255,255,0.18); font-size: 10px; font-weight: 700;">
+                                5 大平台一鍵跳轉
+                            </span>
+                        </div>
+
+                        <!-- 搜尋輸入框與操作按鈕列 -->
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                                <div style="position: relative; flex: 1; min-width: 260px;">
+                                    <i class="fa-solid fa-golf-ball-tee" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 13px;"></i>
+                                    <input type="text" id="golf-search-query" class="input-modern" value="TaylorMade P790" placeholder="輸入球桿型號（如 TaylorMade P790, Qi10, Titleist T100, Callaway Apex...）" style="width: 100%; padding-left: 38px; font-size: 13px; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 10px;">
+                                </div>
+                                <button onclick="openGolfSearchPlatform('googleshopping')" class="glow-btn" style="padding: 10px 18px; font-size: 12px; white-space: nowrap;">
+                                    🌐 全網 Google 購物比價 ↗
+                                </button>
+                            </div>
+
+                            <!-- 熱門快選標籤 Chips -->
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 11px; color: #94A3B8; font-weight: 700;">🔥 熱門型號快選：</span>
+                                <button onclick="setGolfSearchQuery('TaylorMade P790')" class="sub-nav-btn" style="padding: 4px 10px; font-size: 11px;">P790 鐵桿</button>
+                                <button onclick="setGolfSearchQuery('TaylorMade P770')" class="sub-nav-btn" style="padding: 4px 10px; font-size: 11px;">P770 鍛造</button>
+                                <button onclick="setGolfSearchQuery('TaylorMade Qi10 Driver')" class="sub-nav-btn" style="padding: 4px 10px; font-size: 11px;">Qi10 驅動桿</button>
+                                <button onclick="setGolfSearchQuery('Titleist T100')" class="sub-nav-btn" style="padding: 4px 10px; font-size: 11px;">Titleist T100</button>
+                                <button onclick="setGolfSearchQuery('Callaway Apex Pro')" class="sub-nav-btn" style="padding: 4px 10px; font-size: 11px;">Callaway Apex Pro</button>
+                                <button onclick="setGolfSearchQuery('Mizuno 245')" class="sub-nav-btn" style="padding: 4px 10px; font-size: 11px;">Mizuno 245</button>
+                                <button onclick="setGolfSearchQuery('PXG 0311 GEN5')" class="sub-nav-btn" style="padding: 4px 10px; font-size: 11px;">PXG GEN5</button>
+                                <button onclick="setGolfSearchQuery('Ping G430 Max')" class="sub-nav-btn" style="padding: 4px 10px; font-size: 11px;">Ping G430</button>
+                            </div>
+
+                            <!-- 5 大直連平台按鈕 -->
+                            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 4px;">
+                                <button onclick="openGolfSearchPlatform('golfpartner')" class="glow-btn" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); color: #FFF; font-size: 11px; padding: 8px 6px; text-align: center;">
+                                    🇯🇵 日本 Golf Partner ↗
+                                </button>
+                                <button onclick="openGolfSearchPlatform('ebay')" class="glow-btn" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); color: #FFF; font-size: 11px; padding: 8px 6px; text-align: center;">
+                                    🇺🇸 美國 eBay Golf ↗
+                                </button>
+                                <button onclick="openGolfSearchPlatform('2ndswing')" class="glow-btn" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); color: #FFF; font-size: 11px; padding: 8px 6px; text-align: center;">
+                                    🇺🇸 美國 2nd Swing ↗
+                                </button>
+                                <button onclick="openGolfSearchPlatform('mercari')" class="glow-btn" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); color: #FFF; font-size: 11px; padding: 8px 6px; text-align: center;">
+                                    🇯🇵 日本 Mercari ↗
+                                </button>
+                                <button onclick="openGolfSearchPlatform('googleshopping')" class="glow-btn" style="background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #FFF; font-size: 11px; padding: 8px 6px; text-align: center;">
+                                    🌐 Google 購物 ↗
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 1. 最新的高爾夫球品牌新品介紹區 (Golf Gear New Releases) -->
-                    <div id="golf-section-gear" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
+                    <div id="golf-section-gear" data-alias-id="section-new-clubs" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
                         <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
                             <div class="header-left">
                                 <i class="fa-solid fa-wand-magic-sparkles icon-accent" style="color: #CBD5E1;"></i>
@@ -1703,7 +1764,7 @@
                     </div>
 
                     <!-- 2. 高爾夫二手網站購物區 (Pre-owned Golf Market) -->
-                    <div id="golf-section-market" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
+                    <div id="golf-section-market" data-alias-id="section-used-clubs" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
                         <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
                             <div class="header-left">
                                 <i class="fa-solid fa-cart-shopping icon-accent" style="color: #F8FAFC;"></i>
@@ -1863,7 +1924,7 @@
                     </div>
 
                     <!-- 3. 世界各地球場目錄、價格與一鍵預訂 (Global Golf Courses & Pricing) -->
-                    <div id="golf-section-courses" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
+                    <div id="golf-section-courses" data-alias-id="section-courses" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
                         <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
                             <div class="header-left">
                                 <i class="fa-solid fa-flag icon-accent" style="color: #F8FAFC;"></i>
@@ -1971,7 +2032,7 @@
                     </div>
 
                     <!-- 4. 新手選桿與禮儀指南 (Novice Golf Beginner Guide & Etiquette) -->
-                    <div id="golf-section-novice" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
+                    <div id="golf-section-novice" data-alias-id="section-guide" class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px;">
                         <div class="card-header space-between" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
                             <div class="header-left">
                                 <i class="fa-solid fa-graduation-cap icon-accent" style="color: #E2E8F0;"></i>
