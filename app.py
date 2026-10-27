@@ -30,17 +30,6 @@ database.seed_benchmark_data()
 
 
 
-# ==========================================
-# CodyC 溫潤大地風格登陸頁 (Landing Page Route)
-# ==========================================
-@app.route("/codyc")
-@app.route("/landing")
-def route_codyc_landing():
-    import os
-    from flask import send_file
-    codyc_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "codyc.html")
-    return send_file(codyc_file)
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -719,7 +708,7 @@ def api_remove_from_my_travel_list(item_id):
 # ==========================================
 @app.route("/api/meetings", methods=["GET"])
 def api_get_meetings():
-    month = request.args.get("month", "")
+    month = request.args.get("month", "") # YYYY-MM
     site = request.args.get("site", "")
     conn = database.get_db_connection()
     cur = conn.cursor()
@@ -738,8 +727,20 @@ def api_get_meetings():
     meetings = [dict(r) for r in rows]
     return jsonify({"status": "success", "data": meetings, "count": len(meetings)})
 
+@app.route("/api/meetings/<int:meeting_id>", methods=["GET"])
+def api_get_single_meeting(meeting_id):
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM project_meetings WHERE id = ?", (meeting_id,))
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        return jsonify({"status": "error", "message": "查無此會議紀錄"}), 404
+    return jsonify({"status": "success", "data": dict(row)})
+
 @app.route("/api/meetings", methods=["POST"])
 def api_add_meeting():
+    import datetime
     data = request.json or {}
     title = data.get("title", "").strip()
     site_name = data.get("site_name", "").strip()
@@ -748,18 +749,79 @@ def api_add_meeting():
     location = data.get("location", "").strip()
     attendee_roles = data.get("attendee_roles", "").strip()
     notes = data.get("notes", "").strip()
+    recurrence_rule = data.get("recurrence_rule", "none").strip() # none, weekly, biweekly, monthly
+    repeat_count = int(data.get("repeat_count", 1))
 
     if not title or not site_name or not meeting_date or not meeting_time:
-        return jsonify({"status": "error", "message": "請填寫會議主題、工地專案名稱、會議日期與時間！"}), 400
+        return jsonify({"status": "error", "message": "請填寫會議主題、專案工地名稱、會議日期與時間！"}), 400
 
     conn = database.get_db_connection()
     cur = conn.cursor()
-    sql = "INSERT INTO project_meetings (title, site_name, meeting_date, meeting_time, location, attendee_roles, status, notes) VALUES (?, ?, ?, ?, ?, ?, 'scheduled', ?)"
-    cur.execute(sql, (title, site_name, meeting_date, meeting_time, location, attendee_roles, notes))
+
+    try:
+        base_date = datetime.datetime.strptime(meeting_date, "%Y-%m-%d").date()
+    except Exception:
+        return jsonify({"status": "error", "message": "日期格式錯誤，請使用 YYYY-MM-DD"}), 400
+
+    # 1. 建立母會議節點
+    sql = """INSERT INTO project_meetings 
+             (title, site_name, meeting_date, meeting_time, location, attendee_roles, status, notes, recurrence_rule, recurrence_parent_id) 
+             VALUES (?, ?, ?, ?, ?, ?, 'scheduled', ?, ?, 0)"""
+    cur.execute(sql, (title, site_name, meeting_date, meeting_time, location, attendee_roles, notes, recurrence_rule))
+    parent_id = cur.lastrowid
+
+    # 2. 處理週期性重複
+    if recurrence_rule != "none" and repeat_count > 1:
+        repeat_count = min(repeat_count, 24) # 上限24次避免過度膨脹
+        for i in range(1, repeat_count):
+            if recurrence_rule == "weekly":
+                next_date = base_date + datetime.timedelta(weeks=i)
+            elif recurrence_rule == "biweekly":
+                next_date = base_date + datetime.timedelta(weeks=i*2)
+            elif recurrence_rule == "monthly":
+                year = base_date.year + (base_date.month + i - 1) // 12
+                month = (base_date.month + i - 1) % 12 + 1
+                import calendar
+                day = min(base_date.day, calendar.monthrange(year, month)[1])
+                next_date = datetime.date(year, month, day)
+            else:
+                break
+
+            next_date_str = next_date.strftime("%Y-%m-%d")
+            cur.execute("""INSERT INTO project_meetings 
+                           (title, site_name, meeting_date, meeting_time, location, attendee_roles, status, notes, recurrence_rule, recurrence_parent_id) 
+                           VALUES (?, ?, ?, ?, ?, ?, 'scheduled', ?, ?, ?)""",
+                        (title, site_name, next_date_str, meeting_time, location, attendee_roles, notes, recurrence_rule, parent_id))
+
     conn.commit()
-    new_id = cur.lastrowid
     conn.close()
-    return jsonify({"status": "success", "message": "已成功新增工地臨時會議紀錄！", "id": new_id})
+    return jsonify({"status": "success", "message": "已成功登記專案工地會議紀錄！", "id": parent_id})
+
+@app.route("/api/meetings/<int:meeting_id>", methods=["PUT"])
+def api_update_meeting(meeting_id):
+    data = request.json or {}
+    title = data.get("title", "").strip()
+    site_name = data.get("site_name", "").strip()
+    meeting_date = data.get("meeting_date", "").strip()
+    meeting_time = data.get("meeting_time", "").strip()
+    location = data.get("location", "").strip()
+    attendee_roles = data.get("attendee_roles", "").strip()
+    notes = data.get("notes", "").strip()
+    status = data.get("status", "scheduled").strip()
+
+    if not title or not site_name or not meeting_date or not meeting_time:
+        return jsonify({"status": "error", "message": "請填寫會議主題、專案工地名稱、會議日期與時間！"}), 400
+
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE project_meetings 
+        SET title = ?, site_name = ?, meeting_date = ?, meeting_time = ?, location = ?, attendee_roles = ?, notes = ?, status = ?
+        WHERE id = ?
+    """, (title, site_name, meeting_date, meeting_time, location, attendee_roles, notes, status, meeting_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success", "message": "已成功更新會議紀錄！"})
 
 @app.route("/api/meetings/<int:meeting_id>", methods=["DELETE"])
 def api_delete_meeting(meeting_id):
@@ -780,7 +842,6 @@ def api_update_meeting_status(meeting_id):
     conn.commit()
     conn.close()
     return jsonify({"status": "success", "message": "已更新會議狀態！"})
-
 
 @app.route("/api/crypto-stocks/ma30-signals", methods=["GET"])
 def api_get_ma30_signals():

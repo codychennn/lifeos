@@ -69,6 +69,8 @@ def init_db():
             attendee_roles TEXT,
             status TEXT DEFAULT 'scheduled',
             notes TEXT,
+            recurrence_rule TEXT DEFAULT 'none',
+            recurrence_parent_id INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)

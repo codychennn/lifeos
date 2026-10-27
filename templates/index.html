@@ -7,7 +7,7 @@
     <!-- Google Fonts & Font Awesome Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=Inter+Tight:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js for visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2769,27 +2769,30 @@
         <span id="toast-message">⚡ 提示訊息</span>
     </div>
 
-    <!-- 📅 專案工地臨時會議錄入彈窗 (New Meeting Modal) -->
+    <!-- 📅 專案工地臨時會議錄入與編輯彈窗 (Meeting CRUD Modal) -->
     <div id="meeting-modal-backdrop" class="modal-overlay" onclick="closeMeetingModal()">
-        <div class="modal-box" onclick="event.stopPropagation();" style="max-width: 540px; background: rgba(18, 20, 26, 0.98); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 18px; padding: 24px;">
+        <div class="modal-box" onclick="event.stopPropagation();" style="max-width: 580px; background: rgba(18, 20, 26, 0.98); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 18px; padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px;">
-                <h3 style="font-size: 18px; font-weight: 700; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <h3 id="meeting-modal-title" style="font-size: 18px; font-weight: 700; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-calendar-plus" style="color: #F8FAFC;"></i> 登記專案工地臨時會議
                 </h3>
                 <button onclick="closeMeetingModal()" class="sub-nav-btn" style="padding: 4px 10px;">✕</button>
             </div>
 
-            <form onsubmit="submitNewMeeting(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <form onsubmit="submitMeetingForm(event)" style="display: flex; flex-direction: column; gap: 14px;">
+                <input type="hidden" id="m-id" value="">
+
                 <div>
                     <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">會議主題 / 討論要旨 *</label>
-                    <input type="text" id="m-title" class="input-modern" placeholder="例：機電管線穿樑衝突協調會" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                    <input type="text" id="m-title" class="input-modern" placeholder="例：TAK Site Walk 或 機電穿樑協調會" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                         <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">專案工地名稱 *</label>
-                        <input type="text" id="m-site-name" list="site-name-datalist" class="input-modern" placeholder="例：A案大樓新建工程" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                        <input type="text" id="m-site-name" list="site-name-datalist" class="input-modern" placeholder="例：Micron F10E" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
                         <datalist id="site-name-datalist">
+                            <option value="Micron F10E">
                             <option value="A案大樓新建工程">
                             <option value="B案廠房擴建工程">
                             <option value="C案捷運聯開工程">
@@ -2798,7 +2801,7 @@
                     </div>
                     <div>
                         <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">開會地點 / 工務所</label>
-                        <input type="text" id="m-location" class="input-modern" placeholder="例：工務所B棟2樓會議室" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                        <input type="text" id="m-location" class="input-modern" placeholder="例：Site 或 工務所會議室" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
                     </div>
                 </div>
 
@@ -2809,25 +2812,70 @@
                     </div>
                     <div>
                         <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">開始時間 *</label>
-                        <input type="time" id="m-time" value="14:00" class="input-modern" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                        <input type="time" id="m-time" value="16:00" class="input-modern" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                    </div>
+                </div>
+
+                <!-- 週期排程設定 (僅新增模式下可設定) -->
+                <div id="m-recurrence-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px dashed rgba(255,255,255,0.15);">
+                    <div>
+                        <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">週期性排程設定</label>
+                        <select id="m-recurrence" onchange="handleRecurrenceChange()" class="input-modern" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 7px 10px; font-size: 12px;">
+                            <option value="none">單次會議（無重複）</option>
+                            <option value="weekly">每週定期會議 (Weekly)</option>
+                            <option value="biweekly">每兩週定期會議 (Bi-weekly)</option>
+                            <option value="monthly">每月定期例會 (Monthly)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">重複次數 (週數/月數)</label>
+                        <input type="number" id="m-repeat-count" value="4" min="1" max="24" disabled class="input-modern" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 7px 10px; font-size: 12px; opacity: 0.5;">
                     </div>
                 </div>
 
                 <div>
                     <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">出席對象 / 工種單位</label>
-                    <input type="text" id="m-attendees" class="input-modern" placeholder="例：監造主任、水電包商、鋼構領班" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                    <input type="text" id="m-attendees" class="input-modern" placeholder="例：監造主任、業主代表、各包商領班" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
                 </div>
 
                 <div>
                     <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">備註 / 待確認事項</label>
-                    <textarea id="m-notes" rows="2" class="input-modern" placeholder="例：攜帶最新修訂機電套圖第三版，並請廠商回報工班出工人數" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;"></textarea>
+                    <textarea id="m-notes" rows="2" class="input-modern" placeholder="例：請攜帶最新版圖面，於現場會勘動線確認工班出工人數" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;"></textarea>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
                     <button type="button" onclick="closeMeetingModal()" class="sub-nav-btn" style="padding: 8px 16px;">取消</button>
-                    <button type="submit" class="glow-btn" style="width: auto; padding: 8px 20px; background: #FFF; color: #000; font-weight: 700;">儲存會議</button>
+                    <button type="submit" id="btn-submit-meeting" class="glow-btn" style="width: auto; padding: 8px 20px; background: #FFF; color: #000; font-weight: 700;">儲存會議</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- 📧 一鍵複製公司信箱會議通知彈窗 (Email Notification Generator Modal) -->
+    <div id="email-preview-modal-backdrop" class="modal-overlay" onclick="closeEmailPreviewModal()">
+        <div class="modal-box" onclick="event.stopPropagation();" style="max-width: 600px; background: rgba(18, 20, 26, 0.98); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 18px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 16px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-envelope-open-text" style="color: #38BDF8;"></i> 產生公司信箱會議通知信
+                </h3>
+                <button onclick="closeEmailPreviewModal()" class="sub-nav-btn" style="padding: 4px 10px;">✕</button>
+            </div>
+
+            <p style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">
+                系統已自動格式化為適合直接貼上 Outlook、Gmail 或公司內部信箱的標準格式：
+            </p>
+
+            <textarea id="email-notification-text" rows="11" class="input-modern" style="width: 100%; font-family: monospace; font-size: 13px; line-height: 1.6; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.25); color: #F8FAFC; border-radius: 10px; padding: 12px; margin-bottom: 16px; resize: vertical;"></textarea>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <span id="copy-status-indicator" style="font-size: 12px; color: #34D399; font-weight: 600;"></span>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="closeEmailPreviewModal()" class="sub-nav-btn" style="padding: 8px 16px;">關閉</button>
+                    <button type="button" onclick="copyEmailNotificationToClipboard()" class="glow-btn" style="width: auto; padding: 8px 22px; background: #38BDF8; color: #000; font-weight: 700;">
+                        <i class="fa-solid fa-copy"></i> 複製至剪貼簿
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

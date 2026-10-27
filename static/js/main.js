@@ -2070,7 +2070,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /* =========================================================================
-   專案工地臨時會議與行事曆 (Project Site Meetings & Calendar) Handlers
+   專案工地臨時會議與行事曆 (Project Site Meetings & Calendar) 完整 CRUD 與通知生成
    ========================================================================= */
 
 window.currentCalendarYear = new Date().getFullYear();
@@ -2080,19 +2080,78 @@ window.calendarMeetingsData = [];
 
 window.openMeetingModal = function(defaultDate = null) {
     const modal = document.getElementById('meeting-modal-backdrop');
-    if (modal) {
-        modal.classList.add('active');
-        const dateInput = document.getElementById('m-date');
-        if (dateInput) {
-            dateInput.value = defaultDate || window.selectedMeetingDate || new Date().toISOString().split('T')[0];
-        }
-        document.getElementById('m-title')?.focus();
-    }
+    if (!modal) return;
+    
+    // 重設為新增模式
+    document.getElementById('m-id').value = '';
+    document.getElementById('meeting-modal-title').innerHTML = '<i class="fa-solid fa-calendar-plus" style="color: #F8FAFC;"></i> 登記專案工地臨時會議';
+    document.getElementById('btn-submit-meeting').innerText = '儲存會議';
+
+    document.getElementById('m-title').value = '';
+    document.getElementById('m-site-name').value = 'Micron F10E';
+    document.getElementById('m-location').value = 'Site';
+    document.getElementById('m-date').value = defaultDate || window.selectedMeetingDate || new Date().toISOString().split('T')[0];
+    document.getElementById('m-time').value = '16:00';
+    document.getElementById('m-attendees').value = '';
+    document.getElementById('m-notes').value = '';
+
+    // 顯示週期設定列
+    const recurrenceRow = document.getElementById('m-recurrence-row');
+    if (recurrenceRow) recurrenceRow.style.display = 'grid';
+    document.getElementById('m-recurrence').value = 'none';
+    const repCountInput = document.getElementById('m-repeat-count');
+    repCountInput.value = 4;
+    repCountInput.disabled = true;
+    repCountInput.style.opacity = '0.5';
+
+    modal.classList.add('active');
+    document.getElementById('m-title')?.focus();
+};
+
+window.openEditMeetingModal = function(meetingId) {
+    const m = window.calendarMeetingsData.find(item => item.id === meetingId);
+    if (!m) return;
+
+    const modal = document.getElementById('meeting-modal-backdrop');
+    if (!modal) return;
+
+    // 切換為編輯模式
+    document.getElementById('m-id').value = m.id;
+    document.getElementById('meeting-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #38BDF8;"></i> 編輯專案工地會議紀錄';
+    document.getElementById('btn-submit-meeting').innerText = '儲存修改';
+
+    document.getElementById('m-title').value = m.title || '';
+    document.getElementById('m-site-name').value = m.site_name || '';
+    document.getElementById('m-location').value = m.location || '';
+    document.getElementById('m-date').value = m.meeting_date || '';
+    document.getElementById('m-time').value = m.meeting_time || '';
+    document.getElementById('m-attendees').value = m.attendee_roles || '';
+    document.getElementById('m-notes').value = m.notes || '';
+
+    // 編輯時隱藏批量週期重複設定
+    const recurrenceRow = document.getElementById('m-recurrence-row');
+    if (recurrenceRow) recurrenceRow.style.display = 'none';
+
+    modal.classList.add('active');
+    document.getElementById('m-title')?.focus();
 };
 
 window.closeMeetingModal = function() {
     const modal = document.getElementById('meeting-modal-backdrop');
     if (modal) modal.classList.remove('active');
+};
+
+window.handleRecurrenceChange = function() {
+    const recVal = document.getElementById('m-recurrence')?.value || 'none';
+    const repInput = document.getElementById('m-repeat-count');
+    if (!repInput) return;
+    if (recVal === 'none') {
+        repInput.disabled = true;
+        repInput.style.opacity = '0.5';
+    } else {
+        repInput.disabled = false;
+        repInput.style.opacity = '1';
+    }
 };
 
 window.changeCalendarMonth = function(delta) {
@@ -2168,14 +2227,14 @@ function renderCalendarDaysGrid(year, monthIndex, meetings) {
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Padding for previous month days
+    // 前置空白填充
     for (let i = 0; i < firstDay; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.style.cssText = 'height: 80px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.04);';
         grid.appendChild(emptyCell);
     }
 
-    // Days in current month
+    // 當月日期格子
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayMeetings = meetings.filter(m => m.meeting_date === dateStr);
@@ -2266,13 +2325,24 @@ function renderAgendaList(dateStr, allMeetings) {
                 ${m.attendee_roles ? `<div style="font-size: 11px; color: #94A3B8;"><i class="fa-solid fa-users" style="margin-right: 4px;"></i>${m.attendee_roles}</div>` : ''}
                 ${m.notes ? `<div style="font-size: 11px; color: #E2E8F0; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 6px; border-left: 2px solid #38BDF8;">📝 ${m.notes}</div>` : ''}
 
-                <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                    <button onclick="toggleMeetingStatus(${m.id}, '${isDone ? 'scheduled' : 'completed'}')" class="sub-nav-btn" style="font-size: 11px; padding: 4px 10px; color: ${isDone ? '#34D399' : '#CBD5E1'};">
-                        ${isDone ? '<i class="fa-solid fa-circle-check" style="color: #34D399;"></i> 已完成' : '<i class="fa-regular fa-circle"></i> 標記為完成'}
-                    </button>
-                    <button onclick="deleteMeeting(${m.id})" class="sub-nav-btn" style="font-size: 11px; padding: 4px 8px; color: #F87171;">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                <!-- 操作功能列：複製通知信、編輯、標記完成、刪除 -->
+                <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px; flex-wrap: wrap; gap: 6px;">
+                    <div style="display: flex; gap: 6px;">
+                        <button onclick="toggleMeetingStatus(${m.id}, '${isDone ? 'scheduled' : 'completed'}')" class="sub-nav-btn" style="font-size: 11px; padding: 4px 8px; color: ${isDone ? '#34D399' : '#CBD5E1'};">
+                            ${isDone ? '<i class="fa-solid fa-circle-check" style="color: #34D399;"></i> 已完成' : '<i class="fa-regular fa-circle"></i> 標記完成'}
+                        </button>
+                        <button onclick="generateMeetingEmailNotification(${m.id})" class="glow-btn" style="font-size: 11px; padding: 4px 10px; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;">
+                            <i class="fa-solid fa-envelope"></i> 複製通知信
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button onclick="openEditMeetingModal(${m.id})" class="sub-nav-btn" style="font-size: 11px; padding: 4px 8px; color: #38BDF8;">
+                            <i class="fa-solid fa-pen-to-square"></i> 編輯
+                        </button>
+                        <button onclick="deleteMeeting(${m.id})" class="sub-nav-btn" style="font-size: 11px; padding: 4px 8px; color: #F87171;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -2287,8 +2357,9 @@ function renderAgendaList(dateStr, allMeetings) {
     container.innerHTML = html;
 }
 
-window.submitNewMeeting = function(e) {
+window.submitMeetingForm = function(e) {
     e.preventDefault();
+    const meetingId = document.getElementById('m-id')?.value;
     const title = document.getElementById('m-title')?.value;
     const site_name = document.getElementById('m-site-name')?.value;
     const meeting_date = document.getElementById('m-date')?.value;
@@ -2296,32 +2367,108 @@ window.submitNewMeeting = function(e) {
     const location = document.getElementById('m-location')?.value;
     const attendee_roles = document.getElementById('m-attendees')?.value;
     const notes = document.getElementById('m-notes')?.value;
+    const recurrence_rule = document.getElementById('m-recurrence')?.value || 'none';
+    const repeat_count = parseInt(document.getElementById('m-repeat-count')?.value || 1);
 
-    fetch('/api/meetings', {
-        method: 'POST',
+    const isEdit = Boolean(meetingId);
+    const url = isEdit ? `/api/meetings/${meetingId}` : '/api/meetings';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const payload = {
+        title, site_name, meeting_date, meeting_time, location, attendee_roles, notes
+    };
+    if (!isEdit) {
+        payload.recurrence_rule = recurrence_rule;
+        payload.repeat_count = repeat_count;
+    }
+
+    fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            title, site_name, meeting_date, meeting_time, location, attendee_roles, notes
-        })
+        body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(data => {
         if (data.status === 'success') {
             closeMeetingModal();
             window.selectedMeetingDate = meeting_date;
-            // update calendar month to the meeting's month if different
             const parts = meeting_date.split('-');
             window.currentCalendarYear = parseInt(parts[0]);
             window.currentCalendarMonth = parseInt(parts[1]) - 1;
             loadCalendarMeetings();
             if (typeof showToast === 'function') {
-                showToast("✅ 已成功新增專案工地會議紀錄！");
+                showToast(isEdit ? "✅ 已更新會議紀錄！" : "✅ 已成功登記會議排程！");
             }
         } else {
-            alert(data.message || "新增會議失敗");
+            alert(data.message || "儲存失敗");
         }
     })
-    .catch(err => console.error("Error submitting meeting:", err));
+    .catch(err => console.error("Error submitting meeting form:", err));
+};
+
+window.generateMeetingEmailNotification = function(meetingId) {
+    const m = window.calendarMeetingsData.find(item => item.id === meetingId);
+    if (!m) return;
+
+    // 計算星期幾
+    const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+    let dayOfWeek = '';
+    try {
+        const d = new Date(m.meeting_date);
+        dayOfWeek = ` (${dayNames[d.getDay()]})`;
+    } catch (e) {}
+
+    const emailTemplate = 
+`【會議通知】${m.title}
+--------------------------------------------------
+■ 專案工地：${m.site_name}
+■ 開會時間：${m.meeting_date}${dayOfWeek} ${m.meeting_time}
+■ 開會地點：${m.location || '工務所現場會議室'}
+■ 出席單位：${m.attendee_roles || '全體相關專案工程師與承攬商領班'}
+■ 討論要旨：${m.title}
+■ 待確認事項：${m.notes ? m.notes : '請出席人員準時與會，攜帶最新版圖面及相關報表備查。'}
+--------------------------------------------------
+（本會議通知由 LifeOS 專案工務管理系統自動排程產出，可直接寄發）`;
+
+    const modal = document.getElementById('email-preview-modal-backdrop');
+    const textarea = document.getElementById('email-notification-text');
+    const statusInd = document.getElementById('copy-status-indicator');
+
+    if (textarea) textarea.value = emailTemplate;
+    if (statusInd) statusInd.innerText = '';
+    if (modal) modal.classList.add('active');
+
+    // 自動嘗試複製到剪貼簿
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(emailTemplate).then(() => {
+            if (statusInd) statusInd.innerText = '✅ 已自動為您複製至剪貼簿！可直接貼至 Outlook 或公司信箱';
+            if (typeof showToast === 'function') {
+                showToast("📋 會議通知已複製，可直接貼到信箱發信！");
+            }
+        }).catch(() => {});
+    }
+};
+
+window.closeEmailPreviewModal = function() {
+    const modal = document.getElementById('email-preview-modal-backdrop');
+    if (modal) modal.classList.remove('active');
+};
+
+window.copyEmailNotificationToClipboard = function() {
+    const textarea = document.getElementById('email-notification-text');
+    const statusInd = document.getElementById('copy-status-indicator');
+    if (!textarea) return;
+
+    textarea.select();
+    navigator.clipboard.writeText(textarea.value).then(() => {
+        if (statusInd) statusInd.innerText = '✅ 複製成功！請至公司信箱按 Ctrl+V 貼上寄出';
+        if (typeof showToast === 'function') {
+            showToast("📋 已複製會議通知信！");
+        }
+    }).catch(err => {
+        document.execCommand('copy');
+        if (statusInd) statusInd.innerText = '✅ 已複製！';
+    });
 };
 
 window.toggleMeetingStatus = function(id, nextStatus) {
