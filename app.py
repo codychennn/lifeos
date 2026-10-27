@@ -28,6 +28,19 @@ def handle_exception(e):
 database.init_db()
 database.seed_benchmark_data()
 
+
+
+# ==========================================
+# CodyC 溫潤大地風格登陸頁 (Landing Page Route)
+# ==========================================
+@app.route("/codyc")
+@app.route("/landing")
+def route_codyc_landing():
+    import os
+    from flask import send_file
+    codyc_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "codyc.html")
+    return send_file(codyc_file)
+
 @app.route("/")
 def index():
     return render_template("index.html")

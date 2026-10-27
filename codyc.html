@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodyC ｜ 文青大地溫潤選物與生活誌</title>
+    
+    <!-- Google Fonts: 優雅明體/宋體 (Noto Serif TC) + 清晰黑體 (Noto Sans TC) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* ==========================================================================
+           【設計系統與 CSS 變數（Design Tokens）】
+           ========================================================================== */
+        :root {
+            /* 色彩系統 */
+            --color-base: #FAFAFA;          /* 背景色：極淺灰 / 奶白 */
+            --color-surface: #FFFFFF;       /* 卡片色：純白 */
+            --color-primary: #8C6A4E;       /* 主色調：溫潤咖啡棕 */
+            --color-secondary: #A7B6A2;     /* 輔助色：霧綠灰 */
+            --color-accent: #D9A066;        /* 點綴色 / CTA：琥珀金黃 */
+            --color-accent-hover: #C08A50;  /* 點綴色 Hover：濃郁金棕 */
+            --color-text-primary: #3E3E3E;  /* 文字深色：深灰黑 */
+            --color-text-secondary: #6B6B6B;/* 文字淺色：次要說明文字 */
+            --color-footer-bg: #F4F1ED;     /* 頁尾底色：微棕極淺底色 */
+            --color-border-light: rgba(167, 182, 162, 0.3);
+
+            /* 溫潤陰影系統 */
+            --shadow-sm: 0 2px 8px rgba(140, 106, 78, 0.06);
+            --shadow-md: 0 4px 16px rgba(140, 106, 78, 0.08);
+            --shadow-hover: 0 10px 24px rgba(140, 106, 78, 0.14);
+
+            /* 字體規範 */
+            --font-serif: 'Noto Serif TC', serif;
+            --font-sans: 'Noto Sans TC', sans-serif;
+            --line-height-body: 1.75;
+        }
+
+        /* 全域重設與基礎排版 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--color-base);
+            color: var(--color-text-primary);
+            font-family: var(--font-sans);
+            line-height: var(--line-height-body);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 極淡大地紙質紋理點綴 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: radial-gradient(rgba(140, 106, 78, 0.03) 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        h1, h2, h3, h4, h5, h6, .brand-font {
+            font-family: var(--font-serif);
+            color: var(--color-primary);
+            letter-spacing: 0.04em;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 28px;
+        }
+
+        /* ==========================================================================
+           1. 導覽列（Navbar）
+           ========================================================================== */
+        .navbar {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(250, 250, 250, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(167, 182, 162, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+
+        .brand-logo {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--color-primary);
+            letter-spacing: 0.08em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-logo::after {
+            content: "·";
+            color: var(--color-accent);
+            font-size: 32px;
+            line-height: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 36px;
+            list-style: none;
+        }
+
+        .nav-link {
+            font-size: 15px;
+            color: var(--color-text-secondary);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            position: relative;
+            padding: 6px 0;
+        }
+
+        .nav-link:hover {
+            color: var(--color-primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 1.5px;
+            background-color: var(--color-secondary);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Accent 探索按鈕 */
+        .btn-accent {
+            display: inline-block;
+            background-color: var(--color-accent);
+            color: #FFFFFF;
+            font-family: var(--font-sans);
+            font-weight: 500;
+            font-size: 14px;
+            padding: 10px 24px;
+            border-radius: 30px;
+            letter-spacing: 0.05em;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-accent:hover {
+            background-color: var(--color-accent-hover);
+            box-shadow: 0 6px 18px rgba(217, 160, 102, 0.35);
+            transform: translateY(-1px);
+        }
+
+        /* 漢堡選單切換按鈕 (手機端顯示) */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: var(--color-primary);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* ==========================================================================
+           2. 首頁主視覺（Hero Section）
+           ========================================================================== */
+        .hero {
+            padding: 110px 0 100px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(167, 182, 162, 0.15);
+            color: var(--color-primary);
+            border: 1px solid var(--color-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 18px;
+            border-radius: 40px;
+            margin-bottom: 24px;
+            letter-spacing: 0.06em;
+        }
+
+        .hero-title {
+            font-size: 46px;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 22px;
+            letter-spacing: 0.05em;
+        }
+
+        .hero-title span {
+            color: var(--color-accent);
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .hero-subtitle {
+            font-size: 17px;
+            color: var(--color-text-secondary);
+            max-width: 620px;
+            margin: 0 auto 40px auto;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .hero-cta {
+            padding: 14px 38px;
+            font-size: 16px;
+            letter-spacing: 0.08em;
+            box-shadow: 0 8px 24px rgba(217, 160, 102, 0.28);
+        }
+
+        /* 意境留白分隔裝飾線 */
+        .hero-divider {
+            width: 48px;
+            height: 1px;
+            background-color: var(--color-secondary);
+            margin: 70px auto 0 auto;
+            opacity: 0.6;
+        }
+
+        /* ==========================================================================
+           3. 特色展示區（Feature Cards）
+           ========================================================================== */
+        .features {
+            padding: 40px 0 120px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: var(--color-secondary);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .feature-card {
+            background-color: var(--color-surface);
+            border-radius: 16px;
+            padding: 40px 32px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid transparent;
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--color-secondary);
+        }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: rgba(167, 182, 162, 0.15);
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .card-icon {
+            background: var(--color-primary);
+            color: #FFFFFF;
+        }
+
+        .card-category {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-secondary);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            line-height: 1.45;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        .card-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .card-link i {
+            transition: transform 0.3s ease;
+            font-size: 11px;
+        }
+
+        .feature-card:hover .card-link {
+            color: var(--color-accent);
+        }
+
+        .feature-card:hover .card-link i {
+            transform: translateX(4px);
+        }
+
+        /* ==========================================================================
+           4. 頁尾（Footer）
+           ========================================================================== */
+        .footer {
+            background-color: var(--color-footer-bg);
+            border-top: 1px solid rgba(167, 182, 162, 0.25);
+            padding: 60px 0 40px 0;
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            padding-bottom: 36px;
+            border-bottom: 1px solid rgba(167, 182, 162, 0.2);
+        }
+
+        .footer-brand h4 {
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+
+        .footer-brand p {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .footer-socials {
+            display: flex;
+            gap: 16px;
+        }
+
+        .social-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primary);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            background: var(--color-primary);
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        .footer-bottom {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            letter-spacing: 0.03em;
+        }
+
+        /* ==========================================================================
+           RWD 響應式排版 (Responsive Design)
+           ========================================================================== */
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 38px;
+            }
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                position: absolute;
+                top: 80px;
+                left: 0;
+                width: 100%;
+                background: rgba(250, 250, 250, 0.98);
+                backdrop-filter: blur(14px);
+                flex-direction: column;
+                padding: 30px 24px;
+                gap: 22px;
+                border-bottom: 1px solid var(--color-border-light);
+                box-shadow: var(--shadow-md);
+                display: none;
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .hero {
+                padding: 70px 0 60px 0;
+            }
+
+            .hero-title {
+                font-size: 30px;
+            }
+
+            .hero-subtitle {
+                font-size: 15px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 導覽列（Navbar） -->
+    <header class="navbar">
+        <div class="container nav-container">
+            <!-- 左側品牌 Logo -->
+            <a href="#" class="brand-logo">CodyC</a>
+
+            <!-- 手機版漢堡切換鈕 -->
+            <button class="nav-toggle" id="navToggle" aria-label="切換導航選單">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- 右側導覽連結與 CTA -->
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#about" class="nav-link">關於我們</a></li>
+                <li><a href="#curations" class="nav-link">選物清單</a></li>
+                <li><a href="#journal" class="nav-link">閱讀專欄</a></li>
+                <li>
+                    <a href="#curations" class="btn-accent">立即探索</a>
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- 2. 首頁主視覺（Hero Section） -->
+    <section class="hero" id="about">
+        <div class="container">
+            <div class="hero-tag">
+                <i class="fa-regular fa-compass"></i> 獨立書店與大地選物生活誌
+            </div>
+            
+            <h1 class="hero-title">
+                在字裡行間與器物深處，<br>找回生活的<span>呼吸節奏</span>。
+            </h1>
+
+            <p class="hero-subtitle">
+                CodyC 堅持溫潤的純粹本質，為獨立靈魂揀選富含時間深度的紙本書籍、手工陶器與天然織品。以寬裕的留白，安放日常每一刻沉澱。
+            </p>
+
+            <a href="#curations" class="btn-accent hero-cta">
+                探索溫潤之選 <i class="fa-solid fa-arrow-right-long" style="margin-left: 6px;"></i>
+            </a>
+
+            <div class="hero-divider"></div>
+        </div>
+    </section>
+
+    <!-- 3. 特色展示區（Feature Cards） -->
+    <section class="features" id="curations">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-subtitle">Our Curation & Philosophy</div>
+                <h2 class="section-title">質樸之境，細節之物</h2>
+            </div>
+
+            <!-- 三欄式網格佈局 -->
+            <div class="features-grid">
+                
+                <!-- 卡片 1 -->
+                <article class="feature-card">
+                    <div>
+                        <div class="card-icon">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <div class="card-category">Paper & Thoughts</div>
+                        <h3 class="card-title">獨立獨立出版與紙本讀物</h3>
+                        <p class="card-desc">
+                            精選世界各地獨立出版社少印量作品、哲學散文與手作裝幀攝影集。讓翻動紙頁時的沙沙聲，成為撫慰心緒的最佳音律。
+                        </p>
+                    </div>
+                    <div>
+                        <a href="#journal" class="card-link">
+                            閱讀書單推薦 <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- 卡片 2 -->
+                <article class="feature-card">
+                    <div>
+                        <div class="card-icon">
+                            <i class="fa-solid fa-mug-saucer"></i>
+                        </div>
+                        <div class="card-category">Artisan Craft</div>
+                        <h3 class="card-title">柴燒粗陶與常民生活器皿</h3>
+                        <p class="card-desc">
+                            每一只茶盞皆保留陶土手作拉胚的自然氣孔與柴火落灰。不求完美對稱，只願在每日晨光啜飲之時，傳遞最溫柔的握感。
+                        </p>
+                    </div>
+                    <div>
+                        <a href="#curations" class="card-link">
+                            瀏覽陶作器物 <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- 卡片 3 -->
+                <article class="feature-card" id="journal">
+                    <div>
+                        <div class="card-icon">
+                            <i class="fa-solid fa-feather-pointed"></i>
+                        </div>
+                        <div class="card-category">Life Journal</div>
+                        <h3 class="card-title">生活筆記與在地職人散記</h3>
+                        <p class="card-desc">
+                            定期走訪隱身小巷的木工師傅、藍染工坊與古董修復師。記錄那些在快速時代中，依舊從容堅持緩慢打磨的手藝精神。
+                        </p>
+                    </div>
+                    <div>
+                        <a href="#journal" class="card-link">
+                            深入專欄探索 <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 頁尾（Footer） -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h4>CodyC ｜ 質物與書頁</h4>
+                    <p>凝聚生活純粹之美，為獨立心靈預留安靜的一隅。</p>
+                </div>
+                <div class="footer-socials">
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Instagram">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Facebook">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </a>
+                    <a href="mailto:contact@codyc.design" class="social-icon" aria-label="Email">
+                        <i class="fa-regular fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 CodyC All Rights Reserved. Designed with Calm & Warmth.
+            </div>
+        </div>
+    </footer>
+
+    <!-- 互動腳本：手機端漢堡選單切換與平滑收合 -->
+    <script>
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                const icon = navToggle.querySelector('i');
+                if (navMenu.classList.contains('active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-xmark');
+                } else {
+                    icon.classList.remove('fa-xmark');
+                    icon.classList.add('fa-bars');
+                }
+            });
+
+            // 點擊選單項目後自動關閉手機選單
+            document.querySelectorAll('.nav-link, .nav-menu .btn-accent').forEach(item => {
+                item.addEventListener('click', () => {
+                    navMenu.classList.remove('active');
+                    const icon = navToggle.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-xmark');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
