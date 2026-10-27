@@ -59,6 +59,7 @@
             <button class="nav-btn" data-tab="lifestyle"><i class="fa-solid fa-mug-hot"></i> 生活日常</button>
             <button class="nav-btn" data-tab="stocks"><i class="fa-solid fa-chart-line"></i> 股市與加密貨幣</button>
             <button class="nav-btn" data-tab="jewish"><i class="fa-solid fa-star-of-david"></i> 🔯 猶太商道與新聞</button>
+            <button class="nav-btn" data-tab="calendar"><i class="fa-solid fa-calendar-days"></i> 📅 專案工地行事曆</button>
             <button class="nav-btn" data-tab="settings"><i class="fa-solid fa-gear"></i> 系統設定</button>
         </nav>
 
@@ -1404,7 +1405,98 @@
             </section>
 
            <!-- Tab: 系統設定 (System Settings) -->
-            <section id="tab-settings" class="tab-content">
+            <!-- Tab: 專案工地臨時會議與行事曆 (Project Site Meetings Calendar) -->
+            <section id="tab-calendar" class="tab-content">
+                <div class="grid-layout">
+                    <!-- Top Banner -->
+                    <div class="card glass-card span-3 trip-banner" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; padding: 22px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                            <div>
+                                <h2 style="font-size: 22px; font-weight: 700; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; display: flex; align-items: center; gap: 10px; margin: 0 0 6px 0;">
+                                    <i class="fa-solid fa-calendar-days" style="color: #F8FAFC;"></i> 專案工地臨時會議與行程管理系統
+                                </h2>
+                                <p style="font-size: 13px; color: #94A3B8; margin: 0;">專為工務經理與專案工程師設計 ‧ 快速登記突發巡檢、協調會議、工種交接與缺失檢視 ‧ 支援月曆即時聯動與一鍵導航。</p>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button onclick="openMeetingModal()" class="glow-btn" style="width: auto; padding: 10px 18px; font-size: 12px; background: #FFFFFF; color: #0A0B0E; font-weight: 700;">
+                                    <i class="fa-solid fa-plus"></i> 新增臨時會議
+                                </button>
+                                <button onclick="loadCalendarMeetings()" class="sub-nav-btn" style="padding: 10px 14px; font-size: 12px;">
+                                    <i class="fa-solid fa-arrows-rotate"></i> 重新整理
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics & Filter Bar -->
+                    <div class="span-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+                        <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 16px;">
+                            <span style="font-size: 11px; color: #94A3B8;">本月會議總數</span>
+                            <div id="stat-total-meetings" style="font-size: 24px; font-weight: 800; color: #F8FAFC; margin-top: 4px;">0 場</div>
+                        </div>
+                        <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 16px;">
+                            <span style="font-size: 11px; color: #38BDF8;">今日會議行程</span>
+                            <div id="stat-today-meetings" style="font-size: 24px; font-weight: 800; color: #38BDF8; margin-top: 4px;">0 場</div>
+                        </div>
+                        <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 14px; padding: 16px;">
+                            <span style="font-size: 11px; color: #34D399;">已完成會議</span>
+                            <div id="stat-completed-meetings" style="font-size: 24px; font-weight: 800; color: #34D399; margin-top: 4px;">0 場</div>
+                        </div>
+                        <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 14px; padding: 16px;">
+                            <span style="font-size: 11px; color: #FBBF24;">主要工地篩選</span>
+                            <select id="meeting-filter-site" onchange="loadCalendarMeetings()" class="input-modern" style="width: 100%; margin-top: 6px; padding: 4px 8px; font-size: 11px; background: rgba(10, 12, 16, 0.95); color: #FFF; border: 1px solid rgba(255,255,255,0.2);">
+                                <option value="ALL">全部專案工地</option>
+                                <option value="A案大樓新建工程">A案大樓新建工程</option>
+                                <option value="B案廠房擴建工程">B案廠房擴建工程</option>
+                                <option value="C案捷運聯開工程">C案捷運聯開工程</option>
+                                <option value="總部營造協調會">總部營造協調會</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Main Calendar View (2 Cols: Left Month Calendar Grid, Right Today/Upcoming Agenda) -->
+                    <div class="card glass-card span-2" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 16px; padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <h3 id="calendar-current-month-label" style="font-size: 18px; font-weight: 700; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin: 0;">2026 年 10 月</h3>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="changeCalendarMonth(-1)" class="sub-nav-btn" style="padding: 6px 12px;"><i class="fa-solid fa-chevron-left"></i> 上個月</button>
+                                <button onclick="resetCalendarToCurrentMonth()" class="sub-nav-btn" style="padding: 6px 12px;">今天</button>
+                                <button onclick="changeCalendarMonth(1)" class="sub-nav-btn" style="padding: 6px 12px;">下個月 <i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Calendar Week Header -->
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: 700; color: #94A3B8; margin-bottom: 8px;">
+                            <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                        </div>
+
+                        <!-- Calendar Days Grid -->
+                        <div id="calendar-days-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
+                            <!-- Dynamically loaded via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Right Side: Selected Date / Agenda List -->
+                    <div class="card glass-card span-1" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 16px; padding: 20px; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 14px;">
+                            <div>
+                                <h4 id="selected-date-title" style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin: 0;">會議日程清單</h4>
+                                <span id="selected-date-subtitle" style="font-size: 11px; color: #94A3B8;">點擊左側日期切換檢視</span>
+                            </div>
+                            <span id="selected-date-badge" class="badge">今日</span>
+                        </div>
+
+                        <!-- Agenda Items Container -->
+                        <div id="agenda-items-container" style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 480px; padding-right: 4px;">
+                            <!-- Dynamically loaded via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+<section id="tab-settings" class="tab-content">
                 <div class="grid-layout">
                     <div class="card glass-card span-3">
                         <div class="card-header">
@@ -1545,7 +1637,20 @@
                         <span style="font-size: 10px; color: #F8FAFC;">HTTPS 200 OK ‧ 安全加密通道</span>
                     </div>
 
-                </div>
+                
+                    <!-- Bento 07: 專案工地會議行事曆快捷 -->
+                    <div class="card glass-card" style="padding: 20px; background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(56, 189, 248, 0.3); cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('calendar')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-weight: 700;">📅 工地行事曆</span>
+                            <span style="font-size: 11px; color: #94A3B8;">開啟日程 <i class="fa-solid fa-chevron-right"></i></span>
+                        </div>
+                        <h3 style="font-size: 16px; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; margin-bottom: 6px;">專案臨時會議與工種交接</h3>
+                        <p style="font-size: 11px; color: #94A3B8; line-height: 1.4; margin-bottom: 8px;">
+                            快速記錄與巡檢工地各包商臨時協調會、工務缺失與出工人數確認。
+                        </p>
+                        <span style="font-size: 10px; color: #38BDF8;"><i class="fa-regular fa-calendar-check"></i> 點擊進入專案工地排程</span>
+                    </div>
+</div>
             </section>
 
                         <!-- Tab: 高爾夫雙視角旗艦門戶 (Golf Hub - Senior Golfer & Novice Co-Designed) -->
@@ -2663,5 +2768,68 @@
     <div id="toast-notification" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(18, 20, 26, 0.95); border: 1px solid rgba(255, 255, 255, 0.3); color: #F8FAFC; padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 100000; display: none; transition: all 0.3s ease;">
         <span id="toast-message">⚡ 提示訊息</span>
     </div>
+
+    <!-- 📅 專案工地臨時會議錄入彈窗 (New Meeting Modal) -->
+    <div id="meeting-modal-backdrop" class="modal-overlay" onclick="closeMeetingModal()">
+        <div class="modal-box" onclick="event.stopPropagation();" style="max-width: 540px; background: rgba(18, 20, 26, 0.98); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 18px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-calendar-plus" style="color: #F8FAFC;"></i> 登記專案工地臨時會議
+                </h3>
+                <button onclick="closeMeetingModal()" class="sub-nav-btn" style="padding: 4px 10px;">✕</button>
+            </div>
+
+            <form onsubmit="submitNewMeeting(event)" style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                    <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">會議主題 / 討論要旨 *</label>
+                    <input type="text" id="m-title" class="input-modern" placeholder="例：機電管線穿樑衝突協調會" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">專案工地名稱 *</label>
+                        <input type="text" id="m-site-name" list="site-name-datalist" class="input-modern" placeholder="例：A案大樓新建工程" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                        <datalist id="site-name-datalist">
+                            <option value="A案大樓新建工程">
+                            <option value="B案廠房擴建工程">
+                            <option value="C案捷運聯開工程">
+                            <option value="總部營造協調會">
+                        </datalist>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">開會地點 / 工務所</label>
+                        <input type="text" id="m-location" class="input-modern" placeholder="例：工務所B棟2樓會議室" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">會議日期 *</label>
+                        <input type="date" id="m-date" class="input-modern" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">開始時間 *</label>
+                        <input type="time" id="m-time" value="14:00" class="input-modern" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">出席對象 / 工種單位</label>
+                    <input type="text" id="m-attendees" class="input-modern" placeholder="例：監造主任、水電包商、鋼構領班" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">備註 / 待確認事項</label>
+                    <textarea id="m-notes" rows="2" class="input-modern" placeholder="例：攜帶最新修訂機電套圖第三版，並請廠商回報工班出工人數" style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
+                    <button type="button" onclick="closeMeetingModal()" class="sub-nav-btn" style="padding: 8px 16px;">取消</button>
+                    <button type="submit" class="glow-btn" style="width: auto; padding: 8px 20px; background: #FFF; color: #000; font-weight: 700;">儲存會議</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </body>
 </html>

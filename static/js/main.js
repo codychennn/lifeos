@@ -21,6 +21,7 @@ const tabHeaders = {
     'expenses': { title: '智慧記帳明細', desc: '即時消費紀錄與帳務分析' },
     'stocks': { title: '股市與加密貨幣', desc: '美股、台股焦點新聞與虛擬貨幣即時行情' },
     'jewish': { title: '猶太商道與新聞', desc: '商業思維與全球科技融資動態' },
+    'calendar': { title: '專案工地行事曆 (Site Meetings)', desc: '紀錄專案工地各種臨時會議、工種交接與缺失檢視' },
     'settings': { title: '系統設定', desc: 'Telegram 機器人推播與自動化配置' }
 };
 
@@ -72,9 +73,15 @@ window.switchTab = function(tabId) {
         pageDesc.textContent = tabHeaders[mappedTabId].desc;
     }
 
-    // 4. 特惠分頁連動觸發
+    // 4. 分頁連動觸發 (上線強制即時同步)
     if (mappedTabId === 'deals' && window.loadDeals) {
-        window.loadDeals('all');
+        window.loadDeals('all', false);
+    } else if (mappedTabId === 'stocks' && window.loadStocks) {
+        window.loadStocks('all', false);
+    } else if (mappedTabId === 'calendar' && window.loadCalendarMeetings) {
+        window.loadCalendarMeetings();
+    } else if (mappedTabId === 'jewish' && window.loadJewishNews) {
+        window.loadJewishNews('all', false);
     }
 
     // 5. 捲動回頂部
@@ -235,58 +242,106 @@ function updateCityClock() {
 
 setInterval(updateCityClock, 1000);
 
-// 6. 特價優惠監控載入
-window.loadDeals = function(filterCategory = 'all') {
+// 6. 特價優惠監控載入 (每12小時自動背景追蹤 ‧ 上線強制即時更新)
+window.loadDeals = function(filterCategory = 'all', forceRefresh = false) {
     const container = document.getElementById('deals-container');
+    const badge = document.getElementById('deals-last-sync-badge');
     if (!container) return;
 
-    fetch('/api/deals?limit=30')
+    if (forceRefresh) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: #CBD5E1; background: rgba(18, 20, 26, 0.6); border: 1px dashed rgba(255,255,255,0.15); border-radius: 16px;">
+                <i class="fa-solid fa-rotate fa-spin" style="font-size: 24px; color: #38BDF8; margin-bottom: 12px;"></i>
+                <div style="font-size: 15px; font-weight: 700; color: #FFFFFF;">⚡ 正在執行全網特惠即時同步掃描...</div>
+                <div style="font-size: 12px; color: #94A3B8; margin-top: 6px;">自動過濾過期新聞 ‧ 抓取星宇、長榮、華航、ANA、JAL 及全球 OTA 最新特惠</div>
+            </div>
+        `;
+    }
+
+    fetch(`/api/deals?limit=40&force=${forceRefresh ? 'true' : 'false'}`)
     .then(res => res.json())
     .then(data => {
         if (data.status === 'success' && data.data && data.data.length > 0) {
+            if (badge && data.last_updated) {
+                badge.innerHTML = `<i class="fa-solid fa-circle-check"></i> 🟢 最後同步：${data.last_updated} (每12小時自動追蹤)`;
+            }
+
             let html = '';
             const filtered = data.data.filter(d => {
                 if (filterCategory === 'all') return true;
-                return d.matched_keyword && d.matched_keyword.toLowerCase().includes(filterCategory.toLowerCase());
+                const kw = (d.matched_keyword || '').toLowerCase();
+                const src = (d.source || '').toLowerCase();
+                const tit = (d.title || '').toLowerCase();
+                const target = filterCategory.toLowerCase();
+                return kw.includes(target) || src.includes(target) || tit.includes(target);
             });
 
             const displayList = filtered.length > 0 ? filtered : data.data;
 
             displayList.forEach(d => {
+                const createdDate = d.created_at ? new Date(d.created_at) : new Date();
+                const timeAgoHours = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60)));
+                const freshnessTag = timeAgoHours <= 12 ? '🔥 12h內即時' : (timeAgoHours <= 48 ? '⚡ 最新情報' : '🟢 即時有效');
+                
                 html += `
-                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; transition: all 0.2s ease;" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)'">
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span class="badge">${d.source || '全網特惠'}</span>
-                                <span style="font-size: 11px; color: #F8FAFC; font-weight: 700;">${d.matched_keyword || '閃促特惠'}</span>
+                                <span class="badge" style="background: rgba(255,255,255,0.08); color: #FFFFFF; font-size: 11px;">${d.source || '全網特惠'}</span>
+                                <span style="font-size: 11px; color: #38BDF8; font-weight: 700; background: rgba(56, 189, 248, 0.12); padding: 2px 7px; border-radius: 6px;">
+                                    ${freshnessTag}
+                                </span>
                             </div>
                             <h4 style="font-size: 15px; color: #FFF; font-weight: 700; margin-bottom: 6px; line-height: 1.4;">${d.title}</h4>
-                            <p style="font-size: 11px; color: #94A3B8; margin-top: 4px;">更新時間：${new Date(d.created_at || Date.now()).toLocaleDateString()}</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11px; color: #94A3B8;">
+                                <span>🏷️ 關鍵字：${d.matched_keyword || '閃促'}</span>
+                                <span>🕒 ${d.created_at ? d.created_at.slice(0, 16) : '剛剛更新'}</span>
+                            </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
-                            <a href="${d.link}" target="_blank" class="glow-btn" style="width: 100%; text-align: center; text-decoration: none;">
-                                查看特惠詳情 ↗
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+                            <a href="${d.link}" target="_blank" rel="noopener noreferrer" class="glow-btn" style="width: 100%; text-align: center; text-decoration: none; padding: 8px; font-size: 12px;">
+                                官網特惠詳情 / 立即搶購 ↗
                             </a>
                         </div>
                     </div>
                 `;
             });
             container.innerHTML = html;
+        } else {
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: #94A3B8; background: rgba(18, 20, 26, 0.5); border-radius: 16px;">
+                    <i class="fa-solid fa-tags" style="font-size: 24px; margin-bottom: 8px;"></i>
+                    <div>目前暫無符合條件之特惠，點擊右上角「強制立即更新特惠」以執行全網掃描。</div>
+                </div>
+            `;
         }
     })
     .catch(err => console.error("Load deals error:", err));
 };
 
 window.filterDealsCategory = function(cat, btnElem) {
-    const btns = btnElem.parentElement.querySelectorAll('.sub-nav-btn');
-    btns.forEach(b => b.classList.remove('active'));
-    btnElem.classList.add('active');
-    loadDeals(cat);
+    const btns = btnElem?.parentElement?.querySelectorAll('.sub-nav-btn');
+    if (btns) {
+        btns.forEach(b => b.classList.remove('active'));
+        btnElem.classList.add('active');
+    }
+
+    // Filter curated deal feed cards
+    const feedCards = document.querySelectorAll('.deal-feed-card');
+    feedCards.forEach(card => {
+        const type = card.getAttribute('data-deal-type');
+        if (cat === 'all' || cat === type || (cat === '機票' && (type === 'business' || type === 'error_fare' || type === 'award'))) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    loadDeals(cat, false);
 };
 
 window.triggerDealsCrawl = function() {
-    alert("⚡ 已手動觸發全網特惠與機票閃促爬蟲！系統正即時掃描優惠中...");
-    loadDeals('all');
+    loadDeals('all', true);
 };
 
 // 7. 全域情境連動 Handler
@@ -415,53 +470,131 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* =========================================================================
-   世界潮牌動態牆 (Streetwear Feed) & 台灣銀行即期匯率快速換算 Handler
+   世界潮牌動態牆 (Streetwear Feed 30大品牌) & 側邊欄 5 秒自動輪播動態牆
    ========================================================================= */
 
-window.loadStreetwearFeed = function(brandFilter = 'all') {
-    const container = document.getElementById('streetwear-feed-container');
-    if (!container) return;
+window.brandDropsList = [];
+window.currentBrandIndex = 0;
+window.brandTickerTimer = null;
 
+window.renderBrandTickerItem = function() {
+    const container = document.getElementById('brand-ticker-content');
+    if (!container || !window.brandDropsList || window.brandDropsList.length === 0) return;
+
+    const item = window.brandDropsList[window.currentBrandIndex];
+    if (!item) return;
+
+    container.style.opacity = '0';
+    container.style.transform = 'translateY(4px)';
+
+    setTimeout(() => {
+        container.innerHTML = `
+            <a href="${item.source_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit; display: block;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <span style="font-size: 11px; font-weight: 800; color: #FFFFFF; background: rgba(255,255,255,0.12); padding: 2px 7px; border-radius: 6px; letter-spacing: 0.3px;">
+                        ${item.brand}
+                    </span>
+                    <span style="font-size: 10px; font-weight: 700; color: #CBD5E1;">
+                        ${item.category}
+                    </span>
+                </div>
+                <div style="font-size: 12px; font-weight: 600; color: #FFFFFF; line-height: 1.35; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${item.title}">
+                    ${item.title}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-top: 3px;">
+                    <span style="color: #F8FAFC; font-weight: 800;">${item.twd_price}</span>
+                    <span style="font-size: 9px; color: #94A3B8; background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px;">
+                        ${window.currentBrandIndex + 1}/${window.brandDropsList.length} ↗
+                    </span>
+                </div>
+            </a>
+        `;
+        container.style.opacity = '1';
+        container.style.transform = 'translateY(0)';
+    }, 150);
+};
+
+window.nextBrandItem = function() {
+    if (!window.brandDropsList || window.brandDropsList.length === 0) return;
+    window.currentBrandIndex = (window.currentBrandIndex + 1) % window.brandDropsList.length;
+    window.renderBrandTickerItem();
+    window.restartBrandTickerTimer();
+};
+
+window.prevBrandItem = function() {
+    if (!window.brandDropsList || window.brandDropsList.length === 0) return;
+    window.currentBrandIndex = (window.currentBrandIndex - 1 + window.brandDropsList.length) % window.brandDropsList.length;
+    window.renderBrandTickerItem();
+    window.restartBrandTickerTimer();
+};
+
+window.startBrandTickerTimer = function() {
+    if (window.brandTickerTimer) {
+        clearInterval(window.brandTickerTimer);
+    }
+    // 5秒自動更換一次品牌
+    window.brandTickerTimer = setInterval(() => {
+        if (!window.brandDropsList || window.brandDropsList.length === 0) return;
+        window.currentBrandIndex = (window.currentBrandIndex + 1) % window.brandDropsList.length;
+        window.renderBrandTickerItem();
+    }, 5000);
+};
+
+window.restartBrandTickerTimer = function() {
+    window.startBrandTickerTimer();
+};
+
+window.loadStreetwearFeed = function(brandFilter = 'all') {
     fetch(`/api/streetwear/feed?brand=${brandFilter}`)
     .then(res => res.json())
     .then(data => {
-        if (data.status === 'success' && data.data) {
-            let html = '';
-            data.data.forEach(item => {
-                html += `
-                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; transition: all 0.25s ease;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.14)'">
-                        <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span class="badge">${item.brand}</span>
-                                <span style="font-size: 11px; color: #CBD5E1; font-weight: 700;">${item.category}</span>
-                            </div>
-                            <h4 style="font-size: 15px; color: #FFF; font-weight: 700; margin-bottom: 6px; line-height: 1.4;">${item.title}</h4>
-                            <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin-bottom: 8px;">${item.description}</p>
-                            <div style="font-size: 11px; color: #E2E8F0;">🗓️ ${item.release_date}</div>
-                        </div>
+        if (data.status === 'success' && data.data && data.data.length > 0) {
+            window.brandDropsList = data.data;
+            window.currentBrandIndex = 0;
+            window.renderBrandTickerItem();
+            window.startBrandTickerTimer();
 
-                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 11px; color: #94A3B8;">原價: ${item.original_price}</span>
-                                <span style="font-size: 18px; font-weight: 800; color: #F8FAFC;">${item.twd_price}</span>
+            // 若有獨立展示容器亦一併渲染
+            const container = document.getElementById('streetwear-feed-container');
+            if (container) {
+                let html = '';
+                data.data.forEach(item => {
+                    html += `
+                        <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; transition: all 0.25s ease;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span class="badge">${item.brand}</span>
+                                    <span style="font-size: 11px; color: #CBD5E1; font-weight: 700;">${item.category}</span>
+                                </div>
+                                <h4 style="font-size: 15px; color: #FFF; font-weight: 700; margin-bottom: 6px; line-height: 1.4;">${item.title}</h4>
+                                <p style="font-size: 12px; color: #94A3B8; line-height: 1.5; margin-bottom: 8px;">${item.description}</p>
+                                <div style="font-size: 11px; color: #E2E8F0;">🗓️ ${item.release_date}</div>
                             </div>
-                            <a href="${item.source_url}" target="_blank" class="glow-btn" style="text-align: center; text-decoration: none; font-size: 12px; padding: 8px;">
-                                官方官網發售連結 ↗
-                            </a>
+                            <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 11px; color: #94A3B8;">原價: ${item.original_price}</span>
+                                    <span style="font-size: 18px; font-weight: 800; color: #F8FAFC;">${item.twd_price}</span>
+                                </div>
+                                <a href="${item.source_url}" target="_blank" class="glow-btn" style="text-align: center; text-decoration: none; font-size: 12px; padding: 8px;">
+                                    官方官網發售連結 ↗
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
+                    `;
+                });
+                container.innerHTML = html;
+            }
         }
     })
     .catch(err => console.error("Load streetwear feed error:", err));
 };
 
 window.filterStreetwearBrand = function(brand, btnElem) {
-    const btns = btnElem.parentElement.querySelectorAll('.sub-nav-btn');
-    btns.forEach(b => b.classList.remove('active'));
-    btnElem.classList.add('active');
+    const btns = btnElem?.parentElement?.querySelectorAll('.sub-nav-btn');
+    if (btns) {
+        btns.forEach(b => b.classList.remove('active'));
+        btnElem.classList.add('active');
+    }
     loadStreetwearFeed(brand);
 };
 
@@ -485,12 +618,23 @@ window.updateQuickSpotConvert = function() {
     .catch(err => console.error("Quick convert error:", err));
 };
 
-// 綁定台銀即期換算事件
+// 綁定台銀即期換算與動態牆懸停暫停事件
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('header-bank-fx-select')?.addEventListener('change', updateQuickSpotConvert);
     document.getElementById('quick-convert-amount')?.addEventListener('input', updateQuickSpotConvert);
     
-    // 初始化載入潮牌動態牆與即期換算
+    // 動態牆滑鼠懸停時暫停自動輪播，移開時繼續
+    const wallElem = document.querySelector('.trendy-brands-wall');
+    if (wallElem) {
+        wallElem.addEventListener('mouseenter', () => {
+            if (window.brandTickerTimer) clearInterval(window.brandTickerTimer);
+        });
+        wallElem.addEventListener('mouseleave', () => {
+            window.startBrandTickerTimer();
+        });
+    }
+
+    // 初始化載入 30 大世界潮牌動態牆與即期換算
     loadStreetwearFeed('all');
     updateQuickSpotConvert();
 });
@@ -822,12 +966,104 @@ window.showToast = function(msg) {
     }
 };
 
+/* =========================================================================
+   Command Palette (Ctrl+K) & View State Management
+   ========================================================================= */
+const commandList = [
+    { title: '切換至 首頁 (Home)', action: () => window.switchTab('home'), icon: 'fa-house', group: '導航' },
+    { title: '切換至 儀表板 (Dashboard)', action: () => window.switchTab('bento'), icon: 'fa-table-cells-large', group: '導航' },
+    { title: '切換至 高爾夫旗艦門戶 (Golf Hub)', action: () => window.switchTab('golf'), icon: 'fa-golf-ball-tee', group: '導航' },
+    { title: '切換至 智能機票專區 (Flights)', action: () => window.switchTab('flights'), icon: 'fa-plane-departure', group: '導航' },
+    { title: '切換至 特價優惠監控 (Deals)', action: () => window.switchTab('deals'), icon: 'fa-tags', group: '導航' },
+    { title: '切換至 景點智庫 (Travel Hub)', action: () => window.switchTab('guide2026'), icon: 'fa-map-location-dot', group: '導航' },
+    { title: '切換至 我的旅行清單 (My Travel List)', action: () => window.switchTab('travelbook'), icon: 'fa-suitcase-rolling', group: '導航' },
+    { title: '切換至 美西自駕特輯 (US West)', action: () => window.switchTab('uswest'), icon: 'fa-route', group: '導航' },
+    { title: '切換至 生活日常 (Lifestyle)', action: () => window.switchTab('lifestyle'), icon: 'fa-mug-hot', group: '導航' },
+    { title: '切換至 股市與加密貨幣 (Stocks & Crypto)', action: () => window.switchTab('stocks'), icon: 'fa-chart-line', group: '導航' },
+    { title: '切換至 猶太商道與新聞 (Jewish Wisdom)', action: () => window.switchTab('jewish'), icon: 'fa-star-of-david', group: '導航' },
+    { title: '切換至 系統設定 (Settings)', action: () => window.switchTab('settings'), icon: 'fa-gear', group: '導航' },
+    { title: '立即觸發 24/7 風控套利掃描 (Proactive Scan)', action: () => window.triggerProactiveScan(), icon: 'fa-bolt', group: '操作' },
+    { title: '立即執行 全網特惠掃描 (Deals Scan)', action: () => window.triggerDealsCrawl(), icon: 'fa-rotate-right', group: '操作' }
+];
+
+window.openCommandPalette = function() {
+    const modal = document.getElementById('command-palette-modal');
+    const input = document.getElementById('cmd-input');
+    if (modal) {
+        modal.classList.add('active');
+        if (input) {
+            input.value = '';
+            input.focus();
+            window.filterCommandItems();
+        }
+    }
+};
+
+window.closeCommandPalette = function() {
+    const modal = document.getElementById('command-palette-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+};
+
+window.filterCommandItems = function() {
+    const input = document.getElementById('cmd-input');
+    const container = document.getElementById('cmd-results-list');
+    if (!container) return;
+
+    const query = (input?.value || '').trim().toLowerCase();
+    const filtered = commandList.filter(cmd => 
+        !query || cmd.title.toLowerCase().includes(query) || cmd.group.toLowerCase().includes(query)
+    );
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div style="padding: 16px; text-align: center; color: #94A3B8; font-size: 13px;">無相符指令</div>';
+        return;
+    }
+
+    container.innerHTML = filtered.map(cmd => `
+        <div class="cmd-item" onclick="executeCommand(${commandList.indexOf(cmd)})" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; cursor: pointer; transition: all 0.15s ease;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid ${cmd.icon}" style="color: #CBD5E1; font-size: 13px;"></i>
+                <span style="font-size: 13px; color: #FFFFFF; font-weight: 500;">${cmd.title}</span>
+            </div>
+            <span style="font-size: 10px; color: #94A3B8; text-transform: uppercase; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;">${cmd.group}</span>
+        </div>
+    `).join('');
+};
+
+window.executeCommand = function(idx) {
+    if (commandList[idx] && typeof commandList[idx].action === 'function') {
+        commandList[idx].action();
+        window.closeCommandPalette();
+    }
+};
+
+// 保留視角狀態相容性（維持預設 Admin 狀態）
+window.currentRoleView = 'admin';
+window.switchRoleView = function(role) {
+    window.currentRoleView = role || 'admin';
+    console.log(`[Role View] Default view active: ${window.currentRoleView}`);
+};
+
 document.addEventListener("DOMContentLoaded", () => {
-    // 按 Esc 鍵自動關閉所有彈窗與抽屜
+    // 快捷鍵監聽：Esc 關閉彈窗，Ctrl+K / Cmd+K 開啟指令板
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeBentoTimelineDrawer();
             closeBentoCalcModal();
+            closeCommandPalette();
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+            e.preventDefault();
+            openCommandPalette();
+        }
+    });
+
+    // 點擊指令板外部背景關閉
+    document.getElementById('command-palette-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'command-palette-modal') {
+            closeCommandPalette();
         }
     });
 
@@ -908,3 +1144,1215 @@ window.openGolfSearchPlatform = function(platformKey) {
 
     window.open(url, '_blank', 'noopener,noreferrer');
 };
+
+// ==========================================================================
+// 1. Back to Top Scroll Logic
+// ==========================================================================
+window.scrollToTop = function() {
+    const mainContent = document.querySelector('.main-content') || window;
+    if (mainContent.scrollTo) {
+        mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const mainContent = document.querySelector('.main-content');
+    const backToTopBtn = document.getElementById('back-to-top');
+
+    const handleScroll = (scrollTop) => {
+        if (!backToTopBtn) return;
+        if (scrollTop > 300) {
+            backToTopBtn.style.display = 'flex';
+        } else {
+            backToTopBtn.style.display = 'none';
+        }
+    };
+
+    if (mainContent) {
+        mainContent.addEventListener('scroll', () => handleScroll(mainContent.scrollTop));
+    }
+    window.addEventListener('scroll', () => handleScroll(window.scrollY));
+});
+
+// ==========================================================================
+// 2. Golf Spec Filter Pills (Hand / Flex / Type)
+// ==========================================================================
+window.selectedGolfSpecs = { hand: 'ALL', flex: 'ALL', type: 'ALL' };
+
+window.toggleGolfSpecTag = function(category, value, el) {
+    if (!el) return;
+    const parentRow = el.parentElement;
+    if (parentRow) {
+        parentRow.querySelectorAll('.spec-filter-chip').forEach(chip => chip.classList.remove('active'));
+    }
+    el.classList.add('active');
+    window.selectedGolfSpecs[category] = value;
+
+    // Dynamically append selected specs to search input
+    const input = document.getElementById('golf-search-query');
+    if (input) {
+        let baseQuery = input.value.replace(/\b(RH|LH|Regular|Stiff|Extra Stiff|Max Forgiveness|Tour Player)\b/gi, '').trim();
+        let appended = [];
+        if (window.selectedGolfSpecs.hand !== 'ALL') appended.push(window.selectedGolfSpecs.hand);
+        if (window.selectedGolfSpecs.flex !== 'ALL') appended.push(window.selectedGolfSpecs.flex === 'R' ? 'Regular' : (window.selectedGolfSpecs.flex === 'S' ? 'Stiff' : 'Extra Stiff'));
+        if (window.selectedGolfSpecs.type !== 'ALL') appended.push(window.selectedGolfSpecs.type);
+
+        input.value = (baseQuery + ' ' + appended.join(' ')).trim();
+    }
+};
+
+// ==========================================================================
+// 3. GPS Coordinates Copy
+// ==========================================================================
+window.copyGpsCoords = function(coords, name) {
+    if (!coords) return;
+    navigator.clipboard.writeText(coords).then(() => {
+        window.showToast?.(`📍 已成功複製 ${name} 座標：${coords}`) || alert(`已複製 ${name} GPS 座標：${coords}`);
+    }).catch(() => {
+        alert(`GPS 座標：${coords}`);
+    });
+};
+
+// ==========================================================================
+// 4. Split Expense Calculator (多人開銷分帳計算器)
+// ==========================================================================
+window.calculateSplitExpense = function() {
+    const totalAmount = parseFloat(document.getElementById('split-total-amount')?.value || 0);
+    const peopleCount = parseInt(document.getElementById('split-people-count')?.value || 2, 10);
+    const depositPaid = parseFloat(document.getElementById('split-deposit-paid')?.value || 0);
+    const currency = document.getElementById('split-currency')?.value || 'USD';
+
+    if (peopleCount <= 0) return;
+
+    const perPersonTotal = totalAmount / peopleCount;
+    const remainingTotal = Math.max(0, totalAmount - depositPaid);
+    const perPersonRemaining = remainingTotal / peopleCount;
+
+    const symbol = currency === 'USD' ? 'USD $' : (currency === 'TWD' ? 'NT$ ' : 'SGD $');
+
+    const totalEl = document.getElementById('split-result-per-person');
+    const remainingEl = document.getElementById('split-result-remaining-per-person');
+    const summaryTextEl = document.getElementById('split-result-summary-text');
+
+    if (totalEl) totalEl.innerText = `${symbol}${perPersonTotal.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+    if (remainingEl) remainingEl.innerText = `${symbol}${perPersonRemaining.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+    if (summaryTextEl) {
+        summaryTextEl.innerText = `總金額 ${symbol}${totalAmount.toLocaleString()} ÷ ${peopleCount} 人 ＝ 每人應分攤 ${symbol}${perPersonTotal.toFixed(1)}（已扣除訂金 ${symbol}${depositPaid.toLocaleString()}，現場每人需補 ${symbol}${perPersonRemaining.toFixed(1)}）`;
+    }
+};
+
+window.copySplitExpenseSummary = function() {
+    const summaryText = document.getElementById('split-result-summary-text')?.innerText;
+    if (summaryText) {
+        navigator.clipboard.writeText(summaryText).then(() => {
+            window.showToast?.("📋 已複製分帳結果明細至剪貼簿！") || alert("已複製分帳結果明細！");
+        });
+    }
+};
+
+// ==========================================================================
+// 5. HSBC Travel Infinite Privilege Tracker (滙豐旅人無限卡權益追蹤)
+// ==========================================================================
+window.getHsbcPrivileges = function() {
+    try {
+        const data = localStorage.getItem('hsbc_privileges_data');
+        return data ? JSON.parse(data) : { pickup_used: 0, lounge_used: 0 };
+    } catch (e) {
+        return { pickup_used: 0, lounge_used: 0 };
+    }
+};
+
+window.renderHsbcPrivileges = function() {
+    const state = window.getHsbcPrivileges();
+    const pickupMax = 4;
+    const loungeMax = 8;
+
+    const pickupRem = Math.max(0, pickupMax - (state.pickup_used || 0));
+    const loungeRem = Math.max(0, loungeMax - (state.lounge_used || 0));
+
+    const pickupEl = document.getElementById('hsbc-pickup-remaining');
+    const pickupBar = document.getElementById('hsbc-pickup-bar');
+    const loungeEl = document.getElementById('hsbc-lounge-remaining');
+    const loungeBar = document.getElementById('hsbc-lounge-bar');
+
+    if (pickupEl) pickupEl.innerText = pickupRem;
+    if (pickupBar) pickupBar.style.width = `${(pickupRem / pickupMax) * 100}%`;
+
+    if (loungeEl) loungeEl.innerText = loungeRem;
+    if (loungeBar) loungeBar.style.width = `${(loungeRem / loungeMax) * 100}%`;
+};
+
+window.updateHsbcPrivilege = function(type, delta) {
+    const state = window.getHsbcPrivileges();
+    if (type === 'pickup') {
+        state.pickup_used = Math.min(4, Math.max(0, (state.pickup_used || 0) + delta));
+    } else if (type === 'lounge') {
+        state.lounge_used = Math.min(8, Math.max(0, (state.lounge_used || 0) + delta));
+    }
+    localStorage.setItem('hsbc_privileges_data', JSON.stringify(state));
+    window.renderHsbcPrivileges();
+    window.showToast?.(delta > 0 ? `✅ 已登記扣抵 1 次權益！` : `🔄 已恢復 1 次權益！`);
+};
+
+// ==========================================================================
+// 6. HSBC Mileage Sweet-Spot Calculator (旅人積分 1:1 哩程兌換計算機)
+// ==========================================================================
+window.calculateHsbcMileage = function() {
+    const pointsInput = document.getElementById('hsbc-points-input');
+    const container = document.getElementById('hsbc-mileage-result-table');
+    if (!pointsInput || !container) return;
+
+    const points = parseInt(pointsInput.value || 50000, 10);
+    const asiaMilesJapanBiz = (points / 25000).toFixed(1);
+    const asiaMilesEuropeBiz = (points / 65000).toFixed(1);
+    const starluxUsUpgrade = (points / 35000).toFixed(1);
+    const aviosJapanEcon = (points / 7500).toFixed(1);
+    const siaBiz = (points / 43000).toFixed(1);
+
+    container.innerHTML = `
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="color: #38BDF8; font-size: 12px;">🇭🇰 國泰亞洲萬里通 (Asia Miles)</strong>
+                <div style="font-size: 11px; color: #CBD5E1;">25,000 里換台日商務艙 ｜ 65,000 里換歐洲芬航商務艙</div>
+            </div>
+            <span class="badge" style="background: rgba(56,189,248,0.2); color: #FFF; font-size: 11px; font-weight: 700;">可換 ${asiaMilesJapanBiz} 趟台日商務 / ${asiaMilesEuropeBiz} 趟歐洲</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="color: #c084fc; font-size: 12px;">🌟 星宇航空 (COSMILE) / 長榮航空</strong>
+                <div style="font-size: 11px; color: #CBD5E1;">35,000~50,000 里換美西 (LAX/SEA) 單程商務艙升等</div>
+            </div>
+            <span class="badge" style="background: rgba(192,132,252,0.2); color: #FFF; font-size: 11px; font-weight: 700;">可升等 ${starluxUsUpgrade} 次美西商務</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="color: #34D399; font-size: 12px;">🇬🇧 英國航空 (Avios) / 🇸🇬 新加坡航空</strong>
+                <div style="font-size: 11px; color: #CBD5E1;">7,500 Avios 換台日短程經濟 ｜ 43,000 里換星馬商務艙</div>
+            </div>
+            <span class="badge" style="background: rgba(52,211,153,0.2); color: #FFF; font-size: 11px; font-weight: 700;">可換 ${aviosJapanEcon} 趟台日 / ${siaBiz} 趟新航商務</span>
+        </div>
+    `;
+};
+
+window.setHsbcPoints = function(pts) {
+    const input = document.getElementById('hsbc-points-input');
+    if (input) {
+        input.value = pts;
+        window.calculateHsbcMileage();
+    }
+};
+
+// ==========================================================================
+// 7. Instant Alert Hub Settings & Test Push (即時推播設定與測試)
+// ==========================================================================
+window.loadNotificationSettings = function() {
+    const saved = localStorage.getItem('user_notification_settings');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            const tgInput = document.getElementById('alert-tg-chat-id');
+            const whInput = document.getElementById('alert-webhook-url');
+            if (tgInput && parsed.tg_chat_id) tgInput.value = parsed.tg_chat_id;
+            if (whInput && parsed.webhook_url) whInput.value = parsed.webhook_url;
+        } catch (e) {}
+    }
+};
+
+window.saveNotificationSettings = function() {
+    const tgChatId = document.getElementById('alert-tg-chat-id')?.value.trim() || '';
+    const webhookUrl = document.getElementById('alert-webhook-url')?.value.trim() || '';
+    localStorage.setItem('user_notification_settings', JSON.stringify({
+        tg_chat_id: tgChatId,
+        webhook_url: webhookUrl
+    }));
+    window.showToast?.("✅ 推播通知設定已成功儲存至瀏覽器！") || alert("推播通知設定已儲存！");
+};
+
+window.sendTestNotification = function() {
+    const tgChatId = document.getElementById('alert-tg-chat-id')?.value.trim() || '';
+    const webhookUrl = document.getElementById('alert-webhook-url')?.value.trim() || '';
+
+    window.showToast?.("📡 正在發送測試推播中...");
+
+    fetch('/api/notification/test-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            telegram_chat_id: tgChatId,
+            webhook_url: webhookUrl
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.showToast?.(`🔔 推播測試結果：${data.message}`);
+        } else {
+            alert(`推播測試異常: ${data.message}`);
+        }
+    })
+    .catch(err => {
+        window.showToast?.("🔔 已觸發本機推播測試！");
+    });
+};
+
+// ==========================================================================
+// 8. Itinerary Multi-View Workspace & Fine-Grained Controls
+// ==========================================================================
+window.activeTripId = null;
+window.currentItinDay = 1;
+window.cachedTripData = null;
+
+window.switchItineraryView = function(viewType, btnElem) {
+    const btns = btnElem?.parentElement?.querySelectorAll('.sub-nav-btn');
+    if (btns) {
+        btns.forEach(b => b.classList.remove('active'));
+        btnElem.classList.add('active');
+    }
+
+    document.querySelectorAll('.itin-view-panel').forEach(p => p.style.display = 'none');
+    const targetPanel = document.getElementById(`itin-view-${viewType}`);
+    if (targetPanel) {
+        targetPanel.style.display = 'block';
+    }
+
+    if (viewType === 'map') {
+        window.renderRouteMap();
+    } else if (viewType === 'radar') {
+        window.renderPaceRadar();
+    } else if (viewType === 'cockpit') {
+        window.renderCockpitFocus();
+    }
+};
+
+window.onItineraryDayChange = function() {
+    const daySelect = document.getElementById('select-trip-day');
+    if (daySelect) {
+        window.currentItinDay = parseInt(daySelect.value, 10) || 1;
+        window.loadTripItinerary(window.activeTripId, window.currentItinDay);
+    }
+};
+
+window.loadTripItinerary = function(tripId, dayNumber = 1) {
+    if (!tripId) {
+        // Fetch first trip if activeTripId not set
+        fetch('/api/trips')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success' && data.data && data.data.length > 0) {
+                window.activeTripId = data.data[0].id;
+                window.loadTripItinerary(window.activeTripId, dayNumber);
+            }
+        })
+        .catch(err => console.error("Load trips error:", err));
+        return;
+    }
+
+    window.activeTripId = tripId;
+    window.currentItinDay = dayNumber;
+
+    fetch(`/api/trips/${tripId}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data) {
+            window.cachedTripData = data.data;
+            window.renderItinerarySlots(data.data, dayNumber);
+            window.renderPaceRadar();
+            window.renderRouteMap();
+            window.renderCockpitFocus();
+        }
+    })
+    .catch(err => console.error("Load trip detail error:", err));
+};
+
+window.renderItinerarySlots = function(tripData, dayNumber) {
+    const allItin = tripData.itinerary || [];
+    const dayItems = allItin.filter(i => (i.day_number === dayNumber && !i.is_contingency));
+    const contingencyItems = allItin.filter(i => i.is_contingency);
+
+    const slots = ['morning', 'afternoon', 'evening', 'overnight'];
+    slots.forEach(slotKey => {
+        const container = document.getElementById(`slot-container-${slotKey}`);
+        if (!container) return;
+
+        const slotItems = dayItems.filter(i => i.time_slot === slotKey);
+        if (slotItems.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 20px 10px; text-align: center; color: #64748B; font-size: 11px; border: 1px dashed rgba(255,255,255,0.08); border-radius: 8px;">
+                    尚無安排活動 ‧ 點擊上方表單加入
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        slotItems.forEach((item, index) => {
+            const isFrozen = item.is_frozen === 1;
+            const freezeBadge = isFrozen 
+                ? `<span class="badge" style="background: rgba(248,113,113,0.2); color: #F87171; font-size: 10px; font-weight: 700;"><i class="fa-solid fa-lock"></i> 已確認定錨</span>`
+                : `<span class="badge" style="background: rgba(56,189,248,0.15); color: #38BDF8; font-size: 10px;"><i class="fa-solid fa-unlock"></i> 可自由調度</span>`;
+
+            const driveBadge = item.drive_time_text ? `
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 4px 8px; font-size: 10px; color: #94A3B8; margin-top: 6px; display: flex; align-items: center; gap: 4px;">
+                    <span>${item.drive_time_text}</span>
+                </div>
+            ` : '';
+
+            html += `
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid ${isFrozen ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.1)'}; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;">
+                        <div>
+                            ${freezeBadge}
+                            <h5 style="font-size: 13px; font-weight: 700; color: #FFF; margin: 4px 0 2px 0; line-height: 1.4;">${item.activity}</h5>
+                            <span style="font-size: 11px; color: #94A3B8;">📍 ${item.location || '自駕動線'}</span>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <button onclick="reorderItinItem(${item.id}, 'up')" class="pill-action-btn" style="padding: 2px 6px; font-size: 10px;" title="上移">⬆️</button>
+                            <button onclick="reorderItinItem(${item.id}, 'down')" class="pill-action-btn" style="padding: 2px 6px; font-size: 10px;" title="下移">⬇️</button>
+                        </div>
+                    </div>
+
+                    ${item.notes ? `<div style="font-size: 10px; color: #CBD5E1; line-height: 1.4;">${item.notes}</div>` : ''}
+                    ${driveBadge}
+
+                    <!-- 輕量微調控制列 (時段切換 / 跨天 / 鎖定 / 備案) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px; margin-top: 2px; flex-wrap: wrap; gap: 4px;">
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <select onchange="updateItinSlot(${item.id}, this.value)" class="input-modern" style="padding: 2px 6px; font-size: 10px; background: #0F172A; color: #CBD5E1; border-radius: 4px;">
+                                <option value="morning" ${item.time_slot === 'morning' ? 'selected' : ''}>早晨</option>
+                                <option value="afternoon" ${item.time_slot === 'afternoon' ? 'selected' : ''}>下午</option>
+                                <option value="evening" ${item.time_slot === 'evening' ? 'selected' : ''}>晚間</option>
+                                <option value="overnight" ${item.time_slot === 'overnight' ? 'selected' : ''}>夜宿</option>
+                            </select>
+                            <select onchange="moveItinDay(${item.id}, this.value)" class="input-modern" style="padding: 2px 6px; font-size: 10px; background: #0F172A; color: #CBD5E1; border-radius: 4px;">
+                                <option value="1" ${item.day_number === 1 ? 'selected' : ''}>Day 1</option>
+                                <option value="2" ${item.day_number === 2 ? 'selected' : ''}>Day 2</option>
+                                <option value="3" ${item.day_number === 3 ? 'selected' : ''}>Day 3</option>
+                                <option value="4" ${item.day_number === 4 ? 'selected' : ''}>Day 4</option>
+                                <option value="5" ${item.day_number === 5 ? 'selected' : ''}>Day 5</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <button onclick="toggleItinFreeze(${item.id})" class="pill-action-btn" style="padding: 2px 6px; font-size: 10px; ${isFrozen ? 'background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.4); color: #FFF;' : ''}">
+                                ${isFrozen ? '🔒 已鎖定' : '🔓 鎖定'}
+                            </button>
+                            <button onclick="toggleContingency(${item.id}, 1)" class="pill-action-btn" style="padding: 2px 6px; font-size: 10px;" title="移至天候備案庫">
+                                💡 備案
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    });
+
+    // Render Contingency Pool
+    const contContainer = document.getElementById('contingency-pool-container');
+    if (contContainer) {
+        if (contingencyItems.length === 0) {
+            contContainer.innerHTML = `<div style="grid-column: 1 / -1; color: #64748B; font-size: 11px;">目前備案庫無項目，可將任何行程一鍵移至備案庫保管。</div>`;
+        } else {
+            let cHtml = '';
+            contingencyItems.forEach(c => {
+                cHtml += `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(52,211,153,0.2); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px;">
+                        <div>
+                            <span class="badge" style="background: rgba(52,211,153,0.15); color: #34D399; font-size: 9px;">💡 彈性備選</span>
+                            <h5 style="font-size: 12px; font-weight: 700; color: #FFF; margin: 4px 0 2px 0;">${c.activity}</h5>
+                            <span style="font-size: 10px; color: #94A3B8;">${c.location || '彈性地點'}</span>
+                        </div>
+                        <button onclick="toggleContingency(${c.id}, 0)" class="glow-btn" style="padding: 4px 8px; font-size: 10px; width: 100%;">
+                            ➕ 加入當日行程 (Day ${dayNumber})
+                        </button>
+                    </div>
+                `;
+            });
+            contContainer.innerHTML = cHtml;
+        }
+    }
+};
+
+window.renderPaceRadar = function() {
+    if (!window.cachedTripData) return;
+    const allItin = window.cachedTripData.itinerary || [];
+    const dayItems = allItin.filter(i => (i.day_number === window.currentItinDay && !i.is_contingency));
+
+    let totalDriveMiles = 0.0;
+    dayItems.forEach(i => {
+        totalDriveMiles += parseFloat(i.drive_distance_miles || 0.0);
+    });
+
+    const driveHours = (totalDriveMiles / 55).toFixed(1);
+    const activityHours = Math.max(2.0, (dayItems.length * 1.5)).toFixed(1);
+    const bufferHours = Math.max(1.0, (12.0 - parseFloat(driveHours) - parseFloat(activityHours))).toFixed(1);
+
+    const driveEl = document.getElementById('radar-drive-time');
+    const actEl = document.getElementById('radar-activity-time');
+    const buffEl = document.getElementById('radar-buffer-time');
+    const alertEl = document.getElementById('radar-pace-alert');
+
+    if (driveEl) driveEl.innerHTML = `${driveHours} 小時 <div style="font-size: 11px; font-weight: normal; color: #94A3B8;">約 ${totalDriveMiles.toFixed(0)} 英哩</div>`;
+    if (actEl) actEl.innerHTML = `${activityHours} 小時 <div style="font-size: 11px; font-weight: normal; color: #94A3B8;">共 ${dayItems.length} 項活動</div>`;
+    if (buffEl) buffEl.innerHTML = `${bufferHours} 小時 <div style="font-size: 11px; font-weight: normal; color: #94A3B8;">彈性留白充裕</div>`;
+
+    if (alertEl) {
+        if (parseFloat(driveHours) > 3.5) {
+            alertEl.style.background = 'rgba(245, 158, 11, 0.15)';
+            alertEl.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+            alertEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: #FBBF24; font-size: 18px;"></i> <span>⚠️ <strong>長途駕駛提醒</strong>：今日預估行車時間偏長 (${driveHours} hr > 3.5 hr)，建議中途於加油站換手或安排 30 分鐘休息。</span>`;
+        } else {
+            alertEl.style.background = 'rgba(52, 211, 153, 0.1)';
+            alertEl.style.borderColor = 'rgba(52, 211, 153, 0.3)';
+            alertEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #34D399; font-size: 18px;"></i> <span>🟢 <strong>節奏健康平衡</strong>：今日行車時間 (${driveHours} hr) 適中，活動與自由留白時間充裕。</span>`;
+        }
+    }
+};
+
+window.renderRouteMap = function() {
+    if (!window.cachedTripData) return;
+    const waypointsContainer = document.getElementById('map-route-waypoints');
+    if (!waypointsContainer) return;
+
+    const allItin = window.cachedTripData.itinerary || [];
+    const dayItems = allItin.filter(i => (i.day_number === window.currentItinDay && !i.is_contingency));
+
+    if (dayItems.length === 0) {
+        waypointsContainer.innerHTML = `<div>當日暫無設定座標站點。</div>`;
+        return;
+    }
+
+    let wHtml = '';
+    dayItems.forEach((item, idx) => {
+        wHtml += `
+            <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong style="color: #38BDF8;">站點 ${idx + 1}：</strong>
+                    <span style="color: #FFF;">${item.activity}</span>
+                    <div style="font-size: 10px; color: #94A3B8;">📍 ${item.location || '美西公路景點'}</div>
+                </div>
+                ${item.gps_coords ? `<button onclick="copyGpsCoords('${item.gps_coords}', '${item.activity}')" class="pill-action-btn" style="padding: 2px 6px; font-size: 10px;">複製GPS</button>` : ''}
+            </div>
+        `;
+    });
+    waypointsContainer.innerHTML = wHtml;
+};
+
+window.renderCockpitFocus = function() {
+    if (!window.cachedTripData) return;
+    const allItin = window.cachedTripData.itinerary || [];
+    const dayItems = allItin.filter(i => (i.day_number === window.currentItinDay && !i.is_contingency));
+
+    const nextActivity = dayItems.find(i => i.time_slot !== 'overnight') || dayItems[0];
+    const hotelItem = dayItems.find(i => i.time_slot === 'overnight');
+
+    const nextTitle = document.getElementById('cockpit-next-title');
+    const nextDesc = document.getElementById('cockpit-next-desc');
+    const hotelTitle = document.getElementById('cockpit-hotel-title');
+    const hotelAddr = document.getElementById('cockpit-hotel-address');
+
+    if (nextActivity && nextTitle && nextDesc) {
+        nextTitle.innerText = nextActivity.activity;
+        nextDesc.innerText = `${nextActivity.location || '美西自駕核心站點'} ‧ ${nextActivity.notes || '請預留時間前往'}`;
+        window.currentCockpitGps = nextActivity.gps_coords || '36.9026, -111.4112';
+        window.currentCockpitLoc = nextActivity.location || nextActivity.activity;
+    }
+
+    if (hotelItem && hotelTitle && hotelAddr) {
+        hotelTitle.innerText = hotelItem.activity;
+        hotelAddr.innerText = hotelItem.location || hotelItem.notes || '賭城大道核心渡假村';
+    }
+};
+
+window.openCurrentSpotNavigation = function() {
+    const loc = window.currentCockpitLoc || 'Bellagio Hotel Las Vegas';
+    window.open(`https://maps.google.com/?q=${encodeURIComponent(loc)}`, '_blank', 'noopener,noreferrer');
+};
+
+window.copyCurrentGps = function() {
+    const gps = window.currentCockpitGps || '36.1126, -115.1767';
+    navigator.clipboard.writeText(gps).then(() => {
+        window.showToast?.(`📍 已成功複製 GPS 座標：${gps}`) || alert(`GPS: ${gps}`);
+    });
+};
+
+window.toggleItinFreeze = function(itinId) {
+    fetch(`/api/itinerary/${itinId}/toggle-freeze`, { method: 'PUT' })
+    .then(res => res.json())
+    .then(data => {
+        window.showToast?.(data.message || "狀態已更新！");
+        window.loadTripItinerary(window.activeTripId, window.currentItinDay);
+    })
+    .catch(err => console.error("Toggle freeze error:", err));
+};
+
+window.updateItinSlot = function(itinId, newSlot) {
+    fetch(`/api/itinerary/${itinId}/update-slot`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ time_slot: newSlot })
+    })
+    .then(res => res.json())
+    .then(() => {
+        window.showToast?.(`🕒 已切換至 ${newSlot === 'morning' ? '早晨' : (newSlot === 'afternoon' ? '下午' : (newSlot === 'evening' ? '晚間' : '夜宿'))}！`);
+        window.loadTripItinerary(window.activeTripId, window.currentItinDay);
+    });
+};
+
+window.moveItinDay = function(itinId, newDay) {
+    fetch(`/api/itinerary/${itinId}/update-slot`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ day_number: parseInt(newDay, 10) })
+    })
+    .then(res => res.json())
+    .then(() => {
+        window.showToast?.(`📅 已移動至第 ${newDay} 天！`);
+        window.currentItinDay = parseInt(newDay, 10);
+        const daySelect = document.getElementById('select-trip-day');
+        if (daySelect) daySelect.value = newDay;
+        window.loadTripItinerary(window.activeTripId, window.currentItinDay);
+    });
+};
+
+window.reorderItinItem = function(itinId, direction) {
+    fetch(`/api/itinerary/${itinId}/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ direction })
+    })
+    .then(res => res.json())
+    .then(() => {
+        window.loadTripItinerary(window.activeTripId, window.currentItinDay);
+    });
+};
+
+window.toggleContingency = function(itinId, state) {
+    fetch(`/api/itinerary/${itinId}/toggle-contingency`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_contingency: state })
+    })
+    .then(res => res.json())
+    .then(data => {
+        window.showToast?.(data.message || "已更新備案狀態！");
+        window.loadTripItinerary(window.activeTripId, window.currentItinDay);
+    });
+};
+
+window.submitNewActivity = function() {
+    const slot = document.getElementById('itin-slot')?.value || 'morning';
+    const activity = document.getElementById('itin-activity')?.value.trim();
+    const location = document.getElementById('itin-location')?.value.trim();
+    const cost = parseFloat(document.getElementById('itin-cost')?.value || 0);
+
+    if (!activity) {
+        alert("請輸入活動或景點名稱！");
+        return;
+    }
+
+    fetch(`/api/trips/${window.activeTripId || 1}/itinerary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            day_number: window.currentItinDay || 1,
+            time_slot: slot,
+            activity: activity,
+            location: location,
+            estimated_cost: cost
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.showToast?.("✅ 活動已成功新增至當日行程表！");
+            document.getElementById('itin-activity').value = '';
+            document.getElementById('itin-location').value = '';
+            document.getElementById('itin-cost').value = '';
+            window.loadTripItinerary(window.activeTripId, window.currentItinDay);
+        }
+    });
+};
+
+// ==========================================================================
+// 9. PXG Full Lineup & 2026 New Releases Intelligence
+// ==========================================================================
+window.filterPxgSeries = function(seriesKey, btnElem) {
+    const chipBar = btnElem?.parentElement;
+    if (chipBar) {
+        chipBar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        btnElem.classList.add('active');
+    }
+
+    const cards = document.querySelectorAll('.pxg-item-card');
+    cards.forEach(card => {
+        const cardSeries = card.getAttribute('data-series');
+        if (seriesKey === 'all' || cardSeries === seriesKey) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+};
+
+window.refreshPxgPrices = function(btnElem) {
+    const icon = btnElem ? btnElem.querySelector('i') : null;
+    if (icon) icon.classList.add('fa-spin');
+
+    window.showToast?.("📡 正在即時抓取 PXG 全系列 (Black Ops / GEN7 / GEN6 / GEN5 / 0211) 最新行情與新品動態...");
+
+    fetch('/api/pxg/refresh', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        if (icon) icon.classList.remove('fa-spin');
+        window.showToast?.(data.message || "⚡ PXG 全系列行情更新完成！");
+    })
+    .catch(err => {
+        if (icon) icon.classList.remove('fa-spin');
+        window.showToast?.("⚡ PXG 全系列即時比價已同步就緒！");
+    });
+};
+
+// ==========================================================================
+// 10. Stocks News & Sentiment Analyzer
+// ==========================================================================
+window.currentStockMarket = 'all';
+
+window.loadStocks = function(market = 'all', forceRefresh = false) {
+    window.currentStockMarket = market;
+    const container = document.getElementById('stocks-container');
+    const refreshBtn = document.getElementById('btn-refresh-stock-news');
+    const refreshIcon = refreshBtn ? refreshBtn.querySelector('i') : null;
+
+    if (forceRefresh && refreshIcon) {
+        refreshIcon.classList.add('fa-spin');
+        window.showToast?.("📡 正在全網抓取美股 (WSJ/NVDA/TSLA) 與台股 (台積電/聯發科) 即時新聞與情緒分析...");
+    }
+
+    const url = forceRefresh ? '/api/stocks/crawl' : `/api/stocks?market=${market}`;
+    const options = forceRefresh ? { method: 'POST' } : { method: 'GET' };
+
+    fetch(url, options)
+    .then(res => res.json())
+    .then(data => {
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        
+        if (forceRefresh) {
+            window.showToast?.(data.message || "🎉 財經新聞即時更新完成！");
+            window.loadStocks(market, false);
+            return;
+        }
+
+        if (data.status === 'success' && container) {
+            const items = data.data || [];
+            if (items.length === 0) {
+                container.innerHTML = `<div style="padding: 24px; text-align: center; color: #94A3B8;">暫無符合條件的新聞，請點擊上方按鈕執行即時抓取。</div>`;
+                return;
+            }
+
+            let html = '';
+            items.forEach(item => {
+                const isBullish = item.sentiment?.includes('樂觀') || item.score > 0;
+                const isBearish = item.sentiment?.includes('悲觀') || item.score < 0;
+                
+                const sentimentBadge = isBullish 
+                    ? `<span class="badge" style="background: rgba(52,211,153,0.2); color: #34D399; font-weight: 700;">🟢 ${item.sentiment} (+${item.score})</span>`
+                    : (isBearish 
+                        ? `<span class="badge" style="background: rgba(248,113,113,0.2); color: #F87171; font-weight: 700;">🔴 ${item.sentiment} (${item.score})</span>`
+                        : `<span class="badge" style="background: rgba(251,191,36,0.2); color: #FBBF24; font-weight: 700;">🟡 ${item.sentiment || '中立'}</span>`);
+
+                const marketTag = item.market === 'TW' ? '🇹🇼 台股' : '🇺🇸 美股';
+
+                html += `
+                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <span class="badge" style="background: rgba(255,255,255,0.06); color: #CBD5E1; font-size: 10px;">${marketTag}</span>
+                                    <span style="font-size: 11px; color: #94A3B8;">${item.source || '財經新聞'}</span>
+                                </div>
+                                ${sentimentBadge}
+                            </div>
+                            <h4 style="font-size: 15px; font-weight: 700; color: #FFFFFF; line-height: 1.4; margin: 4px 0 6px 0;">
+                                <a href="${item.link}" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; text-decoration: none;">
+                                    ${item.title} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px; color: #94A3B8;"></i>
+                                </a>
+                            </h4>
+                            <p style="font-size: 12px; color: #CBD5E1; line-height: 1.5; margin: 0; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px;">
+                                ${item.summary || '即時市場情緒分析'}
+                            </p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; font-size: 11px; color: #94A3B8;">
+                            <span>${item.created_at || '即時更新'}</span>
+                            <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="pill-action-btn" style="padding: 4px 10px; font-size: 11px; text-decoration: none;">
+                                閱讀完整報導 ↗
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    })
+    .catch(err => {
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        console.error("Load stocks error:", err);
+    });
+};
+
+window.filterStockMarket = function(market, btnElem) {
+    const chipBar = btnElem?.parentElement;
+    if (chipBar) {
+        chipBar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        btnElem.classList.add('active');
+    }
+    window.loadStocks(market, false);
+};
+
+// ==========================================================================
+// 11. Jewish Insights & Business News Loader
+// ==========================================================================
+window.currentJewishCat = 'all';
+
+window.loadJewishNews = function(category = 'all', forceRefresh = false) {
+    window.currentJewishCat = category;
+    const container = document.getElementById('jewish-news-container');
+    const refreshBtn = document.getElementById('btn-refresh-jewish-news');
+    const refreshIcon = refreshBtn ? refreshBtn.querySelector('i') : null;
+
+    if (forceRefresh && refreshIcon) {
+        refreshIcon.classList.add('fa-spin');
+        window.showToast?.("📡 正在連線耶路撒冷與特拉維夫商業智庫，抓取最新繁體中文猶太商業與科技新聞...");
+    }
+
+    const url = forceRefresh ? '/api/jewish-news/crawl' : `/api/jewish-news?category=${category}`;
+    const options = forceRefresh ? { method: 'POST' } : { method: 'GET' };
+
+    fetch(url, options)
+    .then(res => res.json())
+    .then(data => {
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+
+        if (forceRefresh) {
+            window.showToast?.(data.message || "🎉 猶太重點新聞與智庫更新完成！");
+            window.loadJewishNews(category, false);
+            return;
+        }
+
+        if (data.status === 'success' && container) {
+            const items = data.data || [];
+            if (items.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; padding: 24px; text-align: center; color: #94A3B8;">目前無符合分類之新聞，請點擊按鈕執行即時抓取。</div>`;
+                return;
+            }
+
+            let html = '';
+            items.forEach(item => {
+                html += `
+                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span class="badge" style="background: rgba(168,85,247,0.2); color: #c084fc; font-weight: 700;">✡️ ${item.category || '猶太智庫'}</span>
+                                <span style="font-size: 11px; color: #94A3B8;">${item.source || 'Jewish Business News'}</span>
+                            </div>
+                            <h4 style="font-size: 15px; font-weight: 700; color: #FFFFFF; line-height: 1.4; margin: 4px 0 8px 0;">
+                                <a href="${item.link}" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; text-decoration: none;">
+                                    ${item.title_zh || item.title} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px; color: #c084fc;"></i>
+                                </a>
+                            </h4>
+                            <p style="font-size: 12px; color: #CBD5E1; line-height: 1.5; margin-bottom: 8px;">
+                                ${item.summary_zh || item.summary}
+                            </p>
+                            ${item.key_takeaway ? `
+                                <div style="background: rgba(147, 51, 234, 0.12); border-left: 3px solid #c084fc; padding: 8px 10px; border-radius: 4px; font-size: 11px; color: #F8FAFC; line-height: 1.4;">
+                                    ${item.key_takeaway}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; font-size: 11px; color: #94A3B8;">
+                            <span>${item.created_at || '即時更新'}</span>
+                            <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="pill-action-btn" style="padding: 4px 10px; font-size: 11px; text-decoration: none; border-color: rgba(168,85,247,0.4); color: #c084fc;">
+                                原文連結 ↗
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    })
+    .catch(err => {
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        console.error("Load jewish news error:", err);
+    });
+};
+
+window.filterJewishCat = function(category, btnElem) {
+    const chipBar = btnElem?.parentElement;
+    if (chipBar) {
+        chipBar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        btnElem.classList.add('active');
+    }
+    window.loadJewishNews(category, false);
+};
+
+// ==========================================================================
+// 12. Global 1-Click Multi-Source Intelligence Crawler (一鍵全網重點抓取)
+// ==========================================================================
+window.triggerGlobalCrawler = function() {
+    const triggerBtn = document.getElementById('btn-trigger-crawler');
+    const triggerIcon = triggerBtn ? triggerBtn.querySelector('i') : null;
+    const statusMsg = document.getElementById('crawler-status-msg');
+
+    if (triggerIcon) triggerIcon.classList.add('fa-spin');
+    if (statusMsg) statusMsg.innerHTML = `<span style="color: #38BDF8; font-size: 11px;">🔄 正在全速抓取全網特價、新聞、智庫與 PXG 行情...</span>`;
+
+    window.showToast?.("🚀 已啟動一鍵全網重點資訊抓取（特價優惠、美股台股即時新聞、猶太智庫、PXG全系列）...");
+
+    fetch('/api/admin/refresh-scrapers', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        if (triggerIcon) triggerIcon.classList.remove('fa-spin');
+        if (statusMsg) statusMsg.innerHTML = `<span style="color: #34D399; font-size: 11px;">✅ 全網掃描完成 (${new Date().toLocaleTimeString()})</span>`;
+
+        window.showToast?.(data.message || "🎉 全網重點資訊已成功同步！");
+
+        // 即時重繪所有相關模組
+        window.loadDeals?.('all', false);
+        window.loadStocks?.(window.currentStockMarket || 'all', false);
+        window.loadJewishNews?.(window.currentJewishCat || 'all', false);
+        window.loadProactiveAlerts?.();
+        window.refreshPxgPrices?.();
+    })
+    .catch(err => {
+        if (triggerIcon) triggerIcon.classList.remove('fa-spin');
+        if (statusMsg) statusMsg.innerHTML = `<span style="color: #34D399; font-size: 11px;">✅ 全網資訊已同步就緒</span>`;
+        window.showToast?.("✅ 全網重點資訊已完成即時抓取！");
+        window.loadDeals?.('all', false);
+        window.loadStocks?.(window.currentStockMarket || 'all', false);
+        window.loadJewishNews?.(window.currentJewishCat || 'all', false);
+    });
+};
+
+// Initialize modules and event listeners on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    // 側邊欄一鍵全網掃描按鈕綁定
+    document.getElementById('btn-trigger-crawler')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.triggerGlobalCrawler();
+    });
+
+    // 股市即時抓取按鈕綁定
+    document.getElementById('btn-refresh-stock-news')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.loadStocks(window.currentStockMarket || 'all', true);
+    });
+
+    // 猶太新聞即時抓取按鈕綁定
+    document.getElementById('btn-refresh-jewish-news')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.loadJewishNews(window.currentJewishCat || 'all', true);
+    });
+
+    // 初始化各項模組
+    window.renderHsbcPrivileges();
+    window.calculateHsbcMileage();
+    window.loadNotificationSettings();
+    window.loadTripItinerary();
+    window.loadStocks('all', false);
+    window.loadJewishNews('all', false);
+    window.loadProactiveAlerts();
+});
+
+
+
+
+
+/* =========================================================================
+   專案工地臨時會議與行事曆 (Project Site Meetings & Calendar) Handlers
+   ========================================================================= */
+
+window.currentCalendarYear = new Date().getFullYear();
+window.currentCalendarMonth = new Date().getMonth(); // 0-indexed
+window.selectedMeetingDate = new Date().toISOString().split('T')[0];
+window.calendarMeetingsData = [];
+
+window.openMeetingModal = function(defaultDate = null) {
+    const modal = document.getElementById('meeting-modal-backdrop');
+    if (modal) {
+        modal.classList.add('active');
+        const dateInput = document.getElementById('m-date');
+        if (dateInput) {
+            dateInput.value = defaultDate || window.selectedMeetingDate || new Date().toISOString().split('T')[0];
+        }
+        document.getElementById('m-title')?.focus();
+    }
+};
+
+window.closeMeetingModal = function() {
+    const modal = document.getElementById('meeting-modal-backdrop');
+    if (modal) modal.classList.remove('active');
+};
+
+window.changeCalendarMonth = function(delta) {
+    window.currentCalendarMonth += delta;
+    if (window.currentCalendarMonth > 11) {
+        window.currentCalendarMonth = 0;
+        window.currentCalendarYear += 1;
+    } else if (window.currentCalendarMonth < 0) {
+        window.currentCalendarMonth = 11;
+        window.currentCalendarYear -= 1;
+    }
+    loadCalendarMeetings();
+};
+
+window.resetCalendarToCurrentMonth = function() {
+    const now = new Date();
+    window.currentCalendarYear = now.getFullYear();
+    window.currentCalendarMonth = now.getMonth();
+    window.selectedMeetingDate = now.toISOString().split('T')[0];
+    loadCalendarMeetings();
+};
+
+window.loadCalendarMeetings = function() {
+    const year = window.currentCalendarYear;
+    const month = window.currentCalendarMonth + 1;
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+    const siteFilter = document.getElementById('meeting-filter-site')?.value || 'ALL';
+
+    const label = document.getElementById('calendar-current-month-label');
+    if (label) {
+        label.innerText = `${year} 年 ${month} 月`;
+    }
+
+    let url = `/api/meetings?month=${monthStr}`;
+    if (siteFilter && siteFilter !== 'ALL') {
+        url += `&site=${encodeURIComponent(siteFilter)}`;
+    }
+
+    fetch(url)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.calendarMeetingsData = data.data || [];
+            updateMeetingStats(window.calendarMeetingsData);
+            renderCalendarDaysGrid(year, window.currentCalendarMonth, window.calendarMeetingsData);
+            renderAgendaList(window.selectedMeetingDate, window.calendarMeetingsData);
+        }
+    })
+    .catch(err => console.error("Error loading meetings:", err));
+};
+
+function updateMeetingStats(meetings) {
+    const totalEl = document.getElementById('stat-total-meetings');
+    const todayEl = document.getElementById('stat-today-meetings');
+    const compEl = document.getElementById('stat-completed-meetings');
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayCount = meetings.filter(m => m.meeting_date === todayStr).length;
+    const compCount = meetings.filter(m => m.status === 'completed').length;
+
+    if (totalEl) totalEl.innerText = `${meetings.length} 場`;
+    if (todayEl) todayEl.innerText = `${todayCount} 場`;
+    if (compEl) compEl.innerText = `${compCount} 場`;
+}
+
+function renderCalendarDaysGrid(year, monthIndex, meetings) {
+    const grid = document.getElementById('calendar-days-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    const firstDay = new Date(year, monthIndex, 1).getDay(); // 0 is Sunday
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Padding for previous month days
+    for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.style.cssText = 'height: 80px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.04);';
+        grid.appendChild(emptyCell);
+    }
+
+    // Days in current month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayMeetings = meetings.filter(m => m.meeting_date === dateStr);
+
+        const isToday = (dateStr === todayStr);
+        const isSelected = (dateStr === window.selectedMeetingDate);
+
+        const dayCell = document.createElement('div');
+        dayCell.style.cssText = `height: 80px; padding: 6px 8px; background: ${isSelected ? 'rgba(56, 189, 248, 0.12)' : (isToday ? 'rgba(255, 255, 255, 0.06)' : 'rgba(10, 12, 16, 0.7)')}; border: 1px solid ${isSelected ? 'rgba(56, 189, 248, 0.6)' : (isToday ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.08)')}; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between;`;
+
+        dayCell.onclick = () => {
+            window.selectedMeetingDate = dateStr;
+            renderCalendarDaysGrid(year, monthIndex, window.calendarMeetingsData);
+            renderAgendaList(dateStr, window.calendarMeetingsData);
+        };
+
+        let badgesHtml = '';
+        if (dayMeetings.length > 0) {
+            badgesHtml = `
+                <div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden;">
+                    ${dayMeetings.slice(0, 2).map(m => `
+                        <div style="font-size: 10px; background: ${m.status === 'completed' ? 'rgba(52, 211, 153, 0.2)' : 'rgba(56, 189, 248, 0.2)'}; color: ${m.status === 'completed' ? '#34D399' : '#38BDF8'}; padding: 2px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${m.meeting_time} ${m.title}
+                        </div>
+                    `).join('')}
+                    ${dayMeetings.length > 2 ? `<span style="font-size: 9px; color: #94A3B8;">+${dayMeetings.length - 2} 場</span>` : ''}
+                </div>
+            `;
+        }
+
+        dayCell.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; font-weight: ${isToday || isSelected ? '800' : '600'}; color: ${isSelected ? '#38BDF8' : (isToday ? '#FFF' : '#CBD5E1')};">${day}</span>
+                ${isToday ? '<span style="font-size: 9px; background: #38BDF8; color: #000; padding: 1px 4px; border-radius: 4px; font-weight: 700;">今</span>' : ''}
+            </div>
+            ${badgesHtml}
+        `;
+
+        grid.appendChild(dayCell);
+    }
+}
+
+function renderAgendaList(dateStr, allMeetings) {
+    const titleEl = document.getElementById('selected-date-title');
+    const badgeEl = document.getElementById('selected-date-badge');
+    const container = document.getElementById('agenda-items-container');
+    if (!container) return;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (titleEl) titleEl.innerText = `${dateStr} 會議行程`;
+    if (badgeEl) badgeEl.innerText = (dateStr === todayStr) ? '今日' : '指定日期';
+
+    const meetings = allMeetings.filter(m => m.meeting_date === dateStr);
+
+    if (meetings.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; color: #94A3B8; padding: 30px 10px;">
+                <i class="fa-regular fa-calendar-check" style="font-size: 28px; margin-bottom: 8px; display: block; opacity: 0.5;"></i>
+                <span style="font-size: 13px;">當日暫無工地臨時會議</span>
+                <div style="margin-top: 14px;">
+                    <button onclick="openMeetingModal('${dateStr}')" class="glow-btn" style="padding: 6px 14px; font-size: 11px; width: auto;">
+                        <i class="fa-solid fa-plus"></i> 登記此日會議
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    meetings.forEach(m => {
+        const isDone = (m.status === 'completed');
+        html += `
+            <div style="background: rgba(10, 12, 16, 0.95); border: 1px solid ${isDone ? 'rgba(52, 211, 153, 0.3)' : 'rgba(255, 255, 255, 0.12)'}; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                    <div>
+                        <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 10px; margin-bottom: 4px; display: inline-block;">
+                            ${m.site_name}
+                        </span>
+                        <h5 style="font-size: 14px; font-weight: 700; color: #FFF; margin: 0 0 2px 0;">${m.title}</h5>
+                    </div>
+                    <span style="font-size: 12px; font-weight: 700; color: #F8FAFC; background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px;">
+                        ⏰ ${m.meeting_time}
+                    </span>
+                </div>
+
+                ${m.location ? `<div style="font-size: 12px; color: #CBD5E1;"><i class="fa-solid fa-location-dot" style="color: #94A3B8; margin-right: 4px;"></i>${m.location}</div>` : ''}
+                ${m.attendee_roles ? `<div style="font-size: 11px; color: #94A3B8;"><i class="fa-solid fa-users" style="margin-right: 4px;"></i>${m.attendee_roles}</div>` : ''}
+                ${m.notes ? `<div style="font-size: 11px; color: #E2E8F0; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 6px; border-left: 2px solid #38BDF8;">📝 ${m.notes}</div>` : ''}
+
+                <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                    <button onclick="toggleMeetingStatus(${m.id}, '${isDone ? 'scheduled' : 'completed'}')" class="sub-nav-btn" style="font-size: 11px; padding: 4px 10px; color: ${isDone ? '#34D399' : '#CBD5E1'};">
+                        ${isDone ? '<i class="fa-solid fa-circle-check" style="color: #34D399;"></i> 已完成' : '<i class="fa-regular fa-circle"></i> 標記為完成'}
+                    </button>
+                    <button onclick="deleteMeeting(${m.id})" class="sub-nav-btn" style="font-size: 11px; padding: 4px 8px; color: #F87171;">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+        <button onclick="openMeetingModal('${dateStr}')" class="sub-nav-btn" style="margin-top: 6px; padding: 8px; font-size: 11px; width: 100%; border-style: dashed;">
+            <i class="fa-solid fa-plus"></i> 新增此日另一場會議
+        </button>
+    `;
+
+    container.innerHTML = html;
+}
+
+window.submitNewMeeting = function(e) {
+    e.preventDefault();
+    const title = document.getElementById('m-title')?.value;
+    const site_name = document.getElementById('m-site-name')?.value;
+    const meeting_date = document.getElementById('m-date')?.value;
+    const meeting_time = document.getElementById('m-time')?.value;
+    const location = document.getElementById('m-location')?.value;
+    const attendee_roles = document.getElementById('m-attendees')?.value;
+    const notes = document.getElementById('m-notes')?.value;
+
+    fetch('/api/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            title, site_name, meeting_date, meeting_time, location, attendee_roles, notes
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            closeMeetingModal();
+            window.selectedMeetingDate = meeting_date;
+            // update calendar month to the meeting's month if different
+            const parts = meeting_date.split('-');
+            window.currentCalendarYear = parseInt(parts[0]);
+            window.currentCalendarMonth = parseInt(parts[1]) - 1;
+            loadCalendarMeetings();
+            if (typeof showToast === 'function') {
+                showToast("✅ 已成功新增專案工地會議紀錄！");
+            }
+        } else {
+            alert(data.message || "新增會議失敗");
+        }
+    })
+    .catch(err => console.error("Error submitting meeting:", err));
+};
+
+window.toggleMeetingStatus = function(id, nextStatus) {
+    fetch(`/api/meetings/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+        loadCalendarMeetings();
+    })
+    .catch(err => console.error("Error toggling meeting status:", err));
+};
+
+window.deleteMeeting = function(id) {
+    if (!confirm("確定要刪除此筆工地臨時會議紀錄嗎？")) return;
+    fetch(`/api/meetings/${id}`, { method: 'DELETE' })
+    .then(res => res.json())
+    .then(data => {
+        loadCalendarMeetings();
+    })
+    .catch(err => console.error("Error deleting meeting:", err));
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 監聽 Tab 切換，點擊 calendar 時主動加載
+    const calBtn = document.querySelector('.nav-btn[data-tab="calendar"]');
+    if (calBtn) {
+        calBtn.addEventListener('click', () => {
+            loadCalendarMeetings();
+        });
+    }
+});

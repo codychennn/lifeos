@@ -58,6 +58,20 @@ def init_db():
         pass
 
     # 猶太人智庫與重點新聞資料表
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS project_meetings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            site_name TEXT NOT NULL,
+            meeting_date TEXT NOT NULL,
+            meeting_time TEXT NOT NULL,
+            location TEXT,
+            attendee_roles TEXT,
+            status TEXT DEFAULT 'scheduled',
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS my_travel_list (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
