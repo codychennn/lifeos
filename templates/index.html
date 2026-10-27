@@ -22,20 +22,20 @@
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar glass-panel">
-            <!-- 世界潮牌新品輪播動態牆 (Top-Left Dynamic Fashion Wall) -->
-            <div class="trendy-brands-wall glass-card" style="margin-bottom: 20px; padding: 14px 16px; background: linear-gradient(135deg, rgba(232,165,184,0.2) 0%, rgba(91,124,153,0.18) 100%); border: 1px solid rgba(91,124,153,0.3); border-radius: 14px; position: relative;">
+            <!-- 世界潮牌新品輪播動態牆 (Top-Left Dynamic Fashion Wall) - 溫潤大地風格 -->
+            <div class="trendy-brands-wall glass-card" style="margin-bottom: 20px; padding: 14px 16px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(167, 182, 162, 0.4); border-radius: 14px; position: relative; box-shadow: 0 2px 10px rgba(140, 106, 78, 0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="badge" style="background: rgba(91,124,153,0.2); color: var(--primary-color); border: 1px solid rgba(91,124,153,0.4); font-size: 11px; font-weight: 800;">🔥 世界潮牌動態牆</span>
-                        <span style="font-size: 10px; color: var(--accent-tea); font-weight: 700;">● LIVE</span>
+                        <span class="badge" style="background: rgba(167, 182, 162, 0.18); color: #8C6A4E; border: 1px solid rgba(167, 182, 162, 0.45); font-size: 11px; font-weight: 700;">🔥 世界潮牌動態</span>
+                        <span style="font-size: 10px; color: #5B8C65; font-weight: 700;">● LIVE</span>
                     </div>
                     <div style="display: flex; gap: 4px;">
-                        <button onclick="prevBrandItem()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFFFFF; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-chevron-left"></i></button>
-                        <button onclick="nextBrandItem()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFFFFF; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-chevron-right"></i></button>
+                        <button onclick="prevBrandItem()" style="background: rgba(167, 182, 162, 0.15); border: 1px solid rgba(167, 182, 162, 0.3); color: #3E3E3E; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="nextBrandItem()" style="background: rgba(167, 182, 162, 0.15); border: 1px solid rgba(167, 182, 162, 0.3); color: #3E3E3E; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;"><i class="fa-solid fa-chevron-right"></i></button>
                     </div>
                 </div>
 
-                <div id="brand-ticker-content" style="min-height: 52px; display: flex; flex-direction: column; justify-content: center; transition: all 0.4s ease;">
+                <div id="brand-ticker-content" style="min-height: 52px; display: flex; flex-direction: column; justify-content: center; transition: all 0.4s ease; color: #3E3E3E;">
                     <!-- Loaded via JS Carousel -->
                 </div>
             </div>
@@ -75,85 +75,98 @@
         <!-- Main Content Area -->
         <main class="main-content">
             <!-- Simple & Generous Header Bar (Clean Dark Architectural Theme) -->
-            <header class="top-header glass-panel" style="margin-bottom: 20px; padding: 16px 24px; background: rgba(18, 20, 26, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);">
+            <header class="top-header glass-panel" style="margin-bottom: 22px; padding: 18px 26px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(167, 182, 162, 0.35); border-radius: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 20px rgba(140, 106, 78, 0.06);">
+                <!-- 左側：系統標題與身分 -->
                 <div>
-                    <h1 id="page-title" style="font-size: 20px; font-weight: 500; color: #FFFFFF; font-family: 'Inter Tight', sans-serif; letter-spacing: 0.5px; margin: 0 0 4px 0;">
+                    <h1 id="page-title" style="font-size: 22px; font-weight: 700; color: #8C6A4E; font-family: 'Noto Serif TC', serif; letter-spacing: 0.5px; margin: 0 0 4px 0;">
                         Cody 的個人數位大腦
                     </h1>
-                    <p id="page-desc" style="font-size: 11px; color: #94A3B8; font-weight: 500; margin: 0; text-transform: uppercase; letter-spacing: 1.5px;">
-                        極簡 AI 工作台 ‧ 模組化儀表板 (Digital Brain Dashboard 2.0)
+                    <p id="page-desc" style="font-size: 12px; color: #6B6B6B; font-weight: 400; margin: 0; letter-spacing: 0.5px;">
+                        極簡 AI 工作台 ‧ 模組化生活與工務儀表板 (LifeOS Dashboard)
                     </p>
                 </div>
 
-                <!-- Live Automation Weather & Currency Ticker -->
-                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                    <div style="padding: 6px 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; font-size: 11px; color: #94A3B8;">
-                        <span id="header-weather-info">☀️ 洛杉磯 24°C 晴朗</span>
-                    </div>
-                    <div style="padding: 6px 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; font-size: 11px; color: #94A3B8;">
-                        <span>💱 匯率: 1 USD = 32.05 TWD</span>
-                    </div>
-                </div>
+                <!-- 右側：整齊切齊的狀態列與操作區 -->
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                    <!-- 第一排：即時氣候、即期匯率與指令板 (切齊右側) -->
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                        <!-- 當地氣候 -->
+                        <div style="padding: 6px 14px; background: rgba(167, 182, 162, 0.12); border: 1px solid rgba(167, 182, 162, 0.35); border-radius: 20px; font-size: 12px; color: #3E3E3E; display: flex; align-items: center; gap: 6px;">
+                            <span id="header-weather-info">☀️ 洛杉磯 24°C 晴朗</span>
+                        </div>
 
-                <!-- Header Actions: Command Palette (Ctrl+K) & Role-Based View Switcher (規約 1 & 6) -->
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="pill-action-btn" onclick="openCommandPalette()" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #F8FAFC;">
-                        <i class="fa-solid fa-terminal" style="margin-right: 4px;"></i> Ctrl+K 指令板
-                    </button>
-                    
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 11px; color: #94A3B8;">視角:</span>
-                        <select id="role-view-selector" class="cyber-input" style="padding: 6px 10px; font-size: 11px; border-radius: 14px;" onchange="switchRoleView(this.value)">
-                            <option value="admin" selected>👑 Power Admin 視角 (完整設定)</option>
-                            <option value="senior">👴 Senior Family 視角 (大字大動線)</option>
-                            <option value="print">📄 PDF Print 視角 (極簡列印)</option>
-                        </select>
+                        <!-- 基準匯率 -->
+                        <div style="padding: 6px 14px; background: rgba(167, 182, 162, 0.12); border: 1px solid rgba(167, 182, 162, 0.35); border-radius: 20px; font-size: 12px; color: #3E3E3E; display: flex; align-items: center; gap: 6px;">
+                            <span>💱 1 USD = 32.05 TWD</span>
+                        </div>
+
+                        <!-- 🔍 CTRL+K 指令板按鈕：高對比清晰黑字與微米米白底 -->
+                        <button class="pill-action-btn" onclick="openCommandPalette()" style="background: rgba(140, 106, 78, 0.1); border: 1px solid rgba(140, 106, 78, 0.35); color: #8C6A4E; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all 0.2s ease;">
+                            <i class="fa-solid fa-terminal" style="margin-right: 4px; color: #8C6A4E;"></i> Ctrl+K 指令板
+                        </button>
+                        
+                        <!-- 視角切換器 -->
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 12px; color: #6B6B6B; font-weight: 500;">視角:</span>
+                            <select id="role-view-selector" class="cyber-input" style="padding: 6px 10px; font-size: 12px; border-radius: 12px; background: #FFF; color: #3E3E3E; border: 1px solid rgba(167, 182, 162, 0.4);" onchange="switchRoleView(this.value)">
+                                <option value="admin" selected>👑 Power Admin 視角 (完整設定)</option>
+                                <option value="senior">👴 Senior Family 視角 (大字大動線)</option>
+                                <option value="print">📄 PDF Print 視角 (極簡列印)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 第二排：台銀即期匯率算盤 ＋ 琥珀金旅行清單主按鈕 (嚴謹切齊) -->
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end;">
+                        <!-- 🏦 台灣銀行即期匯率與即時換算算盤 -->
+                        <div style="display: flex; align-items: center; gap: 10px; background: rgba(244, 241, 237, 0.85); border: 1px solid rgba(167, 182, 162, 0.35); padding: 6px 14px; border-radius: 12px;">
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #3E3E3E; font-weight: 600;">
+                                <i class="fa-solid fa-building-columns" style="color: #8C6A4E;"></i> 台銀即期:
+                                <select id="header-bank-fx-select" class="input-modern" style="padding: 3px 8px; font-size: 12px; background: #FFF; color: #3E3E3E; border: 1px solid rgba(167, 182, 162, 0.4); border-radius: 6px;">
+                                    <option value="USD">🇺🇸 USD (32.10)</option>
+                                    <option value="JPY">🇯🇵 JPY (0.2155)</option>
+                                    <option value="EUR">🇪🇺 EUR (34.90)</option>
+                                    <option value="GBP">🇬🇧 GBP (41.70)</option>
+                                    <option value="SGD">🇸🇬 SGD (24.45)</option>
+                                    <option value="AUD">🇦🇺 AUD (21.50)</option>
+                                    <option value="HKD">🇭🇰 HKD (4.12)</option>
+                                    <option value="VND">🇻🇳 VND (0.0013)</option>
+                                    <option value="CNY">🇨🇳 CNY (4.49)</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="number" id="quick-convert-amount" value="100" class="input-modern" style="width: 65px; padding: 3px 6px; font-size: 12px; background: #FFF; color: #3E3E3E; border: 1px solid rgba(167, 182, 162, 0.4); border-radius: 6px;" placeholder="外幣">
+                                <span style="font-size: 12px; color: #8C6A4E; font-weight: 700;">➔</span>
+                                <span id="quick-convert-result" style="font-size: 13px; font-weight: 700; color: #8C6A4E;">NT$ 3,210</span>
+                            </div>
+                        </div>
+
+                        <!-- 🧳 我的個人旅行與美食清單捷徑：主色實心琥珀金黃 CTA 按鈕 -->
+                        <button id="btn-open-my-list" onclick="switchTab('travelbook')" class="glow-btn" style="width: auto; padding: 8px 18px; font-size: 12px; background: #D9A066; color: #FFFFFF; border-radius: 30px; font-weight: 700; box-shadow: 0 3px 12px rgba(217, 160, 102, 0.3);">
+                            <i class="fa-solid fa-suitcase-rolling" style="color: #FFFFFF;"></i> 我的旅行清單 (<span id="my-list-count-badge">0</span>)
+                        </button>
                     </div>
                 </div>
-            
-            <!-- 🏦 台灣銀行即期匯率與即時換算算盤 (Bank Spot FX Ticker) -->
-            <div style="display: flex; align-items: center; gap: 12px; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); padding: 8px 16px; border-radius: 12px;">
-                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #CBD5E1;">
-                    <i class="fa-solid fa-building-columns" style="color: #F8FAFC;"></i> 台銀即期:
-                    <select id="header-bank-fx-select" class="input-modern" style="padding: 4px 8px; font-size: 12px;">
-                        <option value="USD">🇺🇸 USD (32.10)</option>
-                        <option value="JPY">🇯🇵 JPY (0.2155)</option>
-                        <option value="EUR">🇪🇺 EUR (34.90)</option>
-                        <option value="GBP">🇬🇧 GBP (41.70)</option>
-                        <option value="SGD">🇸🇬 SGD (24.45)</option>
-                        <option value="AUD">🇦🇺 AUD (21.50)</option>
-                        <option value="HKD">🇭🇰 HKD (4.12)</option>
-                        <option value="VND">🇻🇳 VND (0.0013)</option>
-                        <option value="CNY">🇨🇳 CNY (4.49)</option>
-                    </select>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <input type="number" id="quick-convert-amount" value="100" class="input-modern" style="width: 70px; padding: 4px 8px; font-size: 12px;" placeholder="外幣">
-                    <span style="font-size: 12px; color: #94A3B8;">➔</span>
-                    <span id="quick-convert-result" style="font-size: 13px; font-weight: 700; color: #F8FAFC;">NT$ 3,210</span>
-                </div>
-            </div>
-        
-            <!-- 🧳 我的個人旅行與美食清單捷徑 -->
-            <button id="btn-open-my-list" onclick="switchTab('travelbook')" class="glow-btn" style="width: auto; padding: 6px 14px; font-size: 12px; border-color: rgba(255,255,255,0.25);">
-                <i class="fa-solid fa-suitcase-rolling" style="color: #F8FAFC;"></i> 🧳 我的旅行清單 (<span id="my-list-count-badge">0</span>)
-            </button>
         </header>
 
             <!-- Section: Home Landing Page (Executive Standard) -->
             <section id="tab-home" class="tab-content active">
                 
                 <!-- ⚡ 24/7 事件驅動主動風控與套利推播雷達 (Proactive Risk & Arbitrage Radar) -->
-                <div class="card glass-card span-3" style="padding: 22px; background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; margin-bottom: 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
+                <div class="card glass-card span-3" style="padding: 24px; background: #FFFFFF; border: 1px solid rgba(167, 182, 162, 0.4); border-radius: 20px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(140, 106, 78, 0.08); overflow: visible;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(140, 106, 78, 0.12); padding-bottom: 14px;">
                         <div>
-                            <h3 style="font-size: 20px; color: #FFF; font-family: 'Inter Tight', sans-serif; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-bolt" style="color: #F8FAFC;"></i> 24/7 事件驅動主動風控與套利雷達
+                            <h3 style="font-size: 20px; color: #8C6A4E; font-family: 'Noto Serif TC', serif; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0 0 6px 0;">
+                                <i class="fa-solid fa-bolt" style="color: #D9A066;"></i> 24/7 事件驅動主動風控與套利雷達
                             </h3>
-                            <p style="font-size: 12px; color: #94A3B8; margin-top: 4px;">離線持續監控：匯率超跌買點 ‧ 航線暴跌 &gt; 20% ‧ 美股/加密貨幣 MA30 抄底警報（自動產出 3點式黃金行動建議）</p>
+                            <!-- 加深提示文字顏色 (#3E3E3E)，徹底解決在淺色背景上難以閱讀問題 -->
+                            <p style="font-size: 13px; color: #3E3E3E; line-height: 1.6; margin: 0; font-weight: 500;">
+                                離線持續監控：匯率超跌買點 ‧ 航線暴跌 &gt; 20% ‧ 美股/加密貨幣 MA30 抄底警報（自動產出 3點式黃金行動建議）
+                            </p>
                         </div>
-                        <button onclick="triggerProactiveScan()" class="glow-btn" style="width: auto; padding: 10px 20px; background: rgba(56, 189, 248, 0.15); color: #F8FAFC; border: 1px solid rgba(255, 255, 255, 0.18); font-weight: 700; font-size: 12px;">
-                            <i class="fa-solid fa-paper-plane"></i> ⚡ 手動觸發風控套利掃描並推播 Telegram
+                        <!-- 次要操作改用外框樣式 (Outline/Soft) 與主色琥珀金區分層級 -->
+                        <button onclick="triggerProactiveScan()" class="sub-nav-btn" style="width: auto; padding: 9px 18px; background: rgba(140, 106, 78, 0.08); color: #8C6A4E; border: 1px solid rgba(140, 106, 78, 0.35); font-weight: 700; font-size: 12px; border-radius: 20px; cursor: pointer; transition: all 0.25s ease;">
+                            <i class="fa-solid fa-paper-plane" style="color: #8C6A4E;"></i> ⚡ 手動觸發風控套利掃描
                         </button>
                     </div>
 

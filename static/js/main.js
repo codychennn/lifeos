@@ -382,19 +382,19 @@ window.loadProactiveAlerts = function() {
             let html = '';
             data.data.forEach(a => {
                 html += `
-                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
+                    <div style="background: #FFFFFF; border: 1px solid rgba(167, 182, 162, 0.4); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; box-shadow: 0 4px 16px rgba(140, 106, 78, 0.08); min-height: 250px; overflow: visible; height: auto;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="badge">${a.category}</span>
-                            <span style="font-size: 10px; color: #94A3B8;">24/7 自動風控</span>
+                            <span class="badge" style="background: rgba(140, 106, 78, 0.12); color: #8C6A4E; font-weight: 700; border: 1px solid rgba(140, 106, 78, 0.25); border-radius: 6px; padding: 3px 8px; font-size: 11px;">${a.category}</span>
+                            <span style="font-size: 11px; color: #6B6B6B; font-weight: 600;">24/7 自動風控</span>
                         </div>
-                        <h4 style="font-size: 14px; font-weight: 700; color: #FFF; margin: 0; line-height: 1.4;">${a.title}</h4>
-                        <div style="font-size: 11px; color: #E2E8F0; font-weight: 700; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 6px;">
+                        <h4 style="font-size: 15px; font-weight: 700; color: #8C6A4E; margin: 0; line-height: 1.4; font-family: 'Noto Serif TC', serif;">${a.title}</h4>
+                        <div style="font-size: 12px; color: #3E3E3E; font-weight: 700; background: rgba(167, 182, 162, 0.15); border: 1px solid rgba(167, 182, 162, 0.3); padding: 8px 12px; border-radius: 8px;">
                             📊 ${a.metrics}
                         </div>
-                        <div style="font-size: 11px; color: #CBD5E1; line-height: 1.5; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
-                            <div style="color: #F8FAFC; font-weight: 700; margin-bottom: 4px;">💡 3點式行動建議：</div>
-                            <div>${a.recommendation_3bullets[0]}</div>
-                            <div>${a.recommendation_3bullets[1]}</div>
+                        <div style="font-size: 12px; color: #3E3E3E; line-height: 1.6; background: rgba(244, 241, 237, 0.95); border: 1px solid rgba(140, 106, 78, 0.15); border-left: 4px solid #D9A066; padding: 12px 14px; border-radius: 8px; overflow: visible; word-break: break-word;">
+                            <div style="color: #8C6A4E; font-weight: 700; margin-bottom: 6px;">💡 3點式行動建議：</div>
+                            <div style="margin-bottom: 3px;">${a.recommendation_3bullets[0]}</div>
+                            <div style="margin-bottom: 3px;">${a.recommendation_3bullets[1]}</div>
                             <div>${a.recommendation_3bullets[2]}</div>
                         </div>
                     </div>
@@ -491,19 +491,19 @@ window.renderBrandTickerItem = function() {
         container.innerHTML = `
             <a href="${item.source_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit; display: block;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <span style="font-size: 11px; font-weight: 800; color: #FFFFFF; background: rgba(255,255,255,0.12); padding: 2px 7px; border-radius: 6px; letter-spacing: 0.3px;">
+                    <span style="font-size: 11px; font-weight: 800; color: #8C6A4E; background: rgba(140, 106, 78, 0.12); border: 1px solid rgba(140, 106, 78, 0.25); padding: 2px 7px; border-radius: 6px; letter-spacing: 0.3px;">
                         ${item.brand}
                     </span>
-                    <span style="font-size: 10px; font-weight: 700; color: #CBD5E1;">
+                    <span style="font-size: 10px; font-weight: 700; color: #6B6B6B;">
                         ${item.category}
                     </span>
                 </div>
-                <div style="font-size: 12px; font-weight: 600; color: #FFFFFF; line-height: 1.35; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${item.title}">
+                <div style="font-size: 12px; font-weight: 600; color: #3E3E3E; line-height: 1.4; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${item.title}">
                     ${item.title}
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-top: 3px;">
-                    <span style="color: #F8FAFC; font-weight: 800;">${item.twd_price}</span>
-                    <span style="font-size: 9px; color: #94A3B8; background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px;">
+                    <span style="color: #8C6A4E; font-weight: 800;">${item.twd_price}</span>
+                    <span style="font-size: 9px; color: #6B6B6B; background: rgba(140, 106, 78, 0.08); padding: 1px 5px; border-radius: 4px;">
                         ${window.currentBrandIndex + 1}/${window.brandDropsList.length} ↗
                     </span>
                 </div>
