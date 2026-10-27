@@ -2503,3 +2503,126 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// =========================================================================
+// 🗗 懸浮行事曆視窗 (Draggable Picture-in-Picture Calendar) 與視角聯動
+// =========================================================================
+
+window.isCalendarFloating = false;
+
+window.toggleCalendarFloatModal = function() {
+    let floatModal = document.getElementById('calendar-float-window');
+    if (!floatModal) {
+        // 動態建立懸浮視窗 DOM
+        floatModal = document.createElement('div');
+        floatModal.id = 'calendar-float-window';
+        floatModal.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 580px;
+            height: 520px;
+            min-width: 360px;
+            min-height: 320px;
+            background: #FFFFFF;
+            border: 2px solid #8C6A4E;
+            border-radius: 16px;
+            box-shadow: 0 12px 36px rgba(140, 106, 78, 0.25);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            resize: both;
+        `;
+        
+        floatModal.innerHTML = `
+            <div id="cal-float-header" style="background: #8C6A4E; color: #FFFFFF; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; cursor: move; user-select: none;">
+                <div style="font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-calendar-days"></i> 📅 LifeOS 自由懸浮行事曆
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <a href="/calendar" target="_blank" style="color: #FFF; text-decoration: none; font-size: 12px;" title="獨立全螢幕開啟">⛶</a>
+                    <button onclick="toggleCalendarFloatModal()" style="background: transparent; border: none; color: #FFF; cursor: pointer; font-size: 14px; line-height: 1;">✕</button>
+                </div>
+            </div>
+            <div style="flex: 1; overflow: hidden; position: relative;">
+                <iframe src="/calendar" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        `;
+        document.body.appendChild(floatModal);
+        
+        // 實作滑鼠拖曳移動
+        const header = floatModal.querySelector('#cal-float-header');
+        let isDragging = false, startX, startY, initialLeft, initialTop;
+        
+        header.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            const rect = floatModal.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            floatModal.style.bottom = 'auto';
+            floatModal.style.right = 'auto';
+            floatModal.style.left = `${initialLeft}px`;
+            floatModal.style.top = `${initialTop}px`;
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            floatModal.style.left = `${Math.max(10, initialLeft + dx)}px`;
+            floatModal.style.top = `${Math.max(10, initialTop + dy)}px`;
+        });
+        
+        document.addEventListener('mouseup', () => { isDragging = false; });
+        window.isCalendarFloating = true;
+    } else {
+        floatModal.style.display = (floatModal.style.display === 'none') ? 'flex' : 'none';
+        window.isCalendarFloating = (floatModal.style.display !== 'none');
+    }
+};
+
+window.openSyncModalHome = function() {
+    window.open('/calendar', '_blank');
+};
+
+// 增強 switchRoleView：連動行事曆視角
+const origSwitchRoleView = window.switchRoleView;
+window.switchRoleView = function(role) {
+    if (typeof origSwitchRoleView === 'function') {
+        origSwitchRoleView(role);
+    }
+    window.currentRoleView = role || 'admin';
+    if (window.CalEngine) {
+        window.CalEngine.currentPerspective = role;
+        window.CalEngine.loadEvents();
+    }
+    // 同步首頁倒數計時連動
+    window.syncHomeCountdownWithMilestones();
+};
+
+// 首頁倒數計時動態綁定 (Milestone Countdown Binding)
+window.syncHomeCountdownWithMilestones = function() {
+    fetch('/api/calendar/milestones/countdown')
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.data && data.data.length > 0) {
+            const nearest = data.data[0];
+            // 更新差旅倒數或關鍵專案倒數 Bento
+            const countdownDaysEls = document.querySelectorAll('.travel-countdown-days, .bento-countdown-days');
+            countdownDaysEls.forEach(el => {
+                el.innerText = `${nearest.days_left} 天`;
+            });
+            console.log(`[LifeOS Milestone] Synced countdown with: ${nearest.title} (${nearest.days_left} days left)`);
+        }
+    })
+    .catch(e => console.warn("Countdown sync skipped:", e));
+};
+
+// 頁面載入時自動執行一次倒數連動
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(window.syncHomeCountdownWithMilestones, 1200);
+});

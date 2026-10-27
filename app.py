@@ -706,6 +706,397 @@ def api_remove_from_my_travel_list(item_id):
 # ==========================================
 # 專案工地臨時會議與行事曆 API (Project Site Meetings & Calendar API)
 # ==========================================
+
+# =========================================================================
+# 📅 企業級全功能行事曆 API (Unified Calendar & Events Architecture)
+# 支援統一 JSON Schema, 4大標籤分類, 視角連動, 里程碑倒數, 外部 iCal 同步
+# =========================================================================
+
+@app.route("/calendar")
+def standalone_calendar_page():
+    """獨立全螢幕行事曆頁面路由"""
+    return render_template("calendar_standalone.html")
+
+def _row_to_event_dict(r):
+    import json
+    row = dict(r)
+    
+    # 判斷時間格式
+    m_date = row.get("meeting_date") or ""
+    m_time = row.get("meeting_time") or "09:00"
+    end_d = row.get("end_date") or m_date
+    end_t = row.get("end_time") or m_time
+    
+    start_iso = f"{m_date}T{m_time}:00" if m_date else ""
+    end_iso = f"{end_d}T{end_t}:00" if end_d else start_iso
+    
+    # 解析 visibility 與 metadata
+    vis = ["admin", "senior", "print"]
+    raw_vis = row.get("visibility")
+    if raw_vis:
+        try:
+            vis = json.loads(raw_vis) if isinstance(raw_vis, str) else raw_vis
+        except Exception:
+            vis = ["admin", "senior", "print"]
+            
+    meta = {}
+    raw_meta = row.get("metadata")
+    if raw_meta:
+        try:
+            meta = json.loads(raw_meta) if isinstance(raw_meta, str) else raw_meta
+        except Exception:
+            meta = {}
+
+    return {
+        "id": f"evt_{row.get('id')}",
+        "raw_id": row.get("id"),
+        "title": row.get("title", ""),
+        "start": start_iso,
+        "end": end_iso,
+        "meeting_date": m_date,
+        "meeting_time": m_time,
+        "end_date": end_d,
+        "end_time": end_t,
+        "allDay": bool(row.get("all_day", 0)),
+        "category": row.get("category") or "work",
+        "color": row.get("color") or "#2B4C7E",
+        "site_name": row.get("site_name", ""),
+        "location": row.get("location", ""),
+        "attendee_roles": row.get("attendee_roles", ""),
+        "description": row.get("notes", "") or "",
+        "notes": row.get("notes", "") or "",
+        "status": row.get("status", "scheduled"),
+        "visibility": vis,
+        "is_milestone": bool(row.get("is_milestone", 0)),
+        "external_source": row.get("external_source", "local"),
+        "recurrence_rule": row.get("recurrence_rule", "none"),
+        "recurrence_parent_id": row.get("recurrence_parent_id", 0),
+        "created_at": str(row.get("created_at", "")),
+        "metadata": meta
+    }
+
+@app.route("/api/calendar/events", methods=["GET"])
+def api_get_calendar_events():
+    """獲取符合統一標準規範的行事曆事件 (支援 category, month, site, view_perspective 篩選)"""
+    import json
+    month = request.args.get("month", "") # YYYY-MM
+    category = request.args.get("category", "") # work, travel, golf, finance
+    perspective = request.args.get("perspective", "admin") # admin, senior, print
+    site = request.args.get("site", "")
+    milestone_only = request.args.get("milestone_only", "false").lower() == "true"
+    
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    query = "SELECT * FROM project_meetings WHERE 1=1"
+    params = []
+    
+    if month:
+        query += " AND (meeting_date LIKE ? OR end_date LIKE ?)"
+        params.extend([f"{month}%", f"{month}%"])
+    if category and category != "all":
+        query += " AND category = ?"
+        params.append(category)
+    if site and site != "ALL":
+        query += " AND site_name = ?"
+        params.append(site)
+    if milestone_only:
+        query += " AND is_milestone = 1"
+        
+    query += " ORDER BY meeting_date ASC, meeting_time ASC"
+    cur.execute(query, params)
+    rows = cur.fetchall()
+    conn.close()
+    
+    events = []
+    for r in rows:
+        evt = _row_to_event_dict(r)
+        # 依視角過濾
+        if perspective and perspective != "admin":
+            if perspective not in evt["visibility"]:
+                continue
+            # 若為 senior 視角且為純工務或財務，根據規格預設過濾
+            if perspective == "senior" and evt["category"] in ["work", "finance"]:
+                continue
+        events.append(evt)
+        
+    return jsonify({
+        "status": "success",
+        "data": events,
+        "count": len(events),
+        "perspective": perspective
+    })
+
+@app.route("/api/calendar/events", methods=["POST"])
+def api_create_calendar_event():
+    """標準化新增行事曆事件 (支援單次、多日、跨日、週期與里程碑倒數設定)"""
+    import datetime
+    import json
+    data = request.json or {}
+    
+    title = data.get("title", "").strip()
+    if not title:
+        return jsonify({"status": "error", "message": "事件標題為必填項目！"}), 400
+        
+    meeting_date = data.get("meeting_date") or data.get("start", "")[:10]
+    meeting_time = data.get("meeting_time") or (data.get("start", "")[11:16] if len(data.get("start", "")) >= 16 else "09:00")
+    end_date = data.get("end_date") or (data.get("end", "")[:10] if data.get("end") else meeting_date)
+    end_time = data.get("end_time") or (data.get("end", "")[11:16] if data.get("end") and len(data.get("end", "")) >= 16 else meeting_time)
+    
+    if not meeting_date:
+        meeting_date = datetime.date.today().strftime("%Y-%m-%d")
+        
+    site_name = data.get("site_name", "主要專案")
+    location = data.get("location", "")
+    attendee_roles = data.get("attendee_roles", "")
+    notes = data.get("notes") or data.get("description", "")
+    category = data.get("category", "work")
+    
+    # 預設色彩編碼映射
+    color_map = {
+        "work": "#2B4C7E",
+        "travel": "#D97706",
+        "golf": "#4A7C59",
+        "finance": "#B91C1C",
+        "general": "#8C6A4E"
+    }
+    color = data.get("color") or color_map.get(category, "#2B4C7E")
+    
+    all_day = 1 if data.get("allDay") else 0
+    is_milestone = 1 if data.get("is_milestone") else 0
+    external_source = data.get("external_source", "local")
+    recurrence_rule = data.get("recurrence_rule", "none")
+    repeat_count = int(data.get("repeat_count", 1))
+    
+    visibility = data.get("visibility") or ["admin", "senior", "print"]
+    vis_json = json.dumps(visibility)
+    meta_json = json.dumps(data.get("metadata", {}))
+    
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        base_date = datetime.datetime.strptime(meeting_date, "%Y-%m-%d").date()
+    except Exception:
+        base_date = datetime.date.today()
+        meeting_date = base_date.strftime("%Y-%m-%d")
+
+    cur.execute("""
+        INSERT INTO project_meetings 
+        (title, site_name, meeting_date, meeting_time, end_date, end_time, location, attendee_roles, status, notes, 
+         recurrence_rule, recurrence_parent_id, all_day, category, color, visibility, is_milestone, external_source, metadata)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', ?, ?, 0, ?, ?, ?, ?, ?, ?, ?)
+    """, (title, site_name, meeting_date, meeting_time, end_date, end_time, location, attendee_roles, notes,
+          recurrence_rule, all_day, category, color, vis_json, is_milestone, external_source, meta_json))
+    parent_id = cur.lastrowid
+    
+    # 處理重複排程
+    if recurrence_rule != "none" and repeat_count > 1:
+        repeat_count = min(repeat_count, 24)
+        for i in range(1, repeat_count):
+            if recurrence_rule == "weekly":
+                next_date = base_date + datetime.timedelta(weeks=i)
+            elif recurrence_rule == "biweekly":
+                next_date = base_date + datetime.timedelta(weeks=i*2)
+            elif recurrence_rule == "monthly":
+                year = base_date.year + (base_date.month + i - 1) // 12
+                month = (base_date.month + i - 1) % 12 + 1
+                import calendar
+                day = min(base_date.day, calendar.monthrange(year, month)[1])
+                next_date = datetime.date(year, month, day)
+            else:
+                break
+            
+            nd_str = next_date.strftime("%Y-%m-%d")
+            cur.execute("""
+                INSERT INTO project_meetings 
+                (title, site_name, meeting_date, meeting_time, end_date, end_time, location, attendee_roles, status, notes, 
+                 recurrence_rule, recurrence_parent_id, all_day, category, color, visibility, is_milestone, external_source, metadata)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (title, site_name, nd_str, meeting_time, nd_str, end_time, location, attendee_roles, notes,
+                  recurrence_rule, parent_id, all_day, category, color, vis_json, is_milestone, external_source, meta_json))
+
+    conn.commit()
+    conn.close()
+    
+    return jsonify({
+        "status": "success",
+        "message": "已成功建立行事曆事件！",
+        "id": f"evt_{parent_id}",
+        "raw_id": parent_id
+    })
+
+@app.route("/api/calendar/events/<int:event_id>", methods=["PUT"])
+def api_update_calendar_event(event_id):
+    """更新行事曆事件（支援拖曳改期、拉伸調整天數、修改分類與里程碑）"""
+    import json
+    data = request.json or {}
+    
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM project_meetings WHERE id = ?", (event_id,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"status": "error", "message": "查無此事件"}), 404
+        
+    curr = dict(row)
+    
+    title = data.get("title", curr.get("title"))
+    meeting_date = data.get("meeting_date") or (data.get("start", "")[:10] if data.get("start") else curr.get("meeting_date"))
+    meeting_time = data.get("meeting_time") or (data.get("start", "")[11:16] if data.get("start") and len(data.get("start")) >= 16 else curr.get("meeting_time"))
+    end_date = data.get("end_date") or (data.get("end", "")[:10] if data.get("end") else (curr.get("end_date") or meeting_date))
+    end_time = data.get("end_time") or (data.get("end", "")[11:16] if data.get("end") and len(data.get("end")) >= 16 else (curr.get("end_time") or meeting_time))
+    site_name = data.get("site_name", curr.get("site_name"))
+    location = data.get("location", curr.get("location"))
+    attendee_roles = data.get("attendee_roles", curr.get("attendee_roles"))
+    notes = data.get("notes") or data.get("description", curr.get("notes"))
+    status = data.get("status", curr.get("status"))
+    category = data.get("category", curr.get("category") or "work")
+    color = data.get("color", curr.get("color") or "#2B4C7E")
+    all_day = 1 if data.get("allDay", curr.get("all_day")) else 0
+    is_milestone = 1 if data.get("is_milestone", curr.get("is_milestone")) else 0
+    
+    vis = data.get("visibility")
+    vis_json = json.dumps(vis) if vis else curr.get("visibility")
+    
+    meta = data.get("metadata")
+    meta_json = json.dumps(meta) if meta else curr.get("metadata")
+
+    cur.execute("""
+        UPDATE project_meetings 
+        SET title = ?, site_name = ?, meeting_date = ?, meeting_time = ?, end_date = ?, end_time = ?,
+            location = ?, attendee_roles = ?, notes = ?, status = ?, category = ?, color = ?,
+            all_day = ?, is_milestone = ?, visibility = ?, metadata = ?
+        WHERE id = ?
+    """, (title, site_name, meeting_date, meeting_time, end_date, end_time,
+          location, attendee_roles, notes, status, category, color,
+          all_day, is_milestone, vis_json, meta_json, event_id))
+          
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success", "message": "已成功更新行事曆事件！"})
+
+@app.route("/api/calendar/events/<int:event_id>", methods=["DELETE"])
+def api_delete_calendar_event(event_id):
+    """刪除特定行事曆事件"""
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM project_meetings WHERE id = ?", (event_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success", "message": "已刪除該事件！"})
+
+@app.route("/api/calendar/sync", methods=["POST"])
+def api_sync_external_calendar():
+    """
+    解析外部 iCal / Google Calendar (.ics) 網址並預覽/同步事件
+    不會覆蓋或污染原有本地資料，以 external_source='ical' 標註並回傳
+    """
+    import urllib.request
+    import datetime
+    import json
+    data = request.json or {}
+    ical_url = data.get("ical_url", "").strip()
+    
+    if not ical_url or not ical_url.startswith("http"):
+        return jsonify({"status": "error", "message": "請輸入有效的 iCal / Google 日曆 .ics 連結！"}), 400
+        
+    try:
+        req = urllib.request.Request(ical_url, headers={"User-Agent": "LifeOS-Calendar-Sync/2.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            ics_text = resp.read().decode("utf-8", errors="ignore")
+            
+        # 簡易高效 ics 解析器
+        parsed_events = []
+        raw_events = ics_text.split("BEGIN:VEVENT")
+        for chunk in raw_events[1:]:
+            lines = chunk.splitlines()
+            ev_data = {}
+            for l in lines:
+                if l.startswith("SUMMARY:"):
+                    ev_data["summary"] = l.replace("SUMMARY:", "").strip()
+                elif l.startswith("DTSTART"):
+                    val = l.split(":")[-1].strip()
+                    if len(val) >= 8:
+                        ev_data["start_date"] = f"{val[0:4]}-{val[4:6]}-{val[6:8]}"
+                    if "T" in val and len(val) >= 13:
+                        ev_data["start_time"] = f"{val[9:11]}:{val[11:13]}"
+                    else:
+                        ev_data["start_time"] = "09:00"
+                elif l.startswith("LOCATION:"):
+                    ev_data["location"] = l.replace("LOCATION:", "").strip()
+                elif l.startswith("DESCRIPTION:"):
+                    ev_data["description"] = l.replace("DESCRIPTION:", "").strip()
+                    
+            if ev_data.get("summary") and ev_data.get("start_date"):
+                parsed_events.append({
+                    "id": f"ext_ical_{len(parsed_events) + 1}",
+                    "title": ev_data["summary"],
+                    "start": f"{ev_data['start_date']}T{ev_data.get('start_time', '09:00')}:00",
+                    "end": f"{ev_data['start_date']}T10:00:00",
+                    "meeting_date": ev_data["start_date"],
+                    "meeting_time": ev_data.get("start_time", "09:00"),
+                    "allDay": True,
+                    "category": "general",
+                    "color": "#8C6A4E",
+                    "location": ev_data.get("location", "外部日曆"),
+                    "description": ev_data.get("description", "同步自 Google Calendar / iCal"),
+                    "visibility": ["admin", "senior", "print"],
+                    "is_milestone": False,
+                    "external_source": "ical",
+                    "metadata": {"source_url": ical_url}
+                })
+                
+        return jsonify({
+            "status": "success",
+            "message": f"成功自外部日曆解析出 {len(parsed_events)} 筆行程！",
+            "count": len(parsed_events),
+            "data": parsed_events
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"無法下載或解析外部日曆: {str(e)}"}), 500
+
+@app.route("/api/calendar/milestones/countdown", methods=["GET"])
+def api_get_calendar_milestones():
+    """首頁動態綁定：獲取即將到來的里程碑倒數事件與剩餘天數"""
+    import datetime
+    today = datetime.date.today()
+    
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT * FROM project_meetings 
+        WHERE is_milestone = 1 AND meeting_date >= ?
+        ORDER BY meeting_date ASC
+    """, (today.strftime("%Y-%m-%d"),))
+    rows = cur.fetchall()
+    conn.close()
+    
+    milestones = []
+    for r in rows:
+        d = dict(r)
+        try:
+            m_date = datetime.datetime.strptime(d["meeting_date"], "%Y-%m-%d").date()
+            diff_days = (m_date - today).days
+        except Exception:
+            diff_days = 0
+            
+        milestones.append({
+            "id": d["id"],
+            "title": d["title"],
+            "category": d.get("category", "work"),
+            "meeting_date": d["meeting_date"],
+            "days_left": diff_days,
+            "site_name": d.get("site_name", ""),
+            "color": d.get("color", "#2B4C7E")
+        })
+        
+    return jsonify({
+        "status": "success",
+        "data": milestones,
+        "count": len(milestones)
+    })
+
 @app.route("/api/meetings", methods=["GET"])
 def api_get_meetings():
     month = request.args.get("month", "") # YYYY-MM

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 LifeOS 全功能行事曆中心 (Calendar Center)</title>
+    <!-- Google Fonts: Noto Serif TC, Noto Sans TC, Inter Tight -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #FAFAFA;
+            --bg-surface: #FFFFFF;
+            --primary: #8C6A4E;
+            --secondary: #A7B6A2;
+            --accent: #D9A066;
+            --accent-hover: #C08A50;
+            --text-primary: #3E3E3E;
+            --text-secondary: #6B6B6B;
+            --shadow-sm: 0 2px 8px rgba(140, 106, 78, 0.06);
+            --shadow-md: 0 4px 16px rgba(140, 106, 78, 0.08);
+
+            /* 4 大核心分類色彩編碼 */
+            --tag-work: #2B4C7E;
+            --tag-travel: #D97706;
+            --tag-golf: #4A7C59;
+            --tag-finance: #B91C1C;
+            --tag-general: #8C6A4E;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 視角模式切換 (Senior Family: 字體放大125%+, Print: A4適配) */
+        body.view-senior {
+            font-size: 18px !important;
+            line-height: 1.8 !important;
+        }
+        body.view-senior .cal-event-pill {
+            font-size: 14px !important;
+            padding: 6px 8px !important;
+        }
+        body.view-senior .senior-hide { display: none !important; }
+
+        @media print {
+            body, body.view-print {
+                background: #FFF !important;
+                color: #000 !important;
+            }
+            .no-print { display: none !important; }
+            .cal-layout { grid-template-columns: 1fr !important; }
+            .cal-card { box-shadow: none !important; border: 1px solid #CCC !important; }
+        }
+
+        /* 頂部導覽列 */
+        .cal-navbar {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(167, 182, 162, 0.3);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .cal-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Noto Serif TC', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* 主工作區 (左欄側欄 + 右欄畫布) */
+        .cal-container {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1700px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .cal-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .cal-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: var(--bg-surface);
+            border: 1px solid rgba(167, 182, 162, 0.35);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            padding: 20px;
+            min-height: 780px;
+        }
+
+        .cal-card {
+            background: var(--bg-surface);
+            border: 1px solid rgba(167, 182, 162, 0.35);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            padding: 16px;
+        }
+
+        /* 按鈕樣式 (琥珀金主按鈕 + 咖啡棕次按鈕) */
+        .btn-cta {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(217, 160, 102, 0.25);
+        }
+        .btn-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(217, 160, 102, 0.35); }
+
+        .btn-outline {
+            background: rgba(140, 106, 78, 0.08);
+            color: var(--primary);
+            border: 1px solid rgba(140, 106, 78, 0.35);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-outline:hover { background: rgba(140, 106, 78, 0.15); border-color: var(--primary); }
+
+        .btn-view-tab {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid rgba(140, 106, 78, 0.2);
+            background: #FFF;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-view-tab.active {
+            background: var(--primary);
+            color: #FFF;
+            border-color: var(--primary);
+        }
+
+        /* 月曆格子 */
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            flex: 1;
+        }
+        .cal-day-cell {
+            min-height: 105px;
+            background: #FAFAFA;
+            border: 1px solid rgba(167, 182, 162, 0.3);
+            border-radius: 10px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cal-day-cell:hover {
+            border-color: var(--accent);
+            background: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(140, 106, 78, 0.08);
+        }
+        .cal-day-cell.is-today {
+            background: rgba(217, 160, 102, 0.08);
+            border: 1.5px solid var(--accent);
+        }
+        .cal-day-cell.is-selected {
+            border: 1.5px solid var(--primary);
+            background: rgba(140, 106, 78, 0.06);
+        }
+
+        /* 事件膠囊 (支援色彩編碼與拖曳) */
+        .cal-event-pill {
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            color: #FFFFFF;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: grab;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cal-event-pill:active { cursor: grabbing; }
+        .cal-event-pill:hover { opacity: 0.9; transform: scale(1.02); }
+        .cal-event-pill.is-milestone-flag {
+            border: 1.5px solid #FFD700;
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+        }
+        .cal-event-pill.is-external {
+            border: 1.5px dashed rgba(255, 255, 255, 0.8);
+        }
+
+        /* 甘特 / 時間軸視角 */
+        .timeline-view {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            max-height: 680px;
+        }
+        .timeline-item {
+            background: #FAFAFA;
+            border-left: 5px solid var(--tag-work);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Hover 懸浮卡 (Rich Tooltip) */
+        #cal-rich-tooltip {
+            position: absolute;
+            display: none;
+            z-index: 1000;
+            background: #FFFFFF;
+            border: 1px solid rgba(140, 106, 78, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(140, 106, 78, 0.18);
+            padding: 14px 18px;
+            max-width: 300px;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+
+        /* 模態彈窗 Backdrop */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-backdrop.active { display: flex; }
+        .modal-content {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 95%;
+            max-width: 560px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* 響應式 */
+        @media (max-width: 992px) {
+            .cal-container { flex-direction: column; }
+            .cal-sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部導覽列 -->
+    <header class="cal-navbar no-print">
+        <a href="/" class="cal-brand">
+            <i class="fa-solid fa-arrow-left" style="font-size: 16px;"></i>
+            <span>LifeOS 📅 行事曆中心</span>
+        </a>
+
+        <!-- 視角與功能按鈕 -->
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">視角切換:</span>
+                <select id="standalone-perspective-select" onchange="changePerspective(this.value)" class="btn-outline" style="padding: 6px 12px; background: #FFF;">
+                    <option value="admin">👑 Power Admin 視角 (完整設定)</option>
+                    <option value="senior">👴 Senior Family 視角 (大字極簡)</option>
+                    <option value="print">📄 PDF Print 視角 (列印適配)</option>
+                </select>
+            </div>
+
+            <button onclick="openSyncModal()" class="btn-outline">
+                <i class="fa-solid fa-cloud-arrow-down"></i> 🔄 同步外部日曆 (iCal)
+            </button>
+            <button onclick="openQuickAddModal()" class="btn-cta">
+                <i class="fa-solid fa-plus"></i> 新增行程
+            </button>
+            <a href="/" class="btn-outline" style="text-decoration: none;">
+                <i class="fa-solid fa-house"></i> 回主控制台
+            </a>
+        </div>
+    </header>
+
+    <!-- 主工作區 -->
+    <main class="cal-container">
+        <!-- 左側面板：迷你月曆 + 核心四大標籤篩選 + 即將到來里程碑清單 -->
+        <aside class="cal-sidebar no-print">
+            <!-- 篩選卡片 -->
+            <div class="cal-card">
+                <h4 style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-filter"></i> 分類標籤篩選
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="filter-all" checked onchange="toggleFilterCategory('all')">
+                        <span style="font-weight: 700;">全部顯示 (All Categories)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--tag-work);">
+                        <input type="checkbox" class="cat-filter" value="work" checked onchange="onCategoryFilterChange()">
+                        <span>💼 工務與專案 (Work/Project)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--tag-travel);">
+                        <input type="checkbox" class="cat-filter" value="travel" checked onchange="onCategoryFilterChange()">
+                        <span>✈️ 旅遊與航程 (Travel/Flight)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--tag-golf);">
+                        <input type="checkbox" class="cat-filter" value="golf" checked onchange="onCategoryFilterChange()">
+                        <span>🏌️ 高爾夫與運動 (Golf/Sports)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--tag-finance);">
+                        <input type="checkbox" class="cat-filter" value="finance" checked onchange="onCategoryFilterChange()">
+                        <span>💰 財務與風控 (Finance/Alert)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 里程碑倒數看板 -->
+            <div class="cal-card">
+                <h4 style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-flag-checkered" style="color: #D97706;"></i> 關鍵里程碑倒數
+                </h4>
+                <div id="sidebar-milestones-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 12px; color: var(--text-secondary);">載入中...</div>
+                </div>
+            </div>
+
+            <!-- 本日摘要卡片 -->
+            <div class="cal-card">
+                <h4 id="sidebar-selected-date-title" style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">
+                    本日行程摘要
+                </h4>
+                <div id="sidebar-day-agenda" style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+                    <div style="color: var(--text-secondary);">點擊右側日期檢視詳細列表</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 右側畫布：時間控制 + 5大視角切換 + 主月曆 / 週視角 / 甘特圖 -->
+        <section class="cal-main">
+            <!-- 視角與時間導航條 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(167, 182, 162, 0.3); padding-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <h2 id="cal-month-title" style="font-size: 22px; font-family: 'Noto Serif TC', serif; color: var(--primary); font-weight: 700; margin: 0;">
+                        2026 年 10 月
+                    </h2>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="navigateMonth(-1)" class="btn-outline" style="padding: 6px 10px;"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="goToToday()" class="btn-outline" style="padding: 6px 12px;">今天</button>
+                        <button onclick="navigateMonth(1)" class="btn-outline" style="padding: 6px 10px;"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- 5大維度視角切換按鈕 -->
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-view-tab active" data-view="month" onclick="switchCalendarView('month')">月視角 (Month)</button>
+                    <button class="btn-view-tab" data-view="week" onclick="switchCalendarView('week')">週視角 (Week)</button>
+                    <button class="btn-view-tab" data-view="day" onclick="switchCalendarView('day')">日視角 (Day)</button>
+                    <button class="btn-view-tab" data-view="agenda" onclick="switchCalendarView('agenda')">清單 (Agenda)</button>
+                    <button class="btn-view-tab" data-view="timeline" onclick="switchCalendarView('timeline')">甘特時間軸 (Gantt)</button>
+                </div>
+            </div>
+
+            <!-- 畫布容器 -->
+            <div id="cal-view-canvas" style="flex: 1; display: flex; flex-direction: column;">
+                <!-- 週標題 (月視角) -->
+                <div id="cal-weekdays-header" style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 13px; font-weight: 700; color: var(--text-secondary); padding: 8px 0;">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                <!-- 網格容器 -->
+                <div id="cal-grid-body" class="month-grid">
+                    <!-- 動態由 JS 渲染 -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Hover 懸浮卡 (Rich Tooltip) -->
+    <div id="cal-rich-tooltip"></div>
+
+    <!-- 快速新增 / 編輯模態視窗 -->
+    <div id="modal-quick-add" class="modal-backdrop" onclick="closeQuickAddModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(167, 182, 162, 0.3); padding-bottom: 12px; margin-bottom: 16px;">
+                <h3 id="modal-event-title-display" style="font-size: 18px; color: var(--primary); font-family: 'Noto Serif TC', serif; font-weight: 700;">
+                    <i class="fa-solid fa-calendar-plus" style="color: var(--accent);"></i> 新增行事曆事件
+                </h3>
+                <button onclick="closeQuickAddModal()" class="btn-outline" style="padding: 4px 10px;">✕</button>
+            </div>
+
+            <form id="form-quick-event" onsubmit="handleEventFormSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+                <input type="hidden" id="fe-id" value="">
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">事件主題 / 標題 *</label>
+                    <input type="text" id="fe-title" required placeholder="例：TAK Site Walk 或 飛往東京羽田" class="input-modern" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">分類標籤 *</label>
+                        <select id="fe-category" onchange="onCategorySelectChange(this.value)" style="width: 100%; padding: 8px 10px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                            <option value="work">💼 工務與專案 (Work)</option>
+                            <option value="travel">✈️ 旅遊與航程 (Travel)</option>
+                            <option value="golf">🏌️ 高爾夫與運動 (Golf)</option>
+                            <option value="finance">💰 財務與風控 (Finance)</option>
+                            <option value="general">☕ 一般備忘 (General)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">專案工地 / 類別名稱</label>
+                        <input type="text" id="fe-site-name" value="Micron F10E" list="standalone-site-datalist" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                        <datalist id="standalone-site-datalist">
+                            <option value="Micron F10E">
+                            <option value="A案大樓新建工程">
+                            <option value="B案廠房擴建工程">
+                            <option value="C案捷運聯開工程">
+                            <option value="自駕旅行與巡訪">
+                        </datalist>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">開始日期 *</label>
+                        <input type="date" id="fe-start-date" required style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">開始時間</label>
+                        <input type="time" id="fe-start-time" value="09:00" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">結束日期 (跨日)</label>
+                        <input type="date" id="fe-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">結束時間</label>
+                        <input type="time" id="fe-end-time" value="10:00" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px; background: rgba(140, 106, 78, 0.05); padding: 10px 14px; border-radius: 8px; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                        <input type="checkbox" id="fe-is-milestone">
+                        <span>🚩 設為關鍵里程碑 (首頁動態倒數連動)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                        <input type="checkbox" id="fe-all-day">
+                        <span>全天事件 (All-Day)</span>
+                    </label>
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">地點 / 工務所 / 航站</label>
+                    <input type="text" id="fe-location" placeholder="例：Site 或 TPE 航廈" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">備註 / 待確認事項</label>
+                    <textarea id="fe-notes" rows="2" placeholder="詳細備註、航班代號或工種交接要點..." style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
+                    <button type="button" onclick="closeQuickAddModal()" class="btn-outline">取消</button>
+                    <button type="submit" class="btn-cta">儲存事件</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 外部日曆 iCal 同步彈窗 -->
+    <div id="modal-sync-calendar" class="modal-backdrop" onclick="closeSyncModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(167, 182, 162, 0.3); padding-bottom: 12px; margin-bottom: 16px;">
+                <h3 style="font-size: 18px; color: var(--primary); font-family: 'Noto Serif TC', serif; font-weight: 700;">
+                    <i class="fa-solid fa-cloud-arrow-down" style="color: var(--accent);"></i> 同步外部 Google Calendar / iCal
+                </h3>
+                <button onclick="closeSyncModal()" class="btn-outline" style="padding: 4px 10px;">✕</button>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.6;">
+                請輸入 Google Calendar 公開/密鑰 iCal 網址（.ics）。系統將以虛線標籤疊加顯示外部行程，<b>絕不覆蓋或污染您現有的本地重要紀錄</b>。
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">iCal 網址 (.ics)</label>
+                    <input type="url" id="sync-ical-url" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics" style="width: 100%; padding: 10px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+                    <button type="button" onclick="closeSyncModal()" class="btn-outline">關閉</button>
+                    <button type="button" onclick="executeCalendarSync()" class="btn-cta">
+                        <i class="fa-solid fa-arrows-rotate"></i> 開始解析並疊加
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 獨立版 Calendar 驅動邏輯腳本 -->
+    <script src="/static/js/calendar_engine.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.initStandaloneCalendar) {
+                window.initStandaloneCalendar();
+            }
+        });
+    </script>
+</body>
+</html>

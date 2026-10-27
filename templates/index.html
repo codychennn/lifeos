@@ -59,7 +59,11 @@
             <button class="nav-btn" data-tab="lifestyle"><i class="fa-solid fa-mug-hot"></i> 生活日常</button>
             <button class="nav-btn" data-tab="stocks"><i class="fa-solid fa-chart-line"></i> 股市與加密貨幣</button>
             <button class="nav-btn" data-tab="jewish"><i class="fa-solid fa-star-of-david"></i> 🔯 猶太商道與新聞</button>
-            <button class="nav-btn" data-tab="calendar"><i class="fa-solid fa-calendar-days"></i> 📅 專案工地行事曆</button>
+            <button class="nav-btn" data-tab="calendar"><i class="fa-solid fa-calendar-days"></i> 📅 專案行事曆中心</button>
+            <a href="/calendar" target="_blank" class="nav-btn" style="text-decoration: none; color: #8C6A4E; background: rgba(140, 106, 78, 0.08); border-left: 3px solid #D9A066; display: flex; align-items: center; justify-content: space-between;">
+                <span><i class="fa-solid fa-arrow-up-right-from-square"></i> 獨立排程畫布</span>
+                <span style="font-size: 9px; background: #D9A066; color: #FFF; padding: 1px 5px; border-radius: 4px; font-weight: 700;">NEW</span>
+            </a>
             <button class="nav-btn" data-tab="settings"><i class="fa-solid fa-gear"></i> 系統設定</button>
         </nav>
 
@@ -1430,12 +1434,18 @@
                                 </h2>
                                 <p style="font-size: 13px; color: #94A3B8; margin: 0;">專為工務經理與專案工程師設計 ‧ 快速登記突發巡檢、協調會議、工種交接與缺失檢視 ‧ 支援月曆即時聯動與一鍵導航。</p>
                             </div>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <button onclick="openMeetingModal()" class="glow-btn" style="width: auto; padding: 10px 18px; font-size: 12px; background: #FFFFFF; color: #0A0B0E; font-weight: 700;">
-                                    <i class="fa-solid fa-plus"></i> 新增臨時會議
+                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                <button onclick="toggleCalendarFloatModal()" class="sub-nav-btn" style="padding: 9px 14px; font-size: 12px; background: rgba(140, 106, 78, 0.12); color: #8C6A4E; border: 1px solid rgba(140, 106, 78, 0.3); font-weight: 700;" title="將行事曆變為可自由拖曳縮放的懸浮視窗">
+                                    <i class="fa-solid fa-window-restore"></i> 🗗 懸浮視窗 (Float)
                                 </button>
-                                <button onclick="loadCalendarMeetings()" class="sub-nav-btn" style="padding: 10px 14px; font-size: 12px;">
-                                    <i class="fa-solid fa-arrows-rotate"></i> 重新整理
+                                <a href="/calendar" target="_blank" class="sub-nav-btn" style="padding: 9px 14px; font-size: 12px; background: rgba(140, 106, 78, 0.12); color: #8C6A4E; border: 1px solid rgba(140, 106, 78, 0.3); font-weight: 700; text-decoration: none;" title="在新分頁開啟全螢幕獨立排程畫布">
+                                    <i class="fa-solid fa-up-right-from-square"></i> ⛶ 獨立頁面開啟
+                                </a>
+                                <button onclick="openSyncModalHome()" class="sub-nav-btn" style="padding: 9px 14px; font-size: 12px;">
+                                    <i class="fa-solid fa-cloud-arrow-down"></i> 同步日曆
+                                </button>
+                                <button onclick="openMeetingModal()" class="glow-btn" style="width: auto; padding: 9px 18px; font-size: 12px; background: linear-gradient(135deg, #D9A066 0%, #C08A50 100%); color: #FFFFFF; font-weight: 700;">
+                                    <i class="fa-solid fa-plus"></i> 新增會議 / 行程
                                 </button>
                             </div>
                         </div>
@@ -2892,5 +2902,6 @@
         </div>
     </div>
 
+<script src="/static/js/calendar_engine.js"></script>
 </body>
 </html>
