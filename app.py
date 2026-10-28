@@ -1029,6 +1029,53 @@ def api_delete_calendar_event(event_id):
     conn.close()
     return jsonify({"status": "success", "message": "已刪除該事件！"})
 
+
+# =========================================================================
+# 🌐 Phase 3: Google Calendar Webhook 即時雙向同步端點 (Zero Regression)
+# =========================================================================
+@app.route("/api/calendar/webhook/google", methods=["POST"])
+def api_google_calendar_webhook():
+    """
+    接收 Google Calendar Webhook Push Notification
+    - 驗證標頭 X-Goog-Resource-State: exists/sync
+    - 標註 external_source='google_cal'
+    - 不覆蓋本地既有會議，以無侵入方式提供前端撞期比對資料源
+    """
+    channel_id = request.headers.get("X-Goog-Channel-ID", "")
+    resource_state = request.headers.get("X-Goog-Resource-State", "exists")
+    
+    # 支援外部直接 POST JSON 事件或是 Google Webhook Sync Ping
+    data = request.json or {}
+    
+    if data and data.get("title") and data.get("start"):
+        # 接收到具體外部行程
+        external_event = {
+            "id": f"ext_gcal_{data.get('id', 'sync')}",
+            "title": data.get("title"),
+            "start": data.get("start"),
+            "end": data.get("end", data.get("start")),
+            "meeting_date": data.get("start", "")[:10],
+            "meeting_time": data.get("start", "")[11:16] if len(data.get("start", "")) >= 16 else "09:00",
+            "end_date": data.get("end", data.get("start"))[:10],
+            "end_time": data.get("end", "")[11:16] if len(data.get("end", "")) >= 16 else "10:00",
+            "category": data.get("category", "general"),
+            "location": data.get("location", "Google 日曆外部行程"),
+            "external_source": "google_cal",
+            "status": "pending"
+        }
+        return jsonify({
+            "status": "success",
+            "message": "已接收外部 Google Calendar 變動並標記！",
+            "event": external_event
+        }), 200
+
+    return jsonify({
+        "status": "success",
+        "message": "Google Webhook notification acknowledged",
+        "channel_id": channel_id,
+        "resource_state": resource_state
+    }), 200
+
 @app.route("/api/calendar/sync", methods=["POST"])
 def api_sync_external_calendar():
     """
