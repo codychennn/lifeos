@@ -1,31 +1,163 @@
 /**
- * LifeOS Unified Calendar Core Engine (v2.0 Enterprise)
- * 支援：多態檢視 (Month/Week/Day/Agenda/Timeline)、四大標籤色彩編碼、
- * 視角連動 (Admin/Senior/Print)、里程碑倒數連動、外部日曆同步與拖曳改期
+ * LifeOS Enterprise Calendar Core Engine (v2.1 Architecture Upgrade)
+ * - 支援：Optimistic UI Update (樂觀更新與 Rollback)
+ * - 捨棄 alert() / confirm()，全數採用平滑過渡 Toast 與 Modal 原地二次確認防呆機制
+ * - 支援 status: completed, urgent, pending, other Color-Coding 與即時切換
+ * - 支援多態檢視 (Month/Week/Day/Agenda/Timeline)、四大標籤色彩、視角聯動、iCal同步與拖曳改期
  */
 
+// ========================================================
+// 1. 全域客製化 Toast 通知系統 (無原生 alert)
+// ========================================================
+window.ToastNotification = {
+    container: null,
+    init: function() {
+        if (!document.getElementById('lifeos-toast-container')) {
+            this.container = document.createElement('div');
+            this.container.id = 'lifeos-toast-container';
+            this.container.style.cssText = `
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                z-index: 10000;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                pointer-events: none;
+            `;
+            document.body.appendChild(this.container);
+        } else {
+            this.container = document.getElementById('lifeos-toast-container');
+        }
+    },
+    show: function(message, type = 'info', duration = 3200) {
+        this.init();
+        const toast = document.createElement('div');
+        toast.className = `lifeos-toast lifeos-toast-${type}`;
+
+        const colors = {
+            info: { bg: '#8C6A4E', border: '#D9A066', text: '#FFFFFF', icon: 'fa-circle-info' },
+            success: { bg: '#10B981', border: '#059669', text: '#FFFFFF', icon: 'fa-circle-check' },
+            error: { bg: '#DC2626', border: '#B91C1C', text: '#FFFFFF', icon: 'fa-triangle-exclamation' },
+            warning: { bg: '#D97706', border: '#B45309', text: '#FFFFFF', icon: 'fa-bell' }
+        };
+        const c = colors[type] || colors.info;
+
+        toast.style.cssText = `
+            background: ${c.bg};
+            border-left: 4px solid ${c.border};
+            color: ${c.text};
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(12px) scale(0.96);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            max-width: 380px;
+            line-height: 1.4;
+        `;
+
+        toast.innerHTML = `<i class="fa-solid ${c.icon}" style="font-size: 14px;"></i> <span>${message}</span>`;
+        this.container.appendChild(toast);
+
+        // 平滑進場
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0) scale(1)';
+        });
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-8px) scale(0.96)';
+            setTimeout(() => toast.remove(), 250);
+        }, duration);
+    }
+};
+
+// ========================================================
+// 2. API 服務層 (API Service Layer)
+// ========================================================
+window.CalendarApiService = {
+    async fetchEvents(monthStr, perspective = 'admin') {
+        const url = `/api/calendar/events?month=${monthStr}&perspective=${perspective}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('無法載入行事曆事件');
+        return res.json();
+    },
+
+    async patchStatus(eventId, newStatus) {
+        const cleanId = String(eventId).replace('evt_', '');
+        const res = await fetch(`/api/events/${cleanId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        if (!res.ok || data.status === 'error') {
+            throw new Error(data.message || '更新狀態失敗');
+        }
+        return data;
+    },
+
+    async deleteEvent(eventId) {
+        const cleanId = String(eventId).replace('evt_', '');
+        const res = await fetch(`/api/events/${cleanId}`, {
+            method: 'DELETE'
+        });
+        const data = await res.json();
+        if (!res.ok || data.status === 'error') {
+            throw new Error(data.message || '刪除事件失敗');
+        }
+        return data;
+    },
+
+    async updateDate(eventId, targetDate) {
+        const cleanId = String(eventId).replace('evt_', '');
+        const res = await fetch(`/api/calendar/events/${cleanId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                meeting_date: targetDate,
+                end_date: targetDate
+            })
+        });
+        const data = await res.json();
+        if (!res.ok || data.status === 'error') {
+            throw new Error(data.message || '改期失敗');
+        }
+        return data;
+    }
+};
+
+// ========================================================
+// 3. 行事曆核心引擎 (CalEngine with State & Optimistic UI)
+// ========================================================
 window.CalEngine = {
     currentYear: new Date().getFullYear(),
     currentMonth: new Date().getMonth(), // 0-indexed
-    currentView: 'month', // month, week, day, agenda, timeline
+    currentView: 'month',
     selectedDate: new Date().toISOString().split('T')[0],
-    currentPerspective: 'admin', // admin, senior, print
+    currentPerspective: 'admin',
     activeCategories: ['work', 'travel', 'golf', 'finance', 'general'],
     events: [],
     externalEvents: [],
 
     init: function() {
+        window.ToastNotification.init();
         this.bindGlobalEvents();
         this.loadEvents();
         this.loadMilestones();
     },
 
     bindGlobalEvents: function() {
-        // 拖曳放置監聽
         document.addEventListener('dragover', (e) => {
-            if (e.target.closest('.cal-day-cell')) {
-                e.preventDefault();
-            }
+            if (e.target.closest('.cal-day-cell')) e.preventDefault();
         });
         document.addEventListener('drop', (e) => {
             const cell = e.target.closest('.cal-day-cell');
@@ -34,7 +166,7 @@ window.CalEngine = {
                 const eventId = e.dataTransfer.getData('text/plain');
                 const targetDate = cell.getAttribute('data-date');
                 if (eventId && targetDate) {
-                    window.CalEngine.handleEventDrop(eventId, targetDate);
+                    window.CalEngine.handleEventDropOptimistic(eventId, targetDate);
                 }
             }
         });
@@ -44,15 +176,11 @@ window.CalEngine = {
         const year = this.currentYear;
         const month = this.currentMonth + 1;
         const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-        
-        const url = `/api/calendar/events?month=${monthStr}&perspective=${this.currentPerspective}`;
-        
-        fetch(url)
-        .then(res => res.json())
+
+        window.CalendarApiService.fetchEvents(monthStr, this.currentPerspective)
         .then(data => {
             if (data.status === 'success') {
                 this.events = data.data || [];
-                // 備份至 localStorage
                 try {
                     localStorage.setItem('lifeos_calendar_events_cache', JSON.stringify(this.events));
                 } catch(e) {}
@@ -61,7 +189,7 @@ window.CalEngine = {
             }
         })
         .catch(err => {
-            console.warn("Failed to fetch calendar events, falling back to cache:", err);
+            console.warn("API 獲取失敗，啟動快取還原:", err);
             const cached = localStorage.getItem('lifeos_calendar_events_cache');
             if (cached) {
                 this.events = JSON.parse(cached);
@@ -91,7 +219,7 @@ window.CalEngine = {
         }
 
         container.innerHTML = milestones.map(m => `
-            <div style="background: rgba(244, 241, 237, 0.9); border-left: 4px solid ${m.color || '#D97706'}; border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="background: rgba(244, 241, 237, 0.9); border-left: 4px solid ${m.color || '#D97706'}; border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(140, 106, 78, 0.05);">
                 <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 170px;">
                     <div style="font-size: 12px; font-weight: 700; color: #3E3E3E;">${m.title}</div>
                     <div style="font-size: 10px; color: #6B6B6B;">${m.meeting_date} ‧ ${m.site_name || '一般'}</div>
@@ -109,7 +237,6 @@ window.CalEngine = {
             titleEl.innerText = `${this.currentYear} 年 ${this.currentMonth + 1} 月`;
         }
 
-        // 合併本地事件與外部同步日曆
         const allEvts = [...this.events, ...this.externalEvents].filter(ev => {
             if (this.activeCategories.length === 0) return true;
             return this.activeCategories.includes(ev.category || 'general');
@@ -118,20 +245,14 @@ window.CalEngine = {
         const canvas = document.getElementById('cal-view-canvas');
         if (!canvas) return;
 
-        if (this.currentView === 'month') {
-            this.renderMonthView(allEvts);
-        } else if (this.currentView === 'week') {
-            this.renderWeekView(allEvts);
-        } else if (this.currentView === 'day') {
-            this.renderDayView(allEvts);
-        } else if (this.currentView === 'agenda') {
-            this.renderAgendaView(allEvts);
-        } else if (this.currentView === 'timeline') {
-            this.renderTimelineView(allEvts);
-        }
+        if (this.currentView === 'month') this.renderMonthView(allEvts);
+        else if (this.currentView === 'week') this.renderWeekView(allEvts);
+        else if (this.currentView === 'day') this.renderDayView(allEvts);
+        else if (this.currentView === 'agenda') this.renderAgendaView(allEvts);
+        else if (this.currentView === 'timeline') this.renderTimelineView(allEvts);
     },
 
-    // 1. 月視角 (Month View)
+    // 1. 月視角 (Month View) - 包含 status Color-Coding 與浮凸效果
     renderMonthView: function(events) {
         const headerEl = document.getElementById('cal-weekdays-header');
         if (headerEl) headerEl.style.display = 'grid';
@@ -147,14 +268,12 @@ window.CalEngine = {
         const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
         const todayStr = new Date().toISOString().split('T')[0];
 
-        // 前置空白格
         for (let i = 0; i < firstDay; i++) {
             const empty = document.createElement('div');
             empty.style.cssText = 'min-height: 105px; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px dashed rgba(167, 182, 162, 0.2);';
             container.appendChild(empty);
         }
 
-        // 每日格子
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             const dayEvents = events.filter(e => {
@@ -184,16 +303,24 @@ window.CalEngine = {
             dayEvents.forEach(ev => {
                 const isExt = ev.external_source === 'ical';
                 const isMilestone = ev.is_milestone;
-                const bg = ev.color || '#2B4C7E';
+                const status = ev.status || 'pending'; // completed, urgent, pending, other
+
+                // 狀態樣式類別
+                let statusClass = `status-${status}`;
+                let statusBadge = '';
+                if (status === 'completed') statusBadge = '✓ ';
+                else if (status === 'urgent') statusBadge = '🚨 ';
+
                 eventsHtml += `
-                    <div class="cal-event-pill ${isMilestone ? 'is-milestone-flag' : ''} ${isExt ? 'is-external' : ''}" 
-                         style="background: ${bg};"
+                    <div class="cal-event-pill ${statusClass} ${isMilestone ? 'is-milestone-flag' : ''} ${isExt ? 'is-external' : ''}" 
+                         style="background: ${status === 'urgent' ? '#FEF2F2' : (status === 'completed' ? 'rgba(244, 241, 237, 0.7)' : (ev.color || '#2B4C7E'))};"
                          draggable="true" 
                          ondragstart="window.CalEngine.onDragStart(event, '${ev.raw_id || ev.id}')"
                          onmouseenter="window.CalEngine.showTooltip(event, '${encodeURIComponent(JSON.stringify(ev))}')"
                          onmouseleave="window.CalEngine.hideTooltip()"
-                         onclick="event.stopPropagation(); window.CalEngine.openEditEvent('${ev.raw_id || ev.id}')">
-                        ${isMilestone ? '🚩 ' : ''}${isExt ? '🔗 ' : ''}${ev.meeting_time ? ev.meeting_time + ' ' : ''}${ev.title}
+                         onclick="event.stopPropagation(); window.CalEngine.openActionModal('${ev.raw_id || ev.id}')">
+                        <span style="font-weight: 700;">${statusBadge}${isMilestone ? '🚩 ' : ''}${ev.meeting_time ? ev.meeting_time + ' ' : ''}</span>
+                        <span class="event-pill-title" style="${status === 'completed' ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${ev.title}</span>
                     </div>
                 `;
             });
@@ -225,7 +352,6 @@ window.CalEngine = {
         container.style.gap = '10px';
         container.innerHTML = '';
 
-        // 計算以當前 selectedDate 為中心的一週 (日~六)
         const curr = new Date(this.selectedDate);
         const dayOfWeek = curr.getDay();
         const startOfWeek = new Date(curr);
@@ -251,15 +377,21 @@ window.CalEngine = {
                     <div style="font-size: 16px; font-weight: 800; color: #8C6A4E;">${dateStr.slice(5)}</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                    ${dayEvts.map(ev => `
-                        <div class="cal-event-pill" style="background: ${ev.color || '#2B4C7E'}; padding: 6px 8px; font-size: 12px; white-space: normal;"
-                             onmouseenter="window.CalEngine.showTooltip(event, '${encodeURIComponent(JSON.stringify(ev))}')"
-                             onmouseleave="window.CalEngine.hideTooltip()"
-                             onclick="window.CalEngine.openEditEvent('${ev.raw_id || ev.id}')">
-                            <div style="font-weight: 700;">${ev.meeting_time || '09:00'} ${ev.title}</div>
-                            <div style="font-size: 10px; opacity: 0.9;">${ev.site_name || ev.location || ''}</div>
-                        </div>
-                    `).join('')}
+                    ${dayEvts.map(ev => {
+                        const status = ev.status || 'pending';
+                        return `
+                            <div class="cal-event-pill status-${status}" 
+                                 style="background: ${status === 'urgent' ? '#FEF2F2' : (status === 'completed' ? '#F4F1ED' : (ev.color || '#2B4C7E'))}; padding: 6px 8px; font-size: 12px; white-space: normal;"
+                                 onmouseenter="window.CalEngine.showTooltip(event, '${encodeURIComponent(JSON.stringify(ev))}')"
+                                 onmouseleave="window.CalEngine.hideTooltip()"
+                                 onclick="window.CalEngine.openActionModal('${ev.raw_id || ev.id}')">
+                                <div style="font-weight: 700; ${status === 'completed' ? 'text-decoration: line-through;' : ''}">
+                                    ${status === 'completed' ? '✓ ' : (status === 'urgent' ? '🚨 ' : '')}${ev.meeting_time || '09:00'} ${ev.title}
+                                </div>
+                                <div style="font-size: 10px; opacity: 0.9;">${ev.site_name || ev.location || ''}</div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             `;
             container.appendChild(col);
@@ -284,20 +416,25 @@ window.CalEngine = {
                     📅 ${this.selectedDate} 當日行程時間軸
                 </h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    ${dayEvts.length === 0 ? '<div style="color: #6B6B6B;">當日無排定行程，點擊「新增行程」進行登記。</div>' : ''}
-                    ${dayEvts.map(ev => `
-                        <div style="display: flex; gap: 16px; background: #FFFFFF; border-left: 5px solid ${ev.color || '#2B4C7E'}; padding: 14px 18px; border-radius: 8px; box-shadow: 0 2px 8px rgba(140, 106, 78, 0.06);">
-                            <div style="font-size: 16px; font-weight: 800; color: #8C6A4E; min-width: 70px;">${ev.meeting_time || '09:00'}</div>
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 11px; background: rgba(140, 106, 78, 0.1); color: #8C6A4E; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${ev.category}</span>
-                                    <h4 style="font-size: 15px; font-weight: 700; color: #3E3E3E; margin: 0;">${ev.title}</h4>
+                    ${dayEvts.length === 0 ? '<div style="color: #6B6B6B;">當日無排定行程，點擊右上角「新增行程」進行登記。</div>' : ''}
+                    ${dayEvts.map(ev => {
+                        const status = ev.status || 'pending';
+                        return `
+                            <div style="display: flex; gap: 16px; background: ${status === 'urgent' ? '#FEF2F2' : '#FFFFFF'}; border-left: 5px solid ${status === 'urgent' ? '#EF4444' : (status === 'completed' ? '#10B981' : (ev.color || '#2B4C7E'))}; padding: 14px 18px; border-radius: 8px; box-shadow: 0 2px 8px rgba(140, 106, 78, 0.06); cursor: pointer;"
+                                 onclick="window.CalEngine.openActionModal('${ev.raw_id || ev.id}')">
+                                <div style="font-size: 16px; font-weight: 800; color: #8C6A4E; min-width: 70px;">${ev.meeting_time || '09:00'}</div>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 11px; background: rgba(140, 106, 78, 0.1); color: #8C6A4E; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${ev.category}</span>
+                                        <span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 700; ${status === 'urgent' ? 'background: #EF4444; color: #FFF;' : (status === 'completed' ? 'background: #10B981; color: #FFF;' : 'background: #E5E7EB; color: #374151;')}">${status}</span>
+                                        <h4 style="font-size: 15px; font-weight: 700; color: #3E3E3E; margin: 0; ${status === 'completed' ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${ev.title}</h4>
+                                    </div>
+                                    <div style="font-size: 13px; color: #6B6B6B; margin-top: 4px;">地點：${ev.location || '現場'} ‧ 出席：${ev.attendee_roles || '全體'}</div>
+                                    ${ev.description ? `<div style="font-size: 12px; color: #3E3E3E; background: rgba(244, 241, 237, 0.8); padding: 6px 10px; border-radius: 6px; margin-top: 6px;">${ev.description}</div>` : ''}
                                 </div>
-                                <div style="font-size: 13px; color: #6B6B6B; margin-top: 4px;">地點：${ev.location || '現場'} ‧ 出席：${ev.attendee_roles || '全體'}</div>
-                                ${ev.description ? `<div style="font-size: 12px; color: #3E3E3E; background: rgba(244, 241, 237, 0.8); padding: 6px 10px; border-radius: 6px; margin-top: 6px;">${ev.description}</div>` : ''}
                             </div>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
         `;
@@ -313,27 +450,33 @@ window.CalEngine = {
         container.className = '';
         container.style.display = 'block';
 
-        // 依日期升冪排列
         const sorted = [...events].sort((a,b) => (a.meeting_date || a.start || '').localeCompare(b.meeting_date || b.start || ''));
 
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 10px; max-height: 650px; overflow-y: auto;">
-                ${sorted.map(ev => `
-                    <div style="background: #FAFAFA; border: 1px solid rgba(167, 182, 162, 0.3); border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(140, 106, 78, 0.05);">
-                        <div style="display: flex; align-items: center; gap: 14px;">
-                            <span style="font-size: 13px; font-weight: 800; color: #8C6A4E; background: rgba(140, 106, 78, 0.12); padding: 4px 8px; border-radius: 6px;">
-                                ${ev.meeting_date || (ev.start ? ev.start.slice(0, 10) : '')}
-                            </span>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 700; color: #3E3E3E;">${ev.title}</div>
-                                <div style="font-size: 11px; color: #6B6B6B;">${ev.meeting_time || '09:00'} ‧ ${ev.site_name || ev.location || ''}</div>
+                ${sorted.map(ev => {
+                    const status = ev.status || 'pending';
+                    return `
+                        <div style="background: ${status === 'urgent' ? '#FEF2F2' : '#FAFAFA'}; border: 1px solid rgba(167, 182, 162, 0.3); border-left: 5px solid ${status === 'urgent' ? '#EF4444' : (status === 'completed' ? '#10B981' : (ev.color || '#2B4C7E'))}; border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(140, 106, 78, 0.05); cursor: pointer;"
+                             onclick="window.CalEngine.openActionModal('${ev.raw_id || ev.id}')">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <span style="font-size: 13px; font-weight: 800; color: #8C6A4E; background: rgba(140, 106, 78, 0.12); padding: 4px 8px; border-radius: 6px;">
+                                    ${ev.meeting_date || (ev.start ? ev.start.slice(0, 10) : '')}
+                                </span>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 11px; padding: 2px 5px; border-radius: 4px; font-weight: 700; ${status === 'urgent' ? 'background: #EF4444; color: #FFF;' : (status === 'completed' ? 'background: #10B981; color: #FFF;' : 'background: #E5E7EB; color: #374151;')}">${status}</span>
+                                        <div style="font-size: 14px; font-weight: 700; color: #3E3E3E; ${status === 'completed' ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${ev.title}</div>
+                                    </div>
+                                    <div style="font-size: 11px; color: #6B6B6B; margin-top: 2px;">${ev.meeting_time || '09:00'} ‧ ${ev.site_name || ev.location || ''}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-outline" style="padding: 4px 10px; font-size: 11px;">狀態 / 操作</button>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button onclick="window.CalEngine.openEditEvent('${ev.raw_id || ev.id}')" class="btn-outline" style="padding: 4px 10px; font-size: 11px;">編輯</button>
-                        </div>
-                    </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         `;
     },
@@ -352,20 +495,20 @@ window.CalEngine = {
             const startD = ev.meeting_date || (ev.start ? ev.start.slice(0, 10) : '');
             const endD = ev.end_date || (ev.end ? ev.end.slice(0, 10) : startD);
             const isMilestone = ev.is_milestone;
+            const status = ev.status || 'pending';
             return `
-                <div class="timeline-item" style="border-left-color: ${ev.color || '#2B4C7E'};">
+                <div class="timeline-item" style="border-left-color: ${status === 'urgent' ? '#EF4444' : (status === 'completed' ? '#10B981' : (ev.color || '#2B4C7E'))}; cursor: pointer;"
+                     onclick="window.CalEngine.openActionModal('${ev.raw_id || ev.id}')">
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             ${isMilestone ? '<span style="font-size: 11px; background: #D97706; color: #FFF; padding: 1px 6px; border-radius: 4px; font-weight: 700;">🚩 關鍵里程碑</span>' : ''}
                             <span style="font-size: 11px; background: rgba(140, 106, 78, 0.12); color: #8C6A4E; padding: 2px 6px; border-radius: 4px;">${ev.category}</span>
-                            <strong style="font-size: 14px; color: #3E3E3E;">${ev.title}</strong>
+                            <span style="font-size: 11px; padding: 1px 5px; border-radius: 4px; font-weight: 700; ${status === 'urgent' ? 'background: #EF4444; color: #FFF;' : (status === 'completed' ? 'background: #10B981; color: #FFF;' : 'background: #E5E7EB; color: #374151;')}">${status}</span>
+                            <strong style="font-size: 14px; color: #3E3E3E; ${status === 'completed' ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${ev.title}</strong>
                         </div>
                         <div style="font-size: 12px; color: #6B6B6B; margin-top: 4px;">
                             時段：${startD} ${ev.meeting_time || ''} ➔ ${endD} ${ev.end_time || ''} ‧ 工地/地點：${ev.site_name || ev.location || '現場'}
                         </div>
-                    </div>
-                    <div>
-                        <span style="font-size: 11px; color: #8C6A4E; font-weight: 700;">${ev.status === 'completed' ? '✅ 已完成' : '⏳ 進行中/排定'}</span>
                     </div>
                 </div>
             `;
@@ -386,46 +529,49 @@ window.CalEngine = {
         }
 
         container.innerHTML = dayEvts.map(e => `
-            <div style="padding: 6px 8px; background: rgba(244, 241, 237, 0.9); border-left: 3px solid ${e.color || '#2B4C7E'}; border-radius: 4px;">
-                <div style="font-weight: 700; color: #3E3E3E;">${e.meeting_time || ''} ${e.title}</div>
-                <div style="font-size: 10px; color: #6B6B6B;">${e.location || e.site_name || ''}</div>
+            <div style="padding: 6px 8px; background: rgba(244, 241, 237, 0.9); border-left: 3px solid ${e.color || '#2B4C7E'}; border-radius: 4px; cursor: pointer;"
+                 onclick="window.CalEngine.openActionModal('${e.raw_id || e.id}')">
+                <div style="font-weight: 700; color: #3E3E3E; ${e.status === 'completed' ? 'text-decoration: line-through;' : ''}">${e.meeting_time || ''} ${e.title}</div>
+                <div style="font-size: 10px; color: #6B6B6B;">${e.location || e.site_name || ''} ‧ ${e.status || 'pending'}</div>
             </div>
         `).join('');
     },
 
-    // 拖曳改期處理 (Drag & Drop)
+    // 樂觀拖曳改期 (Optimistic Drop Update with Auto Rollback)
     onDragStart: function(e, eventId) {
         e.dataTransfer.setData('text/plain', String(eventId));
     },
 
-    handleEventDrop: function(eventId, targetDate) {
+    async handleEventDropOptimistic(eventId, targetDate) {
         const cleanId = String(eventId).replace('evt_', '');
         const targetEvt = this.events.find(e => String(e.raw_id || e.id).replace('evt_', '') === cleanId);
         if (!targetEvt) return;
 
-        if (confirm(`確定將「${targetEvt.title}」改期至 ${targetDate} 嗎？`)) {
-            fetch(`/api/calendar/events/${cleanId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    meeting_date: targetDate,
-                    end_date: targetDate
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    targetEvt.meeting_date = targetDate;
-                    targetEvt.end_date = targetDate;
-                    targetEvt.start = `${targetDate}T${targetEvt.meeting_time || '09:00'}:00`;
-                    this.renderCurrentView();
-                    this.renderSidebarDayAgenda();
-                    this.loadMilestones();
-                } else {
-                    alert('改期失敗: ' + (data.message || '未知錯誤'));
-                }
-            })
-            .catch(err => alert('網絡連線錯誤: ' + err));
+        const originalMeetingDate = targetEvt.meeting_date;
+        const originalEndDate = targetEvt.end_date;
+        const originalStart = targetEvt.start;
+
+        // [1] 樂觀更新: 畫面先立刻反應
+        targetEvt.meeting_date = targetDate;
+        targetEvt.end_date = targetDate;
+        targetEvt.start = `${targetDate}T${targetEvt.meeting_time || '09:00'}:00`;
+        this.renderCurrentView();
+        this.renderSidebarDayAgenda();
+        window.ToastNotification.show(`已將「${targetEvt.title}」改期至 ${targetDate}`, 'info');
+
+        try {
+            // [2] 背景發送 API
+            await window.CalendarApiService.updateDate(cleanId, targetDate);
+            this.loadMilestones();
+        } catch (err) {
+            // [3] 失敗自動回滾 (Rollback)
+            console.error('[Drop Rollback]', err);
+            targetEvt.meeting_date = originalMeetingDate;
+            targetEvt.end_date = originalEndDate;
+            targetEvt.start = originalStart;
+            this.renderCurrentView();
+            this.renderSidebarDayAgenda();
+            window.ToastNotification.show(`改期失敗：${err.message}，已自動復原`, 'error');
         }
     },
 
@@ -438,7 +584,7 @@ window.CalEngine = {
             const ev = JSON.parse(decodeURIComponent(rawJsonStr));
             tooltip.innerHTML = `
                 <div style="font-size: 11px; font-weight: 800; color: ${ev.color || '#2B4C7E'}; text-transform: uppercase; margin-bottom: 4px;">
-                    ${ev.category} ‧ ${ev.status === 'completed' ? '已完成' : '排定中'}
+                    ${ev.category} ‧ 狀態：${ev.status || 'pending'}
                 </div>
                 <h5 style="font-size: 14px; font-weight: 700; color: #3E3E3E; margin: 0 0 6px 0;">${ev.title}</h5>
                 <div style="font-size: 11px; color: #6B6B6B; line-height: 1.5;">
@@ -459,27 +605,108 @@ window.CalEngine = {
         if (tooltip) tooltip.style.display = 'none';
     },
 
-    openEditEvent: function(eventId) {
+    // ========================================================
+    // 4. 客製化 Modal (狀態切換 + 原地二次確認防呆，不彈原生視窗)
+    // ========================================================
+    currentActiveEventId: null,
+
+    openActionModal: function(eventId) {
         const cleanId = String(eventId).replace('evt_', '');
         const ev = this.events.find(e => String(e.raw_id || e.id).replace('evt_', '') === cleanId);
         if (!ev) return;
 
-        document.getElementById('fe-id').value = cleanId;
-        document.getElementById('modal-event-title-display').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #D9A066;"></i> 編輯行事曆事件';
-        document.getElementById('fe-title').value = ev.title || '';
-        document.getElementById('fe-category').value = ev.category || 'work';
-        document.getElementById('fe-site-name').value = ev.site_name || '';
-        document.getElementById('fe-start-date').value = ev.meeting_date || (ev.start ? ev.start.slice(0, 10) : '');
-        document.getElementById('fe-start-time').value = ev.meeting_time || '09:00';
-        document.getElementById('fe-end-date').value = ev.end_date || ev.meeting_date || '';
-        document.getElementById('fe-end-time').value = ev.end_time || '10:00';
-        document.getElementById('fe-is-milestone').checked = Boolean(ev.is_milestone);
-        document.getElementById('fe-all-day').checked = Boolean(ev.allDay);
-        document.getElementById('fe-location').value = ev.location || '';
-        document.getElementById('fe-notes').value = ev.notes || ev.description || '';
+        this.currentActiveEventId = cleanId;
 
-        const modal = document.getElementById('modal-quick-add');
+        document.getElementById('action-modal-title').innerText = ev.title;
+        document.getElementById('action-modal-time').innerText = `時間：${ev.meeting_date || ''} ${ev.meeting_time || ''} ‧ 地點：${ev.location || ev.site_name || '現場'}`;
+        
+        // 綁定當前狀態
+        const selectEl = document.getElementById('action-modal-status-select');
+        if (selectEl) selectEl.value = ev.status || 'pending';
+
+        // 隱藏刪除防呆確認區，顯示初始刪除觸發鈕
+        document.getElementById('action-delete-confirm-box').style.display = 'none';
+        document.getElementById('btn-action-trigger-delete').style.display = 'inline-block';
+
+        const modal = document.getElementById('modal-event-action');
         if (modal) modal.classList.add('active');
+    },
+
+    closeActionModal: function() {
+        const modal = document.getElementById('modal-event-action');
+        if (modal) modal.classList.remove('active');
+        this.currentActiveEventId = null;
+    },
+
+    // 樂觀狀態切換 (Optimistic Status Change)
+    async handleModalStatusChange(newStatus) {
+        if (!this.currentActiveEventId) return;
+        const cleanId = this.currentActiveEventId;
+        const ev = this.events.find(e => String(e.raw_id || e.id).replace('evt_', '') === cleanId);
+        if (!ev) return;
+
+        const previousStatus = ev.status || 'pending';
+
+        // [1] 樂觀更新: 畫面直接變色與渲染
+        ev.status = newStatus;
+        this.renderCurrentView();
+        this.renderSidebarDayAgenda();
+        window.ToastNotification.show(`狀態已更新為「${newStatus}」`, 'info');
+
+        try {
+            // [2] 背景發送 API
+            await window.CalendarApiService.patchStatus(cleanId, newStatus);
+        } catch (err) {
+            // [3] 失敗自動回滾 (Rollback)
+            console.error('[Status Rollback]', err);
+            ev.status = previousStatus;
+            document.getElementById('action-modal-status-select').value = previousStatus;
+            this.renderCurrentView();
+            this.renderSidebarDayAgenda();
+            window.ToastNotification.show(`更新失敗：${err.message}，已還原狀態`, 'error');
+        }
+    },
+
+    // 原地展開防呆確認
+    showDeleteConfirm: function() {
+        document.getElementById('btn-action-trigger-delete').style.display = 'none';
+        const confirmBox = document.getElementById('action-delete-confirm-box');
+        confirmBox.style.display = 'block';
+    },
+
+    hideDeleteConfirm: function() {
+        document.getElementById('action-delete-confirm-box').style.display = 'none';
+        document.getElementById('btn-action-trigger-delete').style.display = 'inline-block';
+    },
+
+    // 樂觀刪除事件 (Optimistic Delete with Auto Rollback)
+    async executeConfirmedDelete() {
+        if (!this.currentActiveEventId) return;
+        const cleanId = this.currentActiveEventId;
+        const targetIndex = this.events.findIndex(e => String(e.raw_id || e.id).replace('evt_', '') === cleanId);
+        if (targetIndex === -1) return;
+
+        const deletedEvent = this.events[targetIndex];
+
+        // [1] 關閉 Modal 並樂觀移除 DOM
+        this.closeActionModal();
+        this.events.splice(targetIndex, 1);
+        this.renderCurrentView();
+        this.renderSidebarDayAgenda();
+        window.ToastNotification.show(`事件「${deletedEvent.title}」已刪除`, 'info');
+
+        try {
+            // [2] 背景發送 API
+            await window.CalendarApiService.deleteEvent(cleanId);
+            this.loadMilestones();
+        } catch (err) {
+            // [3] 失敗自動回滾 (Rollback)
+            console.error('[Delete Rollback]', err);
+            this.events.splice(targetIndex, 0, deletedEvent);
+            this.renderCurrentView();
+            this.renderSidebarDayAgenda();
+            window.ToastNotification.show(`刪除失敗：${err.message}，事件已恢復`, 'error');
+        }
     }
 };
 
@@ -492,11 +719,8 @@ window.initStandaloneCalendar = function() {
 window.changePerspective = function(val) {
     window.CalEngine.currentPerspective = val;
     document.body.className = '';
-    if (val === 'senior') {
-        document.body.classList.add('view-senior');
-    } else if (val === 'print') {
-        document.body.classList.add('view-print');
-    }
+    if (val === 'senior') document.body.classList.add('view-senior');
+    else if (val === 'print') document.body.classList.add('view-print');
     window.CalEngine.loadEvents();
 };
 
@@ -560,7 +784,7 @@ window.handleEventFormSubmit = function(e) {
     const isEdit = Boolean(id);
 
     const payload = {
-        title: document.getElementById('fe-title').value.strip ? document.getElementById('fe-title').value.strip() : document.getElementById('fe-title').value,
+        title: document.getElementById('fe-title').value.trim(),
         category: document.getElementById('fe-category').value,
         site_name: document.getElementById('fe-site-name').value,
         meeting_date: document.getElementById('fe-start-date').value,
@@ -570,7 +794,8 @@ window.handleEventFormSubmit = function(e) {
         is_milestone: document.getElementById('fe-is-milestone').checked,
         allDay: document.getElementById('fe-all-day').checked,
         location: document.getElementById('fe-location').value,
-        notes: document.getElementById('fe-notes').value
+        notes: document.getElementById('fe-notes').value,
+        status: 'pending'
     };
 
     const url = isEdit ? `/api/calendar/events/${id}` : '/api/calendar/events';
@@ -585,13 +810,14 @@ window.handleEventFormSubmit = function(e) {
     .then(data => {
         if (data.status === 'success') {
             closeQuickAddModal();
+            window.ToastNotification.show(data.message || '事件已成功儲存！', 'success');
             window.CalEngine.loadEvents();
             window.CalEngine.loadMilestones();
         } else {
-            alert('儲存失敗: ' + (data.message || '未知錯誤'));
+            window.ToastNotification.show('儲存失敗: ' + (data.message || '未知錯誤'), 'error');
         }
     })
-    .catch(err => alert('網絡連線錯誤: ' + err));
+    .catch(err => window.ToastNotification.show('網絡請求錯誤: ' + err, 'error'));
 };
 
 // 分類篩選連動
@@ -613,7 +839,7 @@ window.toggleFilterCategory = function(cat) {
     window.CalEngine.renderCurrentView();
 };
 
-// 外部日曆同步處理
+// 外部日曆同步處理 (以 Toast 呈現)
 window.openSyncModal = function() {
     const modal = document.getElementById('modal-sync-calendar');
     if (modal) modal.classList.add('active');
@@ -627,7 +853,7 @@ window.closeSyncModal = function() {
 window.executeCalendarSync = function() {
     const icalUrl = document.getElementById('sync-ical-url')?.value.trim();
     if (!icalUrl) {
-        alert('請先輸入 iCal 網址！');
+        window.ToastNotification.show('請先輸入有效的 iCal 網址！', 'warning');
         return;
     }
 
@@ -640,12 +866,12 @@ window.executeCalendarSync = function() {
     .then(data => {
         if (data.status === 'success') {
             window.CalEngine.externalEvents = data.data || [];
-            alert(`🎉 ${data.message}`);
             closeSyncModal();
+            window.ToastNotification.show(`🎉 ${data.message}`, 'success');
             window.CalEngine.renderCurrentView();
         } else {
-            alert('同步失敗: ' + (data.message || '無法解析該日曆'));
+            window.ToastNotification.show('同步失敗: ' + (data.message || '無法解析該日曆'), 'error');
         }
     })
-    .catch(err => alert('同步請求異常: ' + err));
+    .catch(err => window.ToastNotification.show('同步請求異常: ' + err, 'error'));
 };

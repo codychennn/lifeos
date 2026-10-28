@@ -28,6 +28,14 @@
             --tag-golf: #4A7C59;
             --tag-finance: #B91C1C;
             --tag-general: #8C6A4E;
+
+            /* 狀態色彩系統 (Status Color-Coding) */
+            --status-urgent-bg: #FEF2F2;
+            --status-urgent-border: #EF4444;
+            --status-urgent-text: #991B1B;
+            --status-completed-bg: rgba(244, 241, 237, 0.6);
+            --status-completed-border: #10B981;
+            --status-completed-text: #94A3B8;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -211,29 +219,51 @@
             background: rgba(140, 106, 78, 0.06);
         }
 
-        /* 事件膠囊 (支援色彩編碼與拖曳) */
+        /* 事件卡片 (微浮凸陰影、圓角與 status 專屬 Color-Coding) */
         .cal-event-pill {
             font-size: 11px;
-            padding: 3px 6px;
+            padding: 4px 8px;
             border-radius: 6px;
             color: #FFFFFF;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            cursor: grab;
-            transition: transform 0.15s ease, opacity 0.15s ease;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
-        .cal-event-pill:active { cursor: grabbing; }
-        .cal-event-pill:hover { opacity: 0.9; transform: scale(1.02); }
+        .cal-event-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(140, 106, 78, 0.18);
+        }
         .cal-event-pill.is-milestone-flag {
             border: 1.5px solid #FFD700;
-            box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
         }
         .cal-event-pill.is-external {
-            border: 1.5px dashed rgba(255, 255, 255, 0.8);
+            border: 1.5px dashed rgba(255, 255, 255, 0.85);
+        }
+
+        /* Urgent 狀態：醒目紅邊界與微紅背景 */
+        .cal-event-pill.status-urgent {
+            background-color: var(--status-urgent-bg) !important;
+            border-left: 4px solid var(--status-urgent-border) !important;
+            color: var(--status-urgent-text) !important;
+            font-weight: 700;
+        }
+
+        /* Completed 狀態：刪除線、刷淡、綠色打勾 */
+        .cal-event-pill.status-completed {
+            background-color: var(--status-completed-bg) !important;
+            border-left: 4px solid var(--status-completed-border) !important;
+            color: var(--status-completed-text) !important;
+            opacity: 0.7;
+        }
+        .cal-event-pill.status-completed .event-pill-title {
+            text-decoration: line-through;
         }
 
         /* 甘特 / 時間軸視角 */
@@ -253,6 +283,11 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+        .timeline-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
         /* Hover 懸浮卡 (Rich Tooltip) */
@@ -270,7 +305,7 @@
             transition: opacity 0.15s ease;
         }
 
-        /* 模態彈窗 Backdrop */
+        /* 客製化 Modal 彈窗 (Fade-in 轉場動畫) */
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -280,20 +315,48 @@
             z-index: 999;
             align-items: center;
             justify-content: center;
+            opacity: 0;
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .modal-backdrop.active { display: flex; }
+        .modal-backdrop.active {
+            display: flex;
+            opacity: 1;
+        }
         .modal-content {
             background: #FFFFFF;
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 12px 36px rgba(0,0,0,0.2);
             width: 95%;
-            max-width: 560px;
+            max-width: 520px;
             padding: 24px;
             max-height: 90vh;
             overflow-y: auto;
+            transform: scale(0.96);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-backdrop.active .modal-content {
+            transform: scale(1);
         }
 
-        /* 響應式 */
+        /* 危險操作區與防呆機制 (原地展開二次確認) */
+        .danger-zone {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px dashed rgba(220, 38, 38, 0.3);
+        }
+        .danger-confirm-box {
+            display: none;
+            background: #FEF2F2;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #FCA5A5;
+            animation: fadeIn 0.2s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 992px) {
             .cal-container { flex-direction: column; }
             .cal-sidebar { width: 100%; }
@@ -334,9 +397,8 @@
 
     <!-- 主工作區 -->
     <main class="cal-container">
-        <!-- 左側面板：迷你月曆 + 核心四大標籤篩選 + 即將到來里程碑清單 -->
+        <!-- 左側面板：分類篩選 + 里程碑倒數 + 本日摘要 -->
         <aside class="cal-sidebar no-print">
-            <!-- 篩選卡片 -->
             <div class="cal-card">
                 <h4 style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-filter"></i> 分類標籤篩選
@@ -365,7 +427,6 @@
                 </div>
             </div>
 
-            <!-- 里程碑倒數看板 -->
             <div class="cal-card">
                 <h4 style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-flag-checkered" style="color: #D97706;"></i> 關鍵里程碑倒數
@@ -375,7 +436,6 @@
                 </div>
             </div>
 
-            <!-- 本日摘要卡片 -->
             <div class="cal-card">
                 <h4 id="sidebar-selected-date-title" style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">
                     本日行程摘要
@@ -386,9 +446,8 @@
             </div>
         </aside>
 
-        <!-- 右側畫布：時間控制 + 5大視角切換 + 主月曆 / 週視角 / 甘特圖 -->
+        <!-- 右側畫布：時間控制 + 5大視角切換 + 畫布容器 -->
         <section class="cal-main">
-            <!-- 視角與時間導航條 -->
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(167, 182, 162, 0.3); padding-bottom: 14px;">
                 <div style="display: flex; align-items: center; gap: 14px;">
                     <h2 id="cal-month-title" style="font-size: 22px; font-family: 'Noto Serif TC', serif; color: var(--primary); font-weight: 700; margin: 0;">
@@ -413,11 +472,9 @@
 
             <!-- 畫布容器 -->
             <div id="cal-view-canvas" style="flex: 1; display: flex; flex-direction: column;">
-                <!-- 週標題 (月視角) -->
                 <div id="cal-weekdays-header" style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 13px; font-weight: 700; color: var(--text-secondary); padding: 8px 0;">
                     <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
                 </div>
-                <!-- 網格容器 -->
                 <div id="cal-grid-body" class="month-grid">
                     <!-- 動態由 JS 渲染 -->
                 </div>
@@ -428,7 +485,52 @@
     <!-- Hover 懸浮卡 (Rich Tooltip) -->
     <div id="cal-rich-tooltip"></div>
 
-    <!-- 快速新增 / 編輯模態視窗 -->
+    <!-- 客製化 Modal (狀態切換 + 危險操作區原地二次確認防呆機制) -->
+    <div id="modal-event-action" class="modal-backdrop" onclick="window.CalEngine.closeActionModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(167, 182, 162, 0.3); padding-bottom: 12px; margin-bottom: 14px;">
+                <h3 id="action-modal-title" style="margin: 0; font-size: 17px; color: var(--primary); font-family: 'Noto Serif TC', serif; font-weight: 700;">事件詳情</h3>
+                <button onclick="window.CalEngine.closeActionModal()" class="btn-outline" style="padding: 4px 10px;">✕</button>
+            </div>
+
+            <p id="action-modal-time" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;"></p>
+
+            <!-- 狀態無縫切換下拉選單 (Optimistic UI Update) -->
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px;">變更進度狀態 (Optimistic Update)：</label>
+                <select id="action-modal-status-select" onchange="window.CalEngine.handleModalStatusChange(this.value)" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(140, 106, 78, 0.3); font-size: 13px;">
+                    <option value="pending">⏳ Pending (待處理 / 正常排程)</option>
+                    <option value="urgent">🚨 Urgent (緊急事件 / 紅色高亮)</option>
+                    <option value="completed">✅ Completed (已完成 / 刪除線與打勾)</option>
+                    <option value="other">📌 Other (其他備忘)</option>
+                </select>
+            </div>
+
+            <!-- 底部危險操作區 (原地展開二次確認，不彈原生視窗) -->
+            <div class="danger-zone">
+                <button id="btn-action-trigger-delete" onclick="window.CalEngine.showDeleteConfirm()" style="background: transparent; color: #DC2626; border: 1px solid #DC2626; border-radius: 6px; padding: 7px 16px; font-size: 12px; cursor: pointer; font-weight: 700;">
+                    🗑️ 刪除此事件
+                </button>
+
+                <!-- 原地替換之防呆確認區塊 -->
+                <div id="action-delete-confirm-box" class="danger-confirm-box">
+                    <div style="font-size: 13px; color: #991B1B; font-weight: 700; margin-bottom: 8px;">
+                        ⚠️ 確定要永久刪除此事件嗎？此操作無法還原。
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="window.CalEngine.executeConfirmedDelete()" style="background: #DC2626; color: #FFF; border: none; padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                            確認刪除
+                        </button>
+                        <button onclick="window.CalEngine.hideDeleteConfirm()" style="background: #E5E7EB; color: #374151; border: none; padding: 7px 14px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速新增事件 Modal -->
     <div id="modal-quick-add" class="modal-backdrop" onclick="closeQuickAddModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(167, 182, 162, 0.3); padding-bottom: 12px; margin-bottom: 16px;">
@@ -449,7 +551,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                         <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">分類標籤 *</label>
-                        <select id="fe-category" onchange="onCategorySelectChange(this.value)" style="width: 100%; padding: 8px 10px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                        <select id="fe-category" style="width: 100%; padding: 8px 10px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
                             <option value="work">💼 工務與專案 (Work)</option>
                             <option value="travel">✈️ 旅遊與航程 (Travel)</option>
                             <option value="golf">🏌️ 高爾夫與運動 (Golf)</option>
@@ -459,14 +561,7 @@
                     </div>
                     <div>
                         <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">專案工地 / 類別名稱</label>
-                        <input type="text" id="fe-site-name" value="Micron F10E" list="standalone-site-datalist" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
-                        <datalist id="standalone-site-datalist">
-                            <option value="Micron F10E">
-                            <option value="A案大樓新建工程">
-                            <option value="B案廠房擴建工程">
-                            <option value="C案捷運聯開工程">
-                            <option value="自駕旅行與巡訪">
-                        </datalist>
+                        <input type="text" id="fe-site-name" value="Micron F10E" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
                     </div>
                 </div>
 
