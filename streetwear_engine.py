@@ -4,12 +4,38 @@ import time
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
-# 全球頂級潮牌與奢華時尚即時動態庫 (自動換算為新台幣 NT$)
+# 全球 30 大頂級潮牌、高爾夫精品與奢華時尚即時動態庫 (自動換算為新台幣 NT$)
 STREETWEAR_DROPS = [
     {
         "id": "drop-001",
+        "brand": "Malbon Golf",
+        "title": "Malbon x New Balance 997G 聯名頂級刺繡高爾夫鞋",
+        "original_price": "$220 USD",
+        "twd_price": "NT$ 7,050",
+        "twd_val": 7050,
+        "category": "⛳ 潮流高爾夫",
+        "status": "🔥 限量聯名熱選",
+        "release_date": "2026-08-28 (全球限量抽籤)",
+        "source_url": "https://malbongolf.com",
+        "description": "加州最具人氣潮流高爾夫品牌，Buckets 標誌刺繡與防水真皮，果嶺與日常穿搭完美兼具。"
+    },
+    {
+        "id": "drop-002",
+        "brand": "Rolex",
+        "title": "Rolex Submariner 潛航者日曆型水鬼腕錶 (126610LN)",
+        "original_price": "$10,250 USD",
+        "twd_price": "NT$ 328,000",
+        "twd_val": 328000,
+        "category": "⌚ 奢華腕錶",
+        "status": "💎 經典保值首選",
+        "release_date": "官方授權經銷店配額",
+        "source_url": "https://www.rolex.com",
+        "description": "蠔式鋼黑色 Cerachrom 陶質字圈，搭載 3235 型恒動機芯，頂級精密時計與資產配置必備。"
+    },
+    {
+        "id": "drop-003",
         "brand": "Supreme",
-        "title": "Supreme x Nike Air Force 1 Low 聯名限定款",
+        "title": "Supreme x Nike Air Force 1 Low 聯名限定款 (Box Logo)",
         "original_price": "$128 USD",
         "twd_price": "NT$ 4,100",
         "twd_val": 4100,
@@ -17,10 +43,10 @@ STREETWEAR_DROPS = [
         "status": "🔥 本週搶購熱選",
         "release_date": "2026-08-27 (週四發售)",
         "source_url": "https://www.supreme.com",
-        "description": "經典全白皮革搭配側邊紅底 Box Logo 壓印，全球潮流玩家必收必備款式。"
+        "description": "經典全白皮革搭配側邊紅底 Box Logo 壓印，紐約街頭潮流玩家必收聖品。"
     },
     {
-        "id": "drop-002",
+        "id": "drop-004",
         "brand": "Stüssy",
         "title": "Stüssy 8-Ball Pigment Dyed 復古抓絨帽T",
         "original_price": "$135 USD",
@@ -33,20 +59,7 @@ STREETWEAR_DROPS = [
         "description": "重磅水洗水洗棉質配背後經典 8 號黑球印花，美式街頭極簡風格必備。"
     },
     {
-        "id": "drop-003",
-        "brand": "Fear of God Essentials",
-        "title": "Essentials Core Collection 霧面墨黑極簡衛衣",
-        "original_price": "$100 USD",
-        "twd_price": "NT$ 3,200",
-        "twd_val": 3200,
-        "category": "🧥 奢華休閒",
-        "status": "🟢 現貨熱銷",
-        "release_date": "現正熱賣中",
-        "source_url": "https://fearofgod.com",
-        "description": "Jerry Lorenzo 經典剪裁，立體矽膠植絨 Logo，極簡曜石黑高質感打底必備。"
-    },
-    {
-        "id": "drop-004",
+        "id": "drop-005",
         "brand": "Chrome Hearts",
         "title": "Chrome Hearts 十字架純銀刺繡網帽 (Black/Silver)",
         "original_price": "$385 USD",
@@ -59,7 +72,20 @@ STREETWEAR_DROPS = [
         "description": "經典 925 純銀銀扣與頂級十字架刺繡，頂級名流與潮流明星最愛配飾。"
     },
     {
-        "id": "drop-005",
+        "id": "drop-006",
+        "brand": "Fear of God Essentials",
+        "title": "Essentials Core Collection 霧面墨黑極簡衛衣",
+        "original_price": "$100 USD",
+        "twd_price": "NT$ 3,200",
+        "twd_val": 3200,
+        "category": "🧥 奢華休閒",
+        "status": "🟢 現貨熱銷",
+        "release_date": "現正熱賣中",
+        "source_url": "https://fearofgod.com",
+        "description": "Jerry Lorenzo 經典剪裁，立體矽膠植絨 Logo，極簡曜石黑高質感打底必備。"
+    },
+    {
+        "id": "drop-007",
         "brand": "Kith",
         "title": "Kith x New Balance 990v6 聯名賽車灰慢跑鞋",
         "original_price": "$220 USD",
@@ -72,7 +98,7 @@ STREETWEAR_DROPS = [
         "description": "Ronnie Fieg 獨家調色賽車灰麂皮，搭載 FuelCell 頂級緩震中底科技。"
     },
     {
-        "id": "drop-006",
+        "id": "drop-008",
         "brand": "Gentle Monster",
         "title": "Gentle Monster Bold 系列鈦金屬墨鏡 (Matrix 01)",
         "original_price": "$330 USD",
@@ -85,7 +111,7 @@ STREETWEAR_DROPS = [
         "description": "前衛星辰金屬鑲嵌設計，修飾臉型首選，韓國明星與時尚週必備熱單。"
     },
     {
-        "id": "drop-007",
+        "id": "drop-009",
         "brand": "Palace",
         "title": "Palace Tri-Ferg 經典三稜鏡重磅 T-Shirt (Obsidian)",
         "original_price": "£48 GBP",
@@ -98,7 +124,7 @@ STREETWEAR_DROPS = [
         "description": "倫敦板仔品牌龍頭，背後經典 Tri-Ferg 三角形 Logo 曜石黑限定配色。"
     },
     {
-        "id": "drop-008",
+        "id": "drop-010",
         "brand": "Human Made",
         "title": "Human Made Nigo 鴨子圖騰美式復古帆布包",
         "original_price": "¥14,800 JPY",
@@ -109,13 +135,273 @@ STREETWEAR_DROPS = [
         "release_date": "東京直營店發售",
         "source_url": "https://humanmade.jp",
         "description": "NIGO 經典美式復古咔嘰風格，高品質重磅帆布配可愛獨家北極熊/鴨子繪圖。"
+    },
+    {
+        "id": "drop-011",
+        "brand": "Arc'teryx",
+        "title": "Arc'teryx Alpha SV GORE-TEX PRO 頂級硬殼衝鋒衣",
+        "original_price": "$900 USD",
+        "twd_price": "NT$ 28,800",
+        "twd_val": 28800,
+        "category": "🏔️ 戶外機能",
+        "status": "🔥 戶外神鳥",
+        "release_date": "全天候防護現貨",
+        "source_url": "https://arcteryx.com",
+        "description": "加拿大戶外天花板，N100D 極致耐磨抗撕裂 PRO 布料，山系潮流必備戰袍。"
+    },
+    {
+        "id": "drop-012",
+        "brand": "G/FORE",
+        "title": "G/FORE Gallivanter 奢華卵石紋真皮高爾夫球鞋",
+        "original_price": "$225 USD",
+        "twd_price": "NT$ 7,200",
+        "twd_val": 7200,
+        "category": "⛳ 頂級高球",
+        "status": "🟢 PGA 選手愛用",
+        "release_date": "2026 最新款現貨",
+        "source_url": "https://www.gfore.com",
+        "description": "洛杉磯奢華高爾夫品牌，三重密度可水洗按摩鞋墊，極致腳感與貴族優雅風格。"
+    },
+    {
+        "id": "drop-013",
+        "brand": "Balenciaga",
+        "title": "Balenciaga 3XL 破壞做舊老爹鞋 (Worn-Out Edition)",
+        "original_price": "$1,150 USD",
+        "twd_price": "NT$ 36,800",
+        "twd_val": 36800,
+        "category": "👟 先鋒奢潮",
+        "status": "⚡ 時裝週焦點",
+        "release_date": "巴黎直營門市",
+        "source_url": "https://www.balenciaga.com",
+        "description": "Demna 誇張寬版輪廓，鞋帶環繞鞋頭做舊細節，當代暗黑高街時尚頂點。"
+    },
+    {
+        "id": "drop-014",
+        "brand": "Bottega Veneta",
+        "title": "Bottega Veneta Cassette 大格編織小羊皮斜背包",
+        "original_price": "$2,500 USD",
+        "twd_price": "NT$ 80,000",
+        "twd_val": 80000,
+        "category": "👜 頂級奢華",
+        "status": "💎 義大利工藝",
+        "release_date": "米蘭經典現貨",
+        "source_url": "https://www.bottegaveneta.com",
+        "description": "義大利頂級 Intreccio 編織工藝，極致細膩小羊皮手感，靜奢風 (Quiet Luxury) 代表。"
+    },
+    {
+        "id": "drop-015",
+        "brand": "Stone Island",
+        "title": "Stone Island Ghost Piece 羅盤臂章防水夾克",
+        "original_price": "$850 USD",
+        "twd_price": "NT$ 27,200",
+        "twd_val": 27200,
+        "category": "🧥 機能先鋒",
+        "status": "🔥 幽靈限定款",
+        "release_date": "本季限量配額",
+        "source_url": "https://www.stoneisland.com",
+        "description": "單色同色系隱形羅盤布章，軍事迷彩靈感，高科技面料染色技術標竿。"
+    },
+    {
+        "id": "drop-016",
+        "brand": "PXG Golf",
+        "title": "PXG Darkness 骷髏限定版防風高爾夫球夾克",
+        "original_price": "$295 USD",
+        "twd_price": "NT$ 9,440",
+        "twd_val": 9440,
+        "category": "⛳ 科技高球",
+        "status": "💀 26 骷髏限定",
+        "release_date": "PXG 美國官網發售",
+        "source_url": "https://www.pxg.com",
+        "description": "創辦人 Bob Parsons 陸戰隊 26 特遣隊紀念標誌，四面彈性抗風防潑水科技。"
+    },
+    {
+        "id": "drop-017",
+        "brand": "Audemars Piguet",
+        "title": "AP 愛彼 Royal Oak 皇家橡樹自動上鍊腕錶 (15510ST)",
+        "original_price": "$27,800 USD",
+        "twd_price": "NT$ 889,600",
+        "twd_val": 889600,
+        "category": "⌚ 頂級鐘錶",
+        "status": "👑 頂級三大錶",
+        "release_date": "專賣店預定分配",
+        "source_url": "https://www.audemarspiguet.com",
+        "description": "Gerald Genta 傳奇八角形舷窗外圈，Grande Tapisserie 大型格紋面盤，經典傳奇。"
+    },
+    {
+        "id": "drop-018",
+        "brand": "Patek Philippe",
+        "title": "百達翡麗 Nautilus 金鷹 5811/1G 白金腕錶",
+        "original_price": "$70,000 USD",
+        "twd_price": "NT$ 2,240,000",
+        "twd_val": 2240000,
+        "category": "⌚ 錶王之王",
+        "status": "🏆 尊榮頂峰",
+        "release_date": "全球超級藏家配額",
+        "source_url": "https://www.patek.com",
+        "description": "41毫米白金錶殼，藍色日輝紋漸層黑色錶盤，錶王歷史最經典運動奢華象徵。"
+    },
+    {
+        "id": "drop-019",
+        "brand": "Cactus Jack",
+        "title": "Travis Scott x Air Jordan 1 Low 倒鉤聯名限定款",
+        "original_price": "$150 USD",
+        "twd_price": "NT$ 4,800",
+        "twd_val": 4800,
+        "category": "👟 潮流鞋王",
+        "status": "⚡ 全球瘋搶",
+        "release_date": "SNKRS 突襲抽籤",
+        "source_url": "https://cactusjack.travisscott.com",
+        "description": "經典反向 Swoosh 倒鉤設計，橄欖綠與大地色系拼接，轉售市場長年溢價冠軍。"
+    },
+    {
+        "id": "drop-020",
+        "brand": "BAPE",
+        "title": "A Bathing Ape 經典 1st Camo 鯊魚全拉鍊帽衫",
+        "original_price": "¥38,500 JPY",
+        "twd_price": "NT$ 8,180",
+        "twd_val": 8180,
+        "category": "👕 原宿經典",
+        "status": "🟢 日本直營",
+        "release_date": "原宿本店發售",
+        "source_url": "https://bape.com",
+        "description": "90年代東京裏原宿黃金傳奇，夜光刺繡鯊魚牙齒與 WGM 字母，街頭辨識度第一。"
+    },
+    {
+        "id": "drop-021",
+        "brand": "Neighborhood",
+        "title": "Neighborhood 復古水洗 Savage 牛仔外套 (Indigo)",
+        "original_price": "¥52,800 JPY",
+        "twd_price": "NT$ 11,200",
+        "twd_val": 11200,
+        "category": "🧥 騎士機車",
+        "status": "⚡ 瀧澤伸介力作",
+        "release_date": "本季限量新品",
+        "source_url": "https://www.neighborhood.jp",
+        "description": "重度手工刀割破壞、潑漆與貓鬚水洗，日本頂級岡山單寧工藝結晶。"
+    },
+    {
+        "id": "drop-022",
+        "brand": "WTAPS",
+        "title": "WTAPS Modular 01 戰術多口袋襯衫夾克",
+        "original_price": "¥41,800 JPY",
+        "twd_price": "NT$ 8,890",
+        "twd_val": 8890,
+        "category": "🪖 軍事工裝",
+        "status": "🟢 西山徹主理",
+        "release_date": "東京正規發售",
+        "source_url": "https://www.wtaps.com",
+        "description": "Placing things where they should be，十字骨標誌與軍規 Ripstop 抗撕裂織物。"
+    },
+    {
+        "id": "drop-023",
+        "brand": "Fragment Design",
+        "title": "Fragment Design x Moncler 聯名閃電刺繡羽絨背心",
+        "original_price": "$1,350 USD",
+        "twd_price": "NT$ 43,200",
+        "twd_val": 43200,
+        "category": "⚡ 教父聯名",
+        "status": "🔥 藤原浩監修",
+        "release_date": "全球限定快閃店",
+        "source_url": "https://www.moncler.com",
+        "description": "潮流教父藤原浩雙閃電標誌，頂級白鵝絨填充，曜石黑漆面光澤高級奢華。"
+    },
+    {
+        "id": "drop-024",
+        "brand": "Maison Margiela",
+        "title": "Maison Margiela Tabi 分趾皮革踝靴 (Black)",
+        "original_price": "$1,120 USD",
+        "twd_price": "NT$ 35,840",
+        "twd_val": 35840,
+        "category": "👢 解構前衛",
+        "status": "💎 經典解構",
+        "release_date": "巴黎門市現貨",
+        "source_url": "https://www.maisonmargiela.com",
+        "description": "1989年誕生之日本足袋靈感，高級小牛皮與標誌性圓柱粗跟，先鋒藝術標誌。"
+    },
+    {
+        "id": "drop-025",
+        "brand": "Rick Owens",
+        "title": "Rick Owens Geobasket 大匡威黑白撞色高筒球鞋",
+        "original_price": "$1,250 USD",
+        "twd_price": "NT$ 40,000",
+        "twd_val": 40000,
+        "category": "👟 暗黑美學",
+        "status": "🖤 暗黑之神",
+        "release_date": "現正熱銷中",
+        "source_url": "https://www.rickowens.eu",
+        "description": "加長鞋舌與鋸齒厚底輪廓，暗黑先鋒美學 (Goth Avant-Garde) 最具代表神鞋。"
+    },
+    {
+        "id": "drop-026",
+        "brand": "Jacquemus",
+        "title": "Jacquemus Le Chiquito Moyen 迷你皮革手提包",
+        "original_price": "$780 USD",
+        "twd_price": "NT$ 24,960",
+        "twd_val": 24960,
+        "category": "👜 南法浪漫",
+        "status": "🟢 名媛熱門款",
+        "release_date": "南法春夏現貨",
+        "source_url": "https://www.jacquemus.com",
+        "description": "Simon Porte Jacquemus 標誌性雕塑手柄，金色金屬 Logo，南法艷陽風情。"
+    },
+    {
+        "id": "drop-027",
+        "brand": "Casablanca",
+        "title": "Casablanca 摩納哥網球絲綢印花短袖古巴襯衫",
+        "original_price": "$890 USD",
+        "twd_price": "NT$ 28,480",
+        "twd_val": 28480,
+        "category": "🏖️ 奢華度假",
+        "status": "🔥 坎城名流愛用",
+        "release_date": "2026 度假系列",
+        "source_url": "https://casablancaparis.com",
+        "description": "100% 義大利純絲綢手工製作，摩洛哥建築與復古網球俱樂部手繪印花。"
+    },
+    {
+        "id": "drop-028",
+        "brand": "Moncler",
+        "title": "Moncler Maya 70 週年限定亮面羽絨短夾克",
+        "original_price": "$1,780 USD",
+        "twd_price": "NT$ 56,960",
+        "twd_val": 56960,
+        "category": "🧥 羽絨之王",
+        "status": "💎 經典黑標",
+        "release_date": "全球旗艦店發售",
+        "source_url": "https://www.moncler.com",
+        "description": "極致亮面漆皮尼龍搭配標誌性左臂口袋毛氈布章，冬季保暖與奢華首選。"
+    },
+    {
+        "id": "drop-029",
+        "brand": "Ambush",
+        "title": "Ambush 經典打火機套 925 純銀項鍊 (Silver)",
+        "original_price": "$380 USD",
+        "twd_price": "NT$ 12,160",
+        "twd_val": 12160,
+        "category": "💍 珠寶配飾",
+        "status": "🟢 Yoon Ahn 設計",
+        "release_date": "東京直營現貨",
+        "source_url": "https://www.ambushdesign.com",
+        "description": "將日常打火機轉化為奢華珠寶雕塑，重磅銀鍊與精密切割工藝。"
+    },
+    {
+        "id": "drop-030",
+        "brand": "Off-White",
+        "title": "Off-White Industrial 2.0 經典工業腰帶 (Yellow/Black)",
+        "original_price": "$260 USD",
+        "twd_price": "NT$ 8,320",
+        "twd_val": 8320,
+        "category": "🎗️ 街頭符號",
+        "status": "🔥 Virgil 遺作精神",
+        "release_date": "米蘭官方發售",
+        "source_url": "https://www.off---white.com",
+        "description": "Virgil Abloh 標誌性工業警戒線織帶與紅色縫線，潮流史上的永恆經典符號。"
     }
 ]
 
 def get_streetwear_feed(brand_filter='all'):
     """
-    回傳世界潮牌動態牆 (100% 標註新台幣 NT$)
+    回傳世界 30 大頂級潮牌動態牆 (100% 標註新台幣 NT$)
     """
-    if brand_filter == 'all':
+    if not brand_filter or brand_filter == 'all':
         return STREETWEAR_DROPS
     return [item for item in STREETWEAR_DROPS if item['brand'].lower() == brand_filter.lower()]

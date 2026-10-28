@@ -16,16 +16,29 @@ BANK_SPOT_FX_RATES = {
     "CNY": {"name": "人民幣 (CNY)", "flag": "🇨🇳", "buy": 4.45, "sell": 4.49, "unit": 1}
 }
 
+import time
+
+# Cache timestamp and storage (TTL = 600 seconds)
+_FX_CACHE = {}
+_FX_CACHE_TIMESTAMP = 0
+
 def get_bank_spot_fx_summary():
     """
-    回傳完整台銀即期匯率與一鍵換算新台幣參考數據
+    回傳完整台銀即期匯率與一鍵換算新台幣參考數據（具備 10 分鐘快取效能優化）
     """
-    return {
+    global _FX_CACHE, _FX_CACHE_TIMESTAMP
+    now = time.time()
+    if _FX_CACHE and (now - _FX_CACHE_TIMESTAMP < 600):
+        return _FX_CACHE
+
+    _FX_CACHE = {
         "status": "success",
         "base": "TWD (新台幣)",
-        "updated_at": "即時連線更新中",
+        "updated_at": "即時連線更新中 (快取有效 10 分鐘)",
         "rates": BANK_SPOT_FX_RATES
     }
+    _FX_CACHE_TIMESTAMP = now
+    return _FX_CACHE
 
 def convert_to_twd(currency_code, amount):
     """

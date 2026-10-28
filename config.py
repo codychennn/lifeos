@@ -12,7 +12,7 @@ DB_PATH = os.path.join(BASE_DIR, "personal_assistant.db")
 # Flask Web Configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "personal_assistant_secret_key_2026")
 PORT = int(os.getenv("PORT", 5000))
-HOST = os.getenv("HOST", "127.0.0.1")
+HOST = os.getenv("HOST", "0.0.0.0")
 
 # Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -29,8 +29,24 @@ DEAL_RSS_FEEDS = [
         "url": "https://www.ptt.cc/atom/Japan_Travel.xml"
     },
     {
+        "name": "星宇航空促銷 (STARLUX)",
+        "url": "https://news.google.com/rss/search?q=%E6%98%9F%E5%AE%87%E8%88%AA%E7%A9%BA+%E6%A9%9F%E7%A5%A8+%E7%89%B9%E5%83%B9+%E4%BF%83%E9%8A%B7&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    },
+    {
         "name": "長榮航空促銷 (EVA Air)",
         "url": "https://news.google.com/rss/search?q=%E9%95%B7%E6%A6%AE%E8%88%AA%E7%A9%BA+%E6%A9%9F%E7%A5%A8+%E7%89%B9%E5%83%B9+%E4%BF%83%E9%8A%B7&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    },
+    {
+        "name": "中華航空特惠 (China Airlines)",
+        "url": "https://news.google.com/rss/search?q=%E4%B8%AD%E8%8F%AF%E8%88%AA%E7%A9%BA+%E6%A9%9F%E7%A5%A8+%E7%89%B9%E5%83%B9+%E4%BF%83%E9%8A%B7&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    },
+    {
+        "name": "日航與全日空 (JAL / ANA)",
+        "url": "https://news.google.com/rss/search?q=JAL+ANA+%E6%A9%9F%E7%A5%A8+%E7%89%B9%E5%83%B9+%E4%BF%83%E9%8A%B7&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    },
+    {
+        "name": "國泰航空特惠 (Cathay Pacific)",
+        "url": "https://news.google.com/rss/search?q=%E5%9C%8B%E6%B3%B0%E8%88%AA%E7%A9%BA+%E6%A9%9F%E7%A5%A8+%E7%89%B9%E5%83%B9+%E4%BF%83%E9%8A%B7&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
     },
     {
         "name": "阿拉斯加航空特價 (Alaska Airlines)",
@@ -56,7 +72,9 @@ DEAL_RSS_FEEDS = [
 
 DEAL_KEYWORDS = [
     "特價", "優惠", "折扣", "機票", "飯店", "住宿", "促銷", "買一送一", "0元", "便宜", "省錢", "免運",
-    "長榮", "長榮航空", "EVA Air", "阿拉斯加", "阿拉斯加航空", "Alaska", "Skyscanner", "Trip.com", "Agoda",
+    "星宇", "星宇航空", "STARLUX", "長榮", "長榮航空", "EVA Air", "華航", "中華航空", "China Airlines",
+    "日航", "JAL", "全日空", "ANA", "國泰", "國泰航空", "Cathay",
+    "阿拉斯加", "阿拉斯加航空", "Alaska", "Skyscanner", "Trip.com", "Agoda",
     "哩程", "閃購", "早鳥", "票價", "機加酒", "折扣碼", "清艙"
 ]
 

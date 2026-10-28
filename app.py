@@ -976,6 +976,49 @@ def api_update_calendar_event(event_id):
     conn.close()
     return jsonify({"status": "success", "message": "已成功更新行事曆事件！"})
 
+
+@app.route("/api/events/<int:event_id>", methods=["PATCH"])
+@app.route("/api/calendar/events/<int:event_id>/status", methods=["PATCH"])
+def api_patch_calendar_event_status(event_id):
+    """
+    PATCH /api/events/:id 局部更新狀態 (RESTful Standard)
+    限定值：completed, urgent, pending, other
+    """
+    data = request.json or {}
+    new_status = data.get("status")
+    
+    allowed_statuses = ["completed", "urgent", "pending", "other"]
+    if not new_status or new_status not in allowed_statuses:
+        return jsonify({
+            "status": "error",
+            "message": f"無效的狀態值。允許值為：{', '.join(allowed_statuses)}"
+        }), 400
+
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM project_meetings WHERE id = ?", (event_id,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({
+            "status": "error",
+            "message": f"找不到 ID 為 {event_id} 的行事曆事件"
+        }), 404
+
+    cur.execute("UPDATE project_meetings SET status = ? WHERE id = ?", (new_status, event_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "status": "success",
+        "message": "事件狀態已成功更新！",
+        "data": {
+            "id": event_id,
+            "status": new_status
+        }
+    }), 200
+
+@app.route("/api/events/<int:event_id>", methods=["DELETE"])
 @app.route("/api/calendar/events/<int:event_id>", methods=["DELETE"])
 def api_delete_calendar_event(event_id):
     """刪除特定行事曆事件"""
