@@ -342,17 +342,26 @@ def get_expense_stats():
 
 # --- Deal Operations ---
 
-def save_deal_alert(title: str, link: str, source: str, matched_keyword: str):
+def save_deal_alert(title: str, link: str, source: str, matched_keyword: str, created_at: str = None):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute(
-            '''
-            INSERT INTO deal_alerts (title, link, source, matched_keyword)
-            VALUES (?, ?, ?, ?)
-            ''',
-            (title, link, source, matched_keyword)
-        )
+        if created_at:
+            cursor.execute(
+                '''
+                INSERT INTO deal_alerts (title, link, source, matched_keyword, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                ''',
+                (title, link, source, matched_keyword, created_at)
+            )
+        else:
+            cursor.execute(
+                '''
+                INSERT INTO deal_alerts (title, link, source, matched_keyword)
+                VALUES (?, ?, ?, ?)
+                ''',
+                (title, link, source, matched_keyword)
+            )
         conn.commit()
         deal_id = cursor.lastrowid
         conn.close()
@@ -361,13 +370,17 @@ def save_deal_alert(title: str, link: str, source: str, matched_keyword: str):
         conn.close()
         return None  # Duplicate link
 
-def get_recent_deals(limit=20, unnotified_only=False):
+def get_recent_deals(limit=20, unnotified_only=False, max_age_days=14):
     conn = get_db_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM deal_alerts"
+    query = "SELECT * FROM deal_alerts WHERE 1=1"
     params = []
     if unnotified_only:
-        query += " WHERE notified = 0"
+        query += " AND notified = 0"
+    if max_age_days:
+        query += " AND created_at >= datetime('now', '-' || ? || ' days')"
+        params.append(str(max_age_days))
+        
     query += " ORDER BY created_at DESC LIMIT ?"
     params.append(limit)
     
@@ -1155,3 +1168,56 @@ def get_quick_notes(limit=20):
     conn.close()
     return rows
 
+
+
+# =========================================================================
+# ⚙️ 系統設定與特惠清理擴充函數 (System Settings & Deal Cleanup Helpers)
+# =========================================================================
+
+def get_system_setting(key: str, default: str = "") -> str:
+    """獲取系統設定鍵值 (相容 key / val)"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT val FROM system_settings WHERE key = ?", (key,))
+        row = cursor.fetchone()
+        conn.close()
+        return row["val"] if row else default
+    except Exception:
+        return default
+
+def set_system_setting(key: str, value: str):
+    """設置系統設定鍵值 (相容 key / val)"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO system_settings (key, val, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(key) DO UPDATE SET
+                val = excluded.val,
+                updated_at = CURRENT_TIMESTAMP
+        """, (key, str(value)))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"[set_system_setting Error] {e}")
+        return False
+
+def cleanup_expired_deals(days_threshold: int = 14) -> int:
+    """清理超過天數之過期特惠"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            DELETE FROM deal_alerts 
+            WHERE created_at < datetime('now', '-' || ? || ' days')
+        """, (str(days_threshold),))
+        deleted = cursor.rowcount
+        conn.commit()
+        conn.close()
+        return deleted
+    except Exception as e:
+        print(f"[cleanup_expired_deals Error] {e}")
+        return 0

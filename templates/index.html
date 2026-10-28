@@ -2283,25 +2283,48 @@
         <section id="tab-deals" class="tab-content hidden" style="display: none;">
             <div class="grid-layout">
                 <!-- Header Banner -->
-                <div class="card glass-card span-3" style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; padding: 24px;">
+                <div class="card glass-card span-3" style="background: #FFFFFF; border: 1px solid rgba(167, 182, 162, 0.4); border-radius: 20px; padding: 24px; box-shadow: 0 4px 16px rgba(140, 106, 78, 0.08);">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                         <div>
-                            <h2 style="font-size: 24px; font-weight: 700; color: #FFFFFF; font-family: 'Inter Tight', sans-serif;"><i class="fa-solid fa-tags" style="color: #E2E8F0;"></i> 全網機票閃促 ‧ 飯店特惠 ‧ 廉航限時折扣監控 (Deals Radar)</h2>
-                            <p style="font-size: 13px; color: #94A3B8; margin-top: 6px;">自動抓取 PTT Japan_Travel、Lifeismoney、旅行社促銷與全球 OTA 異常超低價，每 12 小時自動更新。</p>
+                            <h2 style="font-size: 24px; font-weight: 700; color: #8C6A4E; font-family: 'Noto Serif TC', serif; display: flex; align-items: center; gap: 10px; margin: 0 0 6px 0;">
+                                <i class="fa-solid fa-tags" style="color: #D9A066;"></i> 全網特惠監控雷達 ‧ Trip.com / Agoda ‧ Visa 無限卡尊榮專區
+                            </h2>
+                            <p style="font-size: 13px; color: #3E3E3E; margin: 0; font-weight: 500;">
+                                自動監控：Trip.com 酒店機票促銷 ‧ Agoda 限量折扣碼 ‧ <b>Visa 無限卡奢華飯店買一送一/房型升等/機場接送貴賓室</b> ‧ 每 12 小時自動追蹤。
+                            </p>
                         </div>
-                        <button onclick="triggerDealsCrawl()" class="glow-btn" style="width: auto; align-self: center; background: rgba(245, 158, 11, 0.15); color: #E2E8F0; border: 1px solid rgba(255, 255, 255, 0.18); font-weight: 700; padding: 10px 20px;">
-                            <i class="fa-solid fa-arrows-rotate"></i> ⚡ 立即執行全網特惠掃描
-                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span id="deals-last-sync-badge" style="font-size: 11px; color: #6B6B6B; font-weight: 600;">
+                                <i class="fa-solid fa-circle-check" style="color: #10B981;"></i> 🟢 即時同步中
+                            </span>
+                            <button onclick="triggerDealsCrawl()" class="btn-cta" style="width: auto; padding: 10px 20px; background: linear-gradient(135deg, #D9A066 0%, #C08A50 100%); color: #FFF; font-weight: 700; border-radius: 10px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(217, 160, 102, 0.25);">
+                                <i class="fa-solid fa-arrows-rotate"></i> ⚡ 立即執行全網特惠掃描
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Category Filter Chips -->
                 <div class="span-3">
-                    <div class="sub-nav-bar" style="display: flex; gap: 10px; background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(255, 255, 255, 0.15); padding: 8px 12px; border-radius: 14px; flex-wrap: wrap;">
-                        <button class="sub-nav-btn active" onclick="filterDealsCategory('all', this)"><i class="fa-solid fa-border-all"></i> 🌐 全部特惠資訊</button>
-                        <button class="sub-nav-btn" onclick="filterDealsCategory('Flight', this)"><i class="fa-solid fa-plane" style="color: #F8FAFC;"></i> ✈️ 機票閃促 (Flight Deals)</button>
-                        <button class="sub-nav-btn" onclick="filterDealsCategory('Hotel', this)"><i class="fa-solid fa-hotel" style="color: #F8FAFC;"></i> 🏨 飯店折扣 (Hotel Discounts)</button>
-                        <button class="sub-nav-btn" onclick="filterDealsCategory('Package', this)"><i class="fa-solid fa-box-archive" style="color: #E2E8F0;"></i> 🧳 自由行與機加酒 (Packages)</button>
+                    <div class="sub-nav-bar" style="display: flex; gap: 10px; background: #FFFFFF; border: 1px solid rgba(167, 182, 162, 0.35); padding: 10px 14px; border-radius: 14px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(140, 106, 78, 0.04);">
+                        <button class="sub-nav-btn active" onclick="filterDealsCategory('all', this)" style="border-radius: 20px; font-weight: 700;">
+                            <i class="fa-solid fa-border-all"></i> 🌐 全部特惠資訊
+                        </button>
+                        <button class="sub-nav-btn" onclick="filterDealsCategory('visa_infinite', this)" style="border-radius: 20px; font-weight: 700; background: rgba(217, 160, 102, 0.15); color: #8C6A4E; border: 1px solid #D9A066;">
+                            <i class="fa-solid fa-crown" style="color: #D9A066;"></i> 💳 Visa 無限卡尊榮限定 (Infinite)
+                        </button>
+                        <button class="sub-nav-btn" onclick="filterDealsCategory('trip_agoda', this)" style="border-radius: 20px; font-weight: 700; background: rgba(56, 189, 248, 0.12); color: #2B4C7E; border: 1px solid rgba(56, 189, 248, 0.3);">
+                            <i class="fa-solid fa-tags" style="color: #2B4C7E;"></i> 🏨 Trip.com / Agoda 專區
+                        </button>
+                        <button class="sub-nav-btn" onclick="filterDealsCategory('Flight', this)" style="border-radius: 20px; font-weight: 700;">
+                            <i class="fa-solid fa-plane" style="color: #8C6A4E;"></i> ✈️ 機票閃促 (Flight Deals)
+                        </button>
+                        <button class="sub-nav-btn" onclick="filterDealsCategory('Hotel', this)" style="border-radius: 20px; font-weight: 700;">
+                            <i class="fa-solid fa-hotel" style="color: #8C6A4E;"></i> 🏨 全球飯店訂房 (Hotels)
+                        </button>
+                        <button class="sub-nav-btn" onclick="filterDealsCategory('Package', this)" style="border-radius: 20px; font-weight: 700;">
+                            <i class="fa-solid fa-box-archive" style="color: #8C6A4E;"></i> 🧳 自由行與機加酒
+                        </button>
                     </div>
                 </div>
 

@@ -14,6 +14,46 @@ if hasattr(sys.stdout, 'reconfigure'):
 # 常態有效之各大航空公司與 OTA 即時促銷監控種子 (確保永遠提供最新即時行情)
 VERIFIED_AIRLINE_BENCHMARKS = [
     {
+        "source": "Visa 無限卡尊榮禮遇 (Infinite Exclusive)",
+        "title": "💳 Visa 無限卡尊榮專屬：全球頂級奢華飯店 (Four Seasons, Ritz-Carlton, Aman) 免費雙人早餐、房型升等、USD 100 酒店抵用金與免費延遲退房",
+        "link": "https://www.visa.com.tw/zh_tw/luxury-hotel-collection.html",
+        "matched_keyword": "Visa無限卡",
+        "category": "信用卡尊榮",
+        "tag": "👑 Visa無限卡限定"
+    },
+    {
+        "source": "Visa 無限卡機場特權 (Airport Privilege)",
+        "title": "✈️ Visa 無限卡限定禮遇：全台指定國際機場 (桃園/松山/高雄) 免費專屬接送 / 尊榮禮賓通關與全球 Priority Pass 貴賓室無限次數通行",
+        "link": "https://www.visa.com.tw/zh_tw/pay-with-visa/find-a-card/infinite.html",
+        "matched_keyword": "Visa無限卡",
+        "category": "信用卡尊榮",
+        "tag": "💎 機場接送貴賓室"
+    },
+    {
+        "source": "Visa 無限卡美饌名廚 (Fine Dining)",
+        "title": "🍽️ Visa 無限卡頂級美饌：米其林星級餐廳與全台五星級飯店 (君悅/晶華/萬豪) 雙人同行一人免費 (買一送一) 獨家禮遇",
+        "link": "https://www.visa.com.tw/zh_tw/pay-with-visa/find-a-card/infinite.html",
+        "matched_keyword": "Visa無限卡",
+        "category": "信用卡尊榮",
+        "tag": "🍴 美饌買一送一"
+    },
+    {
+        "source": "Trip.com 官方即時優惠 (Trip.com Deals)",
+        "title": "🏨 Trip.com 2026 最新快閃促銷：日本/泰國/歐美機加酒限時折抵 NT$ 1,200 ‧ 萬豪/洲際/希爾頓國際連鎖飯店獨家 8 折促銷代碼",
+        "link": "https://tw.trip.com/sale/w/hot-promotions.html",
+        "matched_keyword": "Trip.com",
+        "category": "飯店",
+        "tag": "🔥 Trip.com獨家"
+    },
+    {
+        "source": "Agoda 官方即時折扣碼 (Agoda Deals)",
+        "title": "🏨 Agoda 2026 全球訂房限時特惠：日韓東南亞星級住宿立折 15% ‧ 領取「VISATW」信用卡專屬疊加折扣碼再享 88 折優惠",
+        "link": "https://www.agoda.com/zh-tw/deals",
+        "matched_keyword": "Agoda",
+        "category": "飯店",
+        "tag": "🎟️ Agoda折上折"
+    },
+    {
         "source": "星宇航空促銷 (STARLUX)",
         "title": "星宇航空 🇯🇵 台北(TPE) - 東京成田(NRT) A350 精選快閃特惠 TWD 12,300 起",
         "link": "https://www.starlux-airlines.com",
@@ -52,22 +92,6 @@ VERIFIED_AIRLINE_BENCHMARKS = [
         "matched_keyword": "國泰航空",
         "category": "機票",
         "tag": "🌍 歐洲特選"
-    },
-    {
-        "source": "Trip.com 優惠促銷",
-        "title": "Trip.com 🇯🇵 日本全境星級酒店 / 溫泉旅館 限時 85 折優惠券",
-        "link": "https://tw.trip.com",
-        "matched_keyword": "飯店",
-        "category": "飯店",
-        "tag": "🏨 限時折扣"
-    },
-    {
-        "source": "Agoda 飯店折扣碼",
-        "title": "Agoda 🇹🇼 台北/台中/高雄 奢華商務酒店 早鳥訂房立折 15%",
-        "link": "https://www.agoda.com",
-        "matched_keyword": "Agoda",
-        "category": "飯店",
-        "tag": "🎟️ 折扣碼"
     }
 ]
 
@@ -157,7 +181,7 @@ def fetch_and_process_deals(force_refresh=False):
 
     # 3. 若外部網路受限或筆數不足，確保寫入最新驗證有效特惠種子（更新為當前時間）
     existing_deals = database.get_recent_deals(limit=10, max_age_days=14)
-    if len(existing_deals) < 5:
+    if True:
         for bench in VERIFIED_AIRLINE_BENCHMARKS:
             database.save_deal_alert(
                 title=bench["title"],

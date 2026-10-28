@@ -273,6 +273,23 @@ window.loadDeals = function(filterCategory = 'all', forceRefresh = false) {
                 const src = (d.source || '').toLowerCase();
                 const tit = (d.title || '').toLowerCase();
                 const target = filterCategory.toLowerCase();
+                
+                // 智慧分類比對
+                if (target === 'flight') {
+                    return kw.includes('機票') || src.includes('航空') || tit.includes('機票') || tit.includes('航');
+                }
+                if (target === 'hotel') {
+                    return kw.includes('飯店') || kw.includes('住宿') || src.includes('飯店') || tit.includes('酒店') || tit.includes('旅館') || tit.includes('住宿') || tit.includes('訂房') || src.includes('agoda') || src.includes('trip');
+                }
+                if (target === 'trip_agoda') {
+                    return src.includes('trip') || tit.includes('trip') || src.includes('agoda') || tit.includes('agoda');
+                }
+                if (target === 'visa_infinite') {
+                    return kw.includes('visa') || src.includes('visa') || tit.includes('visa') || tit.includes('無限卡') || tit.includes('尊榮') || tit.includes('貴賓室');
+                }
+                if (target === 'package') {
+                    return kw.includes('機加酒') || tit.includes('自由行') || tit.includes('行程') || tit.includes('機加酒');
+                }
                 return kw.includes(target) || src.includes(target) || tit.includes(target);
             });
 
@@ -283,24 +300,34 @@ window.loadDeals = function(filterCategory = 'all', forceRefresh = false) {
                 const timeAgoHours = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60)));
                 const freshnessTag = timeAgoHours <= 12 ? '🔥 12h內即時' : (timeAgoHours <= 48 ? '⚡ 最新情報' : '🟢 即時有效');
                 
+                const isVisaInfinite = (d.source && d.source.includes('Visa')) || (d.title && (d.title.includes('Visa') || d.title.includes('無限卡')));
+                const isTripAgoda = (d.source && (d.source.includes('Trip') || d.source.includes('Agoda'))) || (d.title && (d.title.includes('Trip') || d.title.includes('Agoda')));
+                
+                let cardBorder = isVisaInfinite ? '2px solid #D9A066' : (isTripAgoda ? '1px solid #38BDF8' : '1px solid rgba(167, 182, 162, 0.4)');
+                let cardBg = isVisaInfinite ? 'linear-gradient(135deg, #FFFFFF 0%, #FAF6F0 100%)' : '#FFFFFF';
+                let badgeBg = isVisaInfinite ? 'rgba(217, 160, 102, 0.2)' : 'rgba(140, 106, 78, 0.12)';
+                let badgeColor = isVisaInfinite ? '#8C6A4E' : '#8C6A4E';
+
                 html += `
-                    <div style="background: rgba(18, 20, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; transition: all 0.2s ease;" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)'">
+                    <div style="background: ${cardBg}; border: ${cardBorder}; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; box-shadow: 0 4px 16px rgba(140, 106, 78, 0.08); transition: all 0.25s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(140, 106, 78, 0.14)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(140, 106, 78, 0.08)';">
                         <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span class="badge" style="background: rgba(255,255,255,0.08); color: #FFFFFF; font-size: 11px;">${d.source || '全網特惠'}</span>
-                                <span style="font-size: 11px; color: #38BDF8; font-weight: 700; background: rgba(56, 189, 248, 0.12); padding: 2px 7px; border-radius: 6px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                                <span class="badge" style="background: ${badgeBg}; color: ${badgeColor}; font-size: 11px; font-weight: 800; border-radius: 6px; padding: 3px 8px;">
+                                    ${isVisaInfinite ? '👑 ' : ''}${d.source || '全網特惠'}
+                                </span>
+                                <span style="font-size: 11px; color: ${isVisaInfinite ? '#D97706' : '#2B4C7E'}; font-weight: 700; background: rgba(140, 106, 78, 0.08); padding: 2px 7px; border-radius: 6px;">
                                     ${freshnessTag}
                                 </span>
                             </div>
-                            <h4 style="font-size: 15px; color: #FFF; font-weight: 700; margin-bottom: 6px; line-height: 1.4;">${d.title}</h4>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11px; color: #94A3B8;">
-                                <span>🏷️ 關鍵字：${d.matched_keyword || '閃促'}</span>
+                            <h4 style="font-size: 15px; color: #3E3E3E; font-weight: 700; margin-bottom: 6px; line-height: 1.45; font-family: 'Noto Serif TC', serif;">${d.title}</h4>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11px; color: #6B6B6B;">
+                                <span>🏷️ 標籤：<b>${d.matched_keyword || '即時促銷'}</b></span>
                                 <span>🕒 ${d.created_at ? d.created_at.slice(0, 16) : '剛剛更新'}</span>
                             </div>
                         </div>
-                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
-                            <a href="${d.link}" target="_blank" rel="noopener noreferrer" class="glow-btn" style="width: 100%; text-align: center; text-decoration: none; padding: 8px; font-size: 12px;">
-                                官網特惠詳情 / 立即搶購 ↗
+                        <div style="border-top: 1px solid rgba(140, 106, 78, 0.12); padding-top: 12px;">
+                            <a href="${d.link}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; text-align: center; text-decoration: none; padding: 9px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; background: ${isVisaInfinite ? 'linear-gradient(135deg, #D9A066 0%, #C08A50 100%)' : '#8C6A4E'}; color: #FFFFFF; box-shadow: 0 2px 8px rgba(140, 106, 78, 0.15); transition: opacity 0.2s ease;">
+                                ${isVisaInfinite ? '👑 查看 Visa 無限卡尊榮權益 ↗' : '查看優惠詳情 / 立即前往 ↗'}
                             </a>
                         </div>
                     </div>
