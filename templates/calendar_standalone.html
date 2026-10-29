@@ -9,6 +9,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PWA & Offline Support -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#8C6A4E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
         :root {
             --bg-base: #FAFAFA;
@@ -36,6 +41,63 @@
             --status-completed-bg: rgba(244, 241, 237, 0.6);
             --status-completed-border: #10B981;
             --status-completed-text: #94A3B8;
+        }
+
+
+        /* 離線自主運作與連線狀態標籤 */
+        .net-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            user-select: none;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        .net-status-badge.online {
+            background: #ECFDF5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+        }
+        .net-status-badge.offline {
+            background: #FFFBEB;
+            color: #B45309;
+            border: 1px solid #FDE68A;
+            animation: pulseOfflineWarning 2s infinite ease-in-out;
+        }
+        .net-status-badge.pending {
+            background: #EFF6FF;
+            color: #1E40AF;
+            border: 1px solid #BFDBFE;
+        }
+        .net-status-badge.syncing {
+            background: #F3E8FF;
+            color: #6B21A8;
+            border: 1px solid #E9D5FF;
+        }
+        .status-indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+            display: inline-block;
+        }
+        .pending-count-pill {
+            background: #EF4444;
+            color: #FFF;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 10px;
+            margin-left: 2px;
+        }
+        @keyframes pulseOfflineWarning {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.97); }
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -374,6 +436,12 @@
 
         <!-- 視角與功能按鈕 -->
         <div style="display: flex; align-items: center; gap: 14px;">
+            <!-- 離線自主運作 / 雲端連線狀態徽章 -->
+            <div id="cal-network-status-badge" class="net-status-badge online" onclick="window.CalendarOfflineEngine && window.CalendarOfflineEngine.manualSync()" title="點擊檢查狀態或手動同步">
+                <span class="status-indicator-dot"></span>
+                <span id="cal-network-status-text"><i class="fa-solid fa-cloud-check"></i> 雲端連線正常</span>
+                <span id="cal-offline-pending-badge" style="display:none;" class="pending-count-pill">0</span>
+            </div>
             <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">視角切換:</span>
                 <select id="standalone-perspective-select" onchange="changePerspective(this.value)" class="btn-outline" style="padding: 6px 12px; background: #FFF;">
@@ -646,7 +714,8 @@
         </div>
     </div>
 
-    <!-- 獨立版 Calendar 驅動邏輯腳本 -->
+    <!-- 獨立版 Calendar 驅動邏輯腳本 (離線自主核心優先加載) -->
+    <script src="/static/js/plugins/calendar_offline_engine.js"></script>
     <script src="/static/js/plugins/calendar_dnd_plugin.js"></script>
     <script src="/static/js/plugins/calendar_view_plugin.js"></script>
     <script src="/static/js/plugins/calendar_tag_filter_plugin.js"></script>

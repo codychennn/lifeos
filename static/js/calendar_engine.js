@@ -85,53 +85,110 @@ window.ToastNotification = {
 // ========================================================
 window.CalendarApiService = {
     async fetchEvents(monthStr, perspective = 'admin') {
-        const url = `/api/calendar/events?month=${monthStr}&perspective=${perspective}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('無法載入行事曆事件');
-        return res.json();
+        if (!navigator.onLine && window.CalendarOfflineEngine) {
+            console.log('[CalendarApiService] 離線狀態：直接自離線資料庫載入事件');
+            const localEvents = window.CalendarOfflineEngine.getEvents(monthStr, perspective);
+            return { status: 'success', data: localEvents, offline: true };
+        }
+        try {
+            const url = `/api/calendar/events?month=${monthStr}&perspective=${perspective}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('無法載入行事曆事件');
+            const data = await res.json();
+            if (data.status === 'success' && window.CalendarOfflineEngine) {
+                window.CalendarOfflineEngine.saveEventsToMaster(data.data || []);
+            }
+            return data;
+        } catch (err) {
+            if (window.CalendarOfflineEngine) {
+                console.warn('[CalendarApiService] 網路請求失敗，自動轉向離線快取引擎:', err.message);
+                const localEvents = window.CalendarOfflineEngine.getEvents(monthStr, perspective);
+                return { status: 'success', data: localEvents, offline: true };
+            }
+            throw err;
+        }
     },
 
     async patchStatus(eventId, newStatus) {
         const cleanId = String(eventId).replace('evt_', '');
-        const res = await fetch(`/api/events/${cleanId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus })
-        });
-        const data = await res.json();
-        if (!res.ok || data.status === 'error') {
-            throw new Error(data.message || '更新狀態失敗');
+        if (!navigator.onLine && window.CalendarOfflineEngine) {
+            window.CalendarOfflineEngine.enqueuePatchStatus(cleanId, newStatus);
+            return { status: 'success', message: '已於離線模式標記狀態（已加入同步佇列）', offline: true };
         }
-        return data;
+        try {
+            const res = await fetch(`/api/events/${cleanId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            const data = await res.json();
+            if (!res.ok || data.status === 'error') {
+                throw new Error(data.message || '更新狀態失敗');
+            }
+            return data;
+        } catch (err) {
+            if (window.CalendarOfflineEngine) {
+                console.warn('[CalendarApiService] 網路中斷，轉存離線同步佇列');
+                window.CalendarOfflineEngine.enqueuePatchStatus(cleanId, newStatus);
+                return { status: 'success', message: '已於離線模式標記狀態（已加入同步佇列）', offline: true };
+            }
+            throw err;
+        }
     },
 
     async deleteEvent(eventId) {
         const cleanId = String(eventId).replace('evt_', '');
-        const res = await fetch(`/api/events/${cleanId}`, {
-            method: 'DELETE'
-        });
-        const data = await res.json();
-        if (!res.ok || data.status === 'error') {
-            throw new Error(data.message || '刪除事件失敗');
+        if (!navigator.onLine && window.CalendarOfflineEngine) {
+            window.CalendarOfflineEngine.enqueueDelete(cleanId);
+            return { status: 'success', message: '已於離線模式刪除事件（已加入同步佇列）', offline: true };
         }
-        return data;
+        try {
+            const res = await fetch(`/api/events/${cleanId}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (!res.ok || data.status === 'error') {
+                throw new Error(data.message || '刪除事件失敗');
+            }
+            return data;
+        } catch (err) {
+            if (window.CalendarOfflineEngine) {
+                console.warn('[CalendarApiService] 網路中斷，轉存離線同步佇列');
+                window.CalendarOfflineEngine.enqueueDelete(cleanId);
+                return { status: 'success', message: '已於離線模式刪除事件（已加入同步佇列）', offline: true };
+            }
+            throw err;
+        }
     },
 
     async updateDate(eventId, targetDate) {
         const cleanId = String(eventId).replace('evt_', '');
-        const res = await fetch(`/api/calendar/events/${cleanId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                meeting_date: targetDate,
-                end_date: targetDate
-            })
-        });
-        const data = await res.json();
-        if (!res.ok || data.status === 'error') {
-            throw new Error(data.message || '改期失敗');
+        if (!navigator.onLine && window.CalendarOfflineEngine) {
+            window.CalendarOfflineEngine.enqueueUpdateDate(cleanId, targetDate);
+            return { status: 'success', message: '已於離線模式改期（已加入同步佇列）', offline: true };
         }
-        return data;
+        try {
+            const res = await fetch(`/api/calendar/events/${cleanId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    meeting_date: targetDate,
+                    end_date: targetDate
+                })
+            });
+            const data = await res.json();
+            if (!res.ok || data.status === 'error') {
+                throw new Error(data.message || '改期失敗');
+            }
+            return data;
+        } catch (err) {
+            if (window.CalendarOfflineEngine) {
+                console.warn('[CalendarApiService] 網路中斷，轉存離線同步佇列');
+                window.CalendarOfflineEngine.enqueueUpdateDate(cleanId, targetDate);
+                return { status: 'success', message: '已於離線模式改期（已加入同步佇列）', offline: true };
+            }
+            throw err;
+        }
     }
 };
 
@@ -199,6 +256,11 @@ window.CalEngine = {
     },
 
     loadMilestones: function() {
+        if (!navigator.onLine && window.CalendarOfflineEngine) {
+            const list = window.CalendarOfflineEngine.getOfflineMilestones();
+            this.renderMilestonesList(list);
+            return;
+        }
         fetch('/api/calendar/milestones/countdown')
         .then(res => res.json())
         .then(data => {
@@ -206,7 +268,14 @@ window.CalEngine = {
                 this.renderMilestonesList(data.data || []);
             }
         })
-        .catch(e => console.error("Milestones load error:", e));
+        .catch(e => {
+            if (window.CalendarOfflineEngine) {
+                const list = window.CalendarOfflineEngine.getOfflineMilestones();
+                this.renderMilestonesList(list);
+            } else {
+                console.error("Milestones load error:", e);
+            }
+        });
     },
 
     renderMilestonesList: function(milestones) {
@@ -798,6 +867,20 @@ window.handleEventFormSubmit = function(e) {
         status: 'pending'
     };
 
+    if (!navigator.onLine && window.CalendarOfflineEngine) {
+        if (isEdit) {
+            window.CalendarOfflineEngine.enqueueUpdate(id, payload);
+            window.ToastNotification.show('已於離線模式更新事件（已排入背景同步佇列）', 'success');
+        } else {
+            window.CalendarOfflineEngine.enqueueCreate(payload);
+            window.ToastNotification.show('已於離線模式建立事件（將於網路連線後自動同步）', 'success');
+        }
+        closeQuickAddModal();
+        window.CalEngine.loadEvents();
+        window.CalEngine.loadMilestones();
+        return;
+    }
+
     const url = isEdit ? `/api/calendar/events/${id}` : '/api/calendar/events';
     const method = isEdit ? 'PUT' : 'POST';
 
@@ -817,7 +900,22 @@ window.handleEventFormSubmit = function(e) {
             window.ToastNotification.show('儲存失敗: ' + (data.message || '未知錯誤'), 'error');
         }
     })
-    .catch(err => window.ToastNotification.show('網絡請求錯誤: ' + err, 'error'));
+    .catch(err => {
+        if (window.CalendarOfflineEngine) {
+            if (isEdit) {
+                window.CalendarOfflineEngine.enqueueUpdate(id, payload);
+                window.ToastNotification.show('網路連線中斷，已轉為離線模式更新事件！', 'warning');
+            } else {
+                window.CalendarOfflineEngine.enqueueCreate(payload);
+                window.ToastNotification.show('網路連線中斷，已轉為離線模式儲存事件！', 'warning');
+            }
+            closeQuickAddModal();
+            window.CalEngine.loadEvents();
+            window.CalEngine.loadMilestones();
+        } else {
+            window.ToastNotification.show('網絡請求錯誤: ' + err, 'error');
+        }
+    });
 };
 
 // 分類篩選連動

@@ -1,7 +1,7 @@
 import os
 import sys
 import datetime
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory, make_response
 
 import config
 import database
@@ -711,6 +711,18 @@ def api_remove_from_my_travel_list(item_id):
 # 📅 企業級全功能行事曆 API (Unified Calendar & Events Architecture)
 # 支援統一 JSON Schema, 4大標籤分類, 視角連動, 里程碑倒數, 外部 iCal 同步
 # =========================================================================
+
+@app.route("/sw.js")
+def service_worker():
+    resp = make_response(send_from_directory("static", "sw.js"))
+    resp.headers["Content-Type"] = "application/javascript"
+    resp.headers["Service-Worker-Allowed"] = "/"
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return resp
+
+@app.route("/manifest.json")
+def manifest_json():
+    return send_from_directory("static", "manifest.json", mimetype="application/manifest+json")
 
 @app.route("/calendar")
 def standalone_calendar_page():
