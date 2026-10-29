@@ -717,6 +717,9 @@ window.loadViralSpots = function(query = "", tag = "ALL") {
 window.triggerViralSpotSearch = function() {
     const query = document.getElementById('viral-search-query')?.value || '';
     const tag = document.getElementById('viral-filter-tag')?.value || 'ALL';
+    if (query && window.LifeOSMemoryEngine) {
+        window.LifeOSMemoryEngine.addEntry('viral_search', query);
+    }
     loadViralSpots(query, tag);
 };
 
@@ -2132,6 +2135,10 @@ window.openMeetingModal = function(defaultDate = null) {
     repCountInput.style.opacity = '0.5';
 
     modal.classList.add('active');
+    if (window.LifeOSMemoryEngine) {
+        window.LifeOSMemoryEngine.renderInlineChips('m-title-history-chips', 'm-title', 'meeting_title');
+        window.LifeOSMemoryEngine.renderInlineChips('m-site-history-chips', 'm-site-name', 'meeting_site');
+    }
     document.getElementById('m-title')?.focus();
 };
 
@@ -2400,6 +2407,13 @@ window.submitMeetingForm = function(e) {
     const isEdit = Boolean(meetingId);
     const url = isEdit ? `/api/meetings/${meetingId}` : '/api/meetings';
     const method = isEdit ? 'PUT' : 'POST';
+
+    if (window.LifeOSMemoryEngine) {
+        if (title) window.LifeOSMemoryEngine.addEntry('meeting_title', title);
+        if (site_name) window.LifeOSMemoryEngine.addEntry('meeting_site', site_name);
+        if (location) window.LifeOSMemoryEngine.addEntry('meeting_location', location);
+        if (attendee_roles) window.LifeOSMemoryEngine.addEntry('meeting_attendees', attendee_roles);
+    }
 
     const payload = {
         title, site_name, meeting_date, meeting_time, location, attendee_roles, notes

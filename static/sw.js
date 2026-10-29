@@ -15,7 +15,8 @@ const PRECACHE_URLS = [
     '/static/js/plugins/calendar_tag_filter_plugin.js',
     '/static/js/plugins/conflict_detector_plugin.js',
     '/static/js/plugins/modal_context_plugin.js',
-    '/static/js/plugins/timezone_engine_plugin.js'
+    '/static/js/plugins/timezone_engine_plugin.js',
+    '/static/js/plugins/lifeos_smart_memory_engine.js'
 ];
 
 // 安裝 Service Worker 並預先載入關鍵離線資源

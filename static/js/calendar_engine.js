@@ -839,7 +839,13 @@ window.openQuickAddModal = function(defaultDate = null) {
     document.getElementById('fe-notes').value = '';
 
     const modal = document.getElementById('modal-quick-add');
-    if (modal) modal.classList.add('active');
+    if (modal) {
+        modal.classList.add('active');
+        if (window.LifeOSMemoryEngine) {
+            window.LifeOSMemoryEngine.renderInlineChips('fe-title-history-chips', 'fe-title', 'cal_event_title');
+            window.LifeOSMemoryEngine.renderInlineChips('fe-site-history-chips', 'fe-site-name', 'cal_site_name');
+        }
+    }
 };
 
 window.closeQuickAddModal = function() {
@@ -866,6 +872,12 @@ window.handleEventFormSubmit = function(e) {
         notes: document.getElementById('fe-notes').value,
         status: 'pending'
     };
+
+    if (window.LifeOSMemoryEngine) {
+        if (payload.title) window.LifeOSMemoryEngine.addEntry('cal_event_title', payload.title);
+        if (payload.site_name) window.LifeOSMemoryEngine.addEntry('cal_site_name', payload.site_name);
+        if (payload.location) window.LifeOSMemoryEngine.addEntry('cal_location', payload.location);
+    }
 
     if (!navigator.onLine && window.CalendarOfflineEngine) {
         if (isEdit) {

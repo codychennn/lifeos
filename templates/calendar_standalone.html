@@ -614,6 +614,7 @@
                 <div>
                     <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">事件主題 / 標題 *</label>
                     <input type="text" id="fe-title" required placeholder="例：TAK Site Walk 或 飛往東京羽田" class="input-modern" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                    <div id="fe-title-history-chips" class="search-history-chips-row" style="margin: 6px 0 2px 0;"></div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -630,6 +631,7 @@
                     <div>
                         <label style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">專案工地 / 類別名稱</label>
                         <input type="text" id="fe-site-name" value="Micron F10E" style="width: 100%; padding: 8px 12px; border: 1px solid rgba(140, 106, 78, 0.3); border-radius: 8px; font-size: 13px;">
+                        <div id="fe-site-history-chips" class="search-history-chips-row" style="margin: 6px 0 2px 0;"></div>
                     </div>
                 </div>
 
@@ -722,6 +724,7 @@
     <script src="/static/js/plugins/modal_context_plugin.js"></script>
     <script src="/static/js/plugins/timezone_engine_plugin.js"></script>
     <script src="/static/js/plugins/conflict_detector_plugin.js"></script>
+    <script src="/static/js/plugins/lifeos_smart_memory_engine.js"></script>
     <script src="/static/js/calendar_engine.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {

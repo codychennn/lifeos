@@ -474,6 +474,8 @@
                             <i class="fa-solid fa-magnifying-glass"></i> 搜尋智庫
                         </button>
                     </div>
+                    <!-- 智慧搜尋記憶與快選標籤列 -->
+                    <div id="viral-search-history-chips" class="search-history-chips-row" style="margin-top: -4px; margin-bottom: 14px;"></div>
 
                     
                     <div id="viral-spots-results-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
@@ -2713,6 +2715,7 @@
         </div>
     </div>
 
+    <script src="/static/js/plugins/lifeos_smart_memory_engine.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     <!-- Flight Price Alert Modal -->
@@ -2837,6 +2840,7 @@
                     <div>
                         <label style="font-size: 12px; color: #94A3B8; display: block; margin-bottom: 6px;">專案工地名稱 *</label>
                         <input type="text" id="m-site-name" list="site-name-datalist" class="input-modern" placeholder="例：Micron F10E" required style="width: 100%; background: rgba(10, 12, 16, 0.95); border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 8px; padding: 8px 12px; font-size: 13px;">
+                        <div id="m-site-history-chips" class="search-history-chips-row" style="margin: 6px 0 2px 0;"></div>
                         <datalist id="site-name-datalist">
                             <option value="Micron F10E">
                             <option value="A案大樓新建工程">
